@@ -29,7 +29,19 @@ Khi người dùng hoặc chuyên gia hỏi về bất kỳ tính năng kỹ thu
   * **Điều 23 Luật Giao dịch điện tử 2023**: Chữ ký số và xác thực điện tử an toàn.
   * **Điều 117 Bộ luật Dân sự 2015**: Xác định chính xác chủ thể có đầy đủ năng lực hành vi dân sự tham gia giao dịch.
 
-### 2.2. Phân loại 3 nhóm dữ liệu trong kho di sản
+### 2.2. Định danh điện tử công dân eKYC FPT.AI (CCCD gắn chip & Sinh trắc học khuôn mặt)
+* **Kỹ thuật**: 
+  * AI OCR trích xuất thông tin thẻ Căn cước công dân gắn chip (12 số, họ tên, ngày sinh, hạn sử dụng).
+  * Phát hiện gian lận (Tamper Detection: cắt góc, tẩy xóa số, dán đè).
+  * Kiểm tra thực thể sống (Liveness Detection) và đối soát khuôn mặt chân dung với ảnh selfie (Face Matching $\ge 80\%$).
+  * Cơ chế định danh kép: Áp dụng bắt buộc khi Chủ kho lập di sản, khi Executor nộp claim và khi Beneficiary nhận quyền giải mã di sản.
+* **Căn cứ pháp lý**:
+  * **Khoản 3 Điều 23 Luật Giao dịch điện tử 2023**: Phương thức định danh và xác thực điện tử cho cá nhân trong các giao dịch có giá trị tài sản.
+  * **Điều 117 Bộ luật Dân sự 2015**: Điều kiện có hiệu lực của giao dịch dân sự (năng lực chủ thể phù hợp).
+  * **Nghị định 13/2023/NĐ-CP**: Bảo vệ dữ liệu cá nhân nhạy cảm (dữ liệu sinh trắc học và số định danh cá nhân).
+  * **Quyết định 2345/QĐ-NHNN**: Tiêu chuẩn an toàn sinh trắc học (Match score $\ge 80\%$, Liveness check chống Deepfake).
+
+### 2.3. Phân loại 3 nhóm dữ liệu trong kho di sản
 * **Nhóm 1 - Tài sản có giá trị kinh tế** (Private Key ví crypto, tài khoản thanh toán, API keys):
   * **Điều 105 & Điều 115 BLDS 2015**: Thuộc đối tượng "Tài sản" và "Quyền tài sản", được quyền chuyển giao cho người thừa kế.
 * **Nhóm 2 - Kỷ vật số tinh thần** (Album ảnh gia đình, video kỷ niệm, thư từ lưu niệm):
@@ -37,7 +49,7 @@ Khi người dùng hoặc chuyên gia hỏi về bất kỳ tính năng kỹ thu
 * **Nhóm 3 - Bí mật đời tư tiêu hủy vĩnh viễn (Secure Erase / Cryptographic Burn)**:
   * **Điều 25 & Điều 38 BLDS 2015**: Quyền nhân thân, quyền bất khả xâm phạm về đời sống riêng tư và bí mật cá nhân. Hệ thống tự động xóa bỏ khóa giải mã khi mở kho, ngăn chặn lộ bí mật người quá cố.
 
-### 2.3. Giải pháp thay thế di chúc điện tử: Bộ 3 Chế định Hợp đồng Hợp pháp
+### 2.4. Giải pháp thay thế di chúc điện tử: Bộ 3 Chế định Hợp đồng Hợp pháp
 Vì di chúc điện tử chưa được quy định hình thức công chứng cụ thể, LegacyVault hoạt động dựa trên 3 chế định hợp đồng dân sự vững chắc:
 1. **Giao dịch dân sự có điều kiện phát sinh (Điều 120 BLDS 2015)**:
    * Cơ chế **Dead Man's Switch (DMS)**: Hợp đồng chuyển giao quyền tiếp cận thông tin chỉ phát sinh hiệu lực khi điều kiện tử tuất hoặc mất tích được chứng minh hợp pháp.
@@ -46,19 +58,19 @@ Vì di chúc điện tử chưa được quy định hình thức công chứng 
 3. **Hợp đồng ủy quyền (Điều 562 BLDS 2015)**:
    * Người thi hành (Executor) nhận ủy quyền hợp pháp để đại diện nộp hồ sơ chứng tử và giám sát quá trình bàn giao.
 
-### 2.4. Lưu trữ đám mây Cloudflare R2 & Tem thời gian RFC 3161 TSA
+### 2.5. Lưu trữ đám mây Cloudflare R2 & Tem thời gian RFC 3161 TSA
 * **Kỹ thuật**: Mã hóa đối xứng Envelope AES-256-GCM, lưu trữ Private S3 trên Cloudflare R2, gắn mã băm SHA-256 và tem thời gian RFC 3161 TSA.
 * **Căn cứ pháp lý**:
   * **Điều 10, 11, 12, 13, 15 Luật Giao dịch điện tử 2023**: Công nhận thông điệp dữ liệu có giá trị như văn bản, giá trị như bản gốc nếu đảm bảo tính toàn vẹn thông tin và khả năng truy cập để tham chiếu.
   * **Điều 95 Bộ luật Tố tụng Dân sự 2015**: Thông điệp dữ liệu điện tử có giá trị là chứng cứ gốc khi được bảo đảm tính toàn vẹn và có dấu vết thời gian xác thực.
 
-### 2.5. Phân mảnh bí mật Shamir (2/3 Threshold) & Tuân thủ Tòa án
+### 2.6. Phân mảnh bí mật Shamir (2/3 Threshold) & Tuân thủ Tòa án
 * **Kỹ thuật**: Chia khóa bí mật thành 3 mảnh (Mảnh 1: Hệ thống, Mảnh 2: Verifier pháp lý, Mảnh 3: Executor). Cần 2/3 mảnh để giải mã.
 * **Căn cứ pháp lý**:
   * **Điều 106 Bộ luật Tố tụng Dân sự 2015**: Khi có Quyết định/Lệnh của Tòa án nhân dân hoặc Cơ quan điều tra có thẩm quyền, hệ thống phối hợp Mảnh 1 và Mảnh 2 để phục hồi dữ liệu chứng cứ theo yêu cầu của pháp luật.
   * **Điều 114, 124, 126 BLTTDS 2015**: Áp dụng biện pháp khẩn cấp tạm thời (Cờ `Legal_Frozen`) đóng băng tài sản ngay lập tức nếu có thụ lý tranh chấp thừa kế.
 
-### 2.6. Chống gian lận: Khóa thời gian Time-Lock 30 ngày & 1-Click Cancel
+### 2.7. Chống gian lận: Khóa thời gian Time-Lock 30 ngày & 1-Click Cancel
 * **Kỹ thuật**: Bắt buộc trì hoãn mở kho từ 14 đến 30 ngày khi nhận Claim tử tuất, phát email cảnh báo đỏ khẩn cấp có liên kết One-Click Cancel.
 * **Căn cứ pháp lý**:
   * **Điều 124 BLDS 2015**: Phòng chống giao dịch dân sự vô hiệu do giả tạo (báo tử giả nhằm chiếm đoạt tài sản).

@@ -19,6 +19,7 @@ import { EkycTestbench } from '@/features/ekyc-verification/EkycTestbench';
 import { RescueTimeLockTestbench } from '@/features/rescue-timelock/RescueTimeLockTestbench';
 import { GoogleOidcTestbench } from '@/features/auth-oidc/GoogleOidcTestbench';
 import { FptMarketplaceTestbench } from '@/features/fpt-marketplace/FptMarketplaceTestbench';
+import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 
 export const TestbenchPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('envelope');
@@ -47,15 +48,17 @@ export const TestbenchPage: React.FC = () => {
 
         {/* Tab Content Display */}
         <div className="transition-all duration-300">
-          {activeTab === 'envelope' && <CryptoEnvelopeTestbench />}
-          {activeTab === 'shamir' && <ShamirTestbench />}
-          {activeTab === 'r2' && <R2StorageTestbench />}
-          {activeTab === 'sepay' && <SePayTestbench />}
-          {activeTab === 'mailkit' && <MailKitTestbench />}
-          {activeTab === 'ekyc' && <EkycTestbench onNavigateToMarketplace={() => setActiveTab('fpt-marketplace')} />}
-          {activeTab === 'timelock' && <RescueTimeLockTestbench />}
-          {activeTab === 'oidc' && <GoogleOidcTestbench />}
-          {activeTab === 'fpt-marketplace' && <FptMarketplaceTestbench />}
+          <ErrorBoundary fallbackTitle="Lỗi hiển thị thành phần thử nghiệm">
+            {activeTab === 'envelope' && <CryptoEnvelopeTestbench />}
+            {activeTab === 'shamir' && <ShamirTestbench />}
+            {activeTab === 'r2' && <R2StorageTestbench />}
+            {activeTab === 'sepay' && <SePayTestbench />}
+            {activeTab === 'mailkit' && <MailKitTestbench />}
+            {activeTab === 'ekyc' && <EkycTestbench onNavigateToMarketplace={() => setActiveTab('fpt-marketplace')} />}
+            {activeTab === 'timelock' && <RescueTimeLockTestbench />}
+            {activeTab === 'oidc' && <GoogleOidcTestbench />}
+            {activeTab === 'fpt-marketplace' && <FptMarketplaceTestbench />}
+          </ErrorBoundary>
         </div>
 
         {/* Legal Dropzone at bottom for testing standalone hashing */}

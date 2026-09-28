@@ -315,16 +315,17 @@ export const GoogleOidcTestbench: React.FC = () => {
 
           {/* Vùng Render Nút Google GIS Chính Thức */}
           <div className="flex flex-col items-center justify-center p-6 bg-[#FAF9F5] border border-[#E8DCC6] rounded-xl space-y-3">
-            <div ref={googleBtnContainerRef} id="google-signin-button" className="min-h-[44px]">
-              {!isGisReady && (
-                <div className="text-center space-y-2">
-                  <div className="p-3 bg-[#FBF7EE] border border-[#E8DCC6] rounded-lg text-xs text-[#8C682D] max-w-md">
-                    <AlertCircle className="w-4 h-4 inline mr-1 text-[#B88E4C]" />
-                    Chưa kích hoạt nút Google. Vui lòng dán <strong>Google Client ID</strong> vào ô trên và bấm <strong>"Kích Hoạt Nút Google"</strong> để đăng nhập tài khoản thật.
-                  </div>
+            {!isGisReady && (
+              <div className="text-center space-y-2">
+                <div className="p-3 bg-[#FBF7EE] border border-[#E8DCC6] rounded-lg text-xs text-[#8C682D] max-w-md">
+                  <AlertCircle className="w-4 h-4 inline mr-1 text-[#B88E4C]" />
+                  Đang khởi tạo dịch vụ Google Identity Services... Nếu chưa hiện nút, vui lòng bấm <strong>"Kích Hoạt Nút Google"</strong>.
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Container thuần túy không có React children để tránh xung đột DOM với Google SDK */}
+            <div ref={googleBtnContainerRef} id="google-signin-button" className="min-h-[44px]" />
 
             {isGisReady && (
               <span className="text-[10px] text-[#66786E]">
@@ -343,7 +344,7 @@ export const GoogleOidcTestbench: React.FC = () => {
         </div>
 
         {/* Khối Hiển Thị Thông Tin Đã Xác Thực (Verified User Profile) */}
-        {authResult && authResult.success && (
+        {authResult && authResult.success && authResult.user && (
           <div className="p-6 bg-gradient-to-br from-[#FAF8F2] to-[#F1ECE1] border border-[#D4C3A3] rounded-xl space-y-4 shadow-xs">
             <div className="flex items-center justify-between border-b border-[#E2D5BC] pb-3">
               <div className="flex items-center gap-2">
@@ -357,29 +358,29 @@ export const GoogleOidcTestbench: React.FC = () => {
 
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
               {/* Ảnh đại diện Google thật */}
-              {authResult.user.picture ? (
+              {authResult.user?.picture ? (
                 <img
                   src={authResult.user.picture}
-                  alt={authResult.user.name}
+                  alt={authResult.user.name || 'Avatar'}
                   className="w-16 h-16 rounded-full border-2 border-[#B88E4C] shadow-xs object-cover"
                 />
               ) : (
                 <div className="w-16 h-16 rounded-full bg-[#0B291E] text-white font-bold flex items-center justify-center text-xl">
-                  {authResult.user.name?.charAt(0) || 'U'}
+                  {authResult.user?.name?.charAt(0) || 'U'}
                 </div>
               )}
 
               {/* Thông tin chi tiết */}
               <div className="flex-1 space-y-1.5 text-xs text-[#2A3F33] w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between">
-                  <span className="font-bold text-base text-[#0B291E]">{authResult.user.name}</span>
+                  <span className="font-bold text-base text-[#0B291E]">{authResult.user?.name || 'Người dùng Google'}</span>
                   <span className="text-[11px] text-[#66786E]">
-                    Vai trò gán: <strong className="text-[#0B291E]">{authResult.roles.join(', ')}</strong>
+                    Vai trò gán: <strong className="text-[#0B291E]">{authResult.roles?.join(', ') || 'OWNER'}</strong>
                   </span>
                 </div>
-                <div>• Email xác thực: <strong className="text-[#059669]">{authResult.user.email}</strong></div>
-                <div className="break-all">• Google Subject ID (sub): <code className="text-[10px] font-mono">{authResult.user.subject}</code></div>
-                {authResult.user.issuer && (
+                <div>• Email xác thực: <strong className="text-[#059669]">{authResult.user?.email || 'N/A'}</strong></div>
+                <div className="break-all">• Google Subject ID (sub): <code className="text-[10px] font-mono">{authResult.user?.subject || 'N/A'}</code></div>
+                {authResult.user?.issuer && (
                   <div className="text-[10px] text-[#66786E]">• Nhà phát hành (iss): {authResult.user.issuer}</div>
                 )}
               </div>
@@ -395,7 +396,7 @@ export const GoogleOidcTestbench: React.FC = () => {
                 Access Token phiên làm việc chỉ được lưu giữ trong RAM bộ nhớ phiên:
               </p>
               <code className="text-[10px] font-mono bg-white px-2 py-1 rounded block break-all text-[#0B291E] border border-[#CBD5CB]">
-                {authResult.simulatedAccessToken}
+                {authResult.simulatedAccessToken || 'ram_access_token'}
               </code>
               <span className="text-[10px] text-[#66786E] block pt-0.5">
                 Tuyệt đối không lưu Access Token hoặc Master Key vào localStorage / sessionStorage theo tiêu chuẩn Zero-Knowledge.

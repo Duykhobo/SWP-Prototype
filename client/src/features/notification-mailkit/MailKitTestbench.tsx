@@ -29,6 +29,19 @@ export const MailKitTestbench: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sendMetrics, setSendMetrics] = useState<{ isReal: boolean; latencyMs: number; messageId: string } | null>(null);
 
+  interface SmtpEnvStatus {
+    isReadyForLiveSmtp: boolean;
+    host: string;
+    port: number;
+    usernameMasked: string;
+    hasPasswordConfigured: boolean;
+    senderEmail: string;
+    senderName: string;
+    guidanceMessage: string;
+  }
+
+  const [envStatus, setEnvStatus] = useState<SmtpEnvStatus | null>(null);
+
   const fetchRecentEmails = async () => {
     try {
       const res = await axiosClient.get('/api/v1/mail/recent');
@@ -38,8 +51,18 @@ export const MailKitTestbench: React.FC = () => {
     }
   };
 
+  const fetchEnvStatus = async () => {
+    try {
+      const res = await axiosClient.get('/api/v1/mail/env-check');
+      setEnvStatus(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchRecentEmails();
+    fetchEnvStatus();
   }, []);
 
   const getSmtpPayload = () => {
@@ -133,6 +156,33 @@ export const MailKitTestbench: React.FC = () => {
       badge={<HeritageBadge variant="forest">MailKit / MimeKit Engine</HeritageBadge>}
     >
       <div className="space-y-6">
+        {/* EmailUtils Environment Status Banner */}
+        {envStatus && (
+          <div className={`p-4 rounded-xl border text-xs space-y-2 ${
+            envStatus.isReadyForLiveSmtp
+              ? 'bg-[#EBF7F0] border-[#A7F3D0]'
+              : 'bg-[#FAF6EE] border-[#D5C29E]'
+          }`}>
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-[#0B291E] flex items-center gap-1.5">
+                <CheckCircle className={`w-4 h-4 ${envStatus.isReadyForLiveSmtp ? 'text-[#059669]' : 'text-[#B88E4C]'}`} />
+                Kiểm Tra Biến Môi Trường SMTP (EmailUtils):
+              </span>
+              <HeritageBadge variant={envStatus.isReadyForLiveSmtp ? 'success' : 'gold'}>
+                {envStatus.isReadyForLiveSmtp ? 'SMTP ENV READY' : 'CHƯA NẠP BIẾN MÔI TRƯỜNG'}
+              </HeritageBadge>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-[#4A453A]">
+              <div>• Host: <strong>{envStatus.host}</strong> ({envStatus.port})</div>
+              <div>• Username: <strong>{envStatus.usernameMasked}</strong></div>
+              <div>• Password: <strong>{envStatus.hasPasswordConfigured ? '✓ Đã thiết lập mật mã' : '✗ Chưa cấu hình'}</strong></div>
+            </div>
+            <p className="text-[10px] text-[#66786E]">
+              {envStatus.guidanceMessage}
+            </p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-[#0B291E]">Email Người Nhận (Chủ kho):</label>

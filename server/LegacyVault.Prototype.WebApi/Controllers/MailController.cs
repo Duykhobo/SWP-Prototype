@@ -88,6 +88,16 @@ public class MailController : ControllerBase
         }
         return Ok(Array.Empty<object>());
     }
+
+    /// <summary>
+    /// Kiểm tra trạng thái các biến môi trường cấu hình SMTP (EmailUtils)
+    /// </summary>
+    [HttpGet("env-check")]
+    public IActionResult CheckEnvironmentVariables()
+    {
+        var status = LegacyVault.Prototype.Application.Common.EmailUtils.CheckEnvironmentVariables();
+        return Ok(status);
+    }
 }
 
 public class DeathClaimAlertRequest

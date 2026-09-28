@@ -20,7 +20,7 @@ export const MailKitTestbench: React.FC = () => {
   const [smtpPort, setSmtpPort] = useState(587);
   const [smtpUser, setSmtpUser] = useState('');
   const [smtpPass, setSmtpPass] = useState('');
-  const [showSmtpConfig, setShowSmtpConfig] = useState(false);
+  const [showSmtpConfig, setShowSmtpConfig] = useState(true);
 
   const [isSendingAlert, setIsSendingAlert] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);

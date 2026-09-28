@@ -24,14 +24,57 @@ public class EkycService : IEkycService
         _logger = logger;
     }
 
-    public async Task<EkycOcrResult> ExtractIdCardOcrAsync(Stream frontCardStream, Stream? backCardStream, bool useSandbox, string? apiKey = null, CancellationToken ct = default)
+    public async Task<EkycOcrResult> ExtractIdCardOcrAsync(Stream frontCardStream, Stream? backCardStream, bool useSandbox, string? apiKey = null, string? preset = null, CancellationToken ct = default)
     {
-        string effectiveKey = (!string.IsNullOrWhiteSpace(apiKey) ? apiKey : _config["Ekyc:FptAiApiKey"]) ?? "";
+        string effectiveKey = (!string.IsNullOrWhiteSpace(apiKey) 
+            ? apiKey 
+            : Environment.GetEnvironmentVariable("FPT_AI_EKYC_API_KEY")
+            ?? _config["Ekyc:FptAiApiKey"]) ?? "";
         bool hasApiKey = !string.IsNullOrWhiteSpace(effectiveKey) && !effectiveKey.Contains("YOUR_");
 
         if (useSandbox)
         {
-            _logger.LogInformation("Processing ID Card OCR using FPT.AI Sandbox Engine.");
+            _logger.LogInformation("Processing ID Card OCR using FPT.AI Sandbox Engine with preset: {Preset}", preset ?? "default");
+
+            if (preset == "tampered" || preset == "expired")
+            {
+                return new EkycOcrResult
+                {
+                    Success = true,
+                    IdCardNumber = "001198004321",
+                    FullName = "TRẦN THỊ MAI",
+                    DateOfBirth = "10/05/1985",
+                    Gender = "NỮ",
+                    Nationality = "VIỆT NAM",
+                    HomeAddress = "Số 45 Phố Huế, Phường Hàng Bài, Quận Hoàn Kiếm, Hà Nội",
+                    ExpiryDate = "10/05/2023", // Đã hết hạn
+                    Confidence = 0.725,
+                    Provider = "FPT.AI (Sandbox Mode - Cảnh Báo An Ninh)",
+                    IsTampered = true,
+                    ReviewRequired = true,
+                    RawJson = JsonSerializer.Serialize(new
+                    {
+                        errorCode = 1,
+                        errorMessage = "Warning: ID Card expired on 10/05/2023. Possible corner tampering or glare detected.",
+                        data = new[]
+                        {
+                            new {
+                                id = "001198004321",
+                                name = "TRẦN THỊ MAI",
+                                dob = "10/05/1985",
+                                sex = "NỮ",
+                                nationality = "VIỆT NAM",
+                                home = "Hà Nội",
+                                address = "Số 45 Phố Huế, Phường Hàng Bài, Quận Hoàn Kiếm, Hà Nội",
+                                doe = "10/05/2023",
+                                type = "chip_front",
+                                warning = "EXPIRED_CARD_AND_CORNER_TAMPERING"
+                            }
+                        }
+                    })
+                };
+            }
+
             return new EkycOcrResult
             {
                 Success = true,
@@ -43,7 +86,7 @@ public class EkycService : IEkycService
                 HomeAddress = "Số 123 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh",
                 ExpiryDate = "15/08/2030",
                 Confidence = 0.985,
-                Provider = "FPT.AI (Sandbox Mode)",
+                Provider = "FPT.AI (Sandbox Mode - FPT Vision SDK v3.2)",
                 IsTampered = false,
                 ReviewRequired = false,
                 RawJson = JsonSerializer.Serialize(new
@@ -68,7 +111,22 @@ public class EkycService : IEkycService
             };
         }
 
-        // Live API: Tuyệt đối không mockup data
+        // Live API: Kiểm tra nếu dùng nhầm key của FPT Cloud AI Marketplace (sk-...)
+        if (effectiveKey.StartsWith("sk-", StringComparison.OrdinalIgnoreCase))
+        {
+            return new EkycOcrResult
+            {
+                Success = false,
+                ReviewRequired = true,
+                Provider = "FPT.AI (Live API Check)",
+                RawJson = JsonSerializer.Serialize(new
+                {
+                    errorCode = 400,
+                    errorMessage = "Khóa API 'sk-...' bạn cung cấp là khóa FPT Cloud AI Marketplace (chuyên LLM / VLM). Cổng API FPT.AI eKYC (api.fpt.ai) yêu cầu khóa B2B Enterprise riêng biệt theo thông báo ngừng tài khoản cá nhân từ 29/08/2026. Để phân tích tài liệu bằng Live AI với khóa này, vui lòng chuyển sang Module 9 (FPT Cloud Marketplace - Gemma-3-27B-IT) hoặc kích hoạt Sandbox Mode cho Module 6."
+                })
+            };
+        }
+
         if (!hasApiKey)
         {
             return new EkycOcrResult
@@ -79,7 +137,7 @@ public class EkycService : IEkycService
                 RawJson = JsonSerializer.Serialize(new
                 {
                     errorCode = 401,
-                    errorMessage = "Chưa cung cấp FPT.AI API Key để chạy Live API. Vui lòng nhập API Key từ https://console.fpt.ai để gửi yêu cầu thực tế lên máy chủ FPT.AI."
+                    errorMessage = "Chưa cung cấp FPT.AI B2B API Key để chạy Live API. Theo thông báo ngày 30/06/2026 của FPT Smart Cloud, cổng console.fpt.ai đã dừng tài khoản cá nhân từ 29/08/2026 và chỉ hỗ trợ tài khoản Doanh nghiệp B2B. Vui lòng bật 'Sandbox Mode' để thử nghiệm dữ liệu chuẩn hóa, hoặc chuyển sang Module 9 để dùng Live AI Marketplace."
                 })
             };
         }
@@ -142,26 +200,56 @@ public class EkycService : IEkycService
         return new EkycOcrResult { Success = false, ReviewRequired = true, Provider = "FPT.AI", RawJson = "Error processing request." };
     }
 
-    public async Task<EkycLivenessResult> VerifyFaceMatchAsync(Stream cardImageStream, Stream selfieImageStream, bool useSandbox, string? apiKey = null, CancellationToken ct = default)
+    public async Task<EkycLivenessResult> VerifyFaceMatchAsync(Stream cardImageStream, Stream selfieImageStream, bool useSandbox, string? apiKey = null, string? preset = null, CancellationToken ct = default)
     {
-        string effectiveKey = (!string.IsNullOrWhiteSpace(apiKey) ? apiKey : _config["Ekyc:FptAiApiKey"]) ?? "";
+        string effectiveKey = (!string.IsNullOrWhiteSpace(apiKey) 
+            ? apiKey 
+            : Environment.GetEnvironmentVariable("FPT_AI_EKYC_API_KEY")
+            ?? _config["Ekyc:FptAiApiKey"]) ?? "";
         bool hasApiKey = !string.IsNullOrWhiteSpace(effectiveKey) && !effectiveKey.Contains("YOUR_");
 
         if (useSandbox)
         {
-            _logger.LogInformation("Processing Face Match using FPT.AI Sandbox Engine.");
+            _logger.LogInformation("Processing Face Match using FPT.AI Sandbox Engine with preset: {Preset}", preset ?? "default");
+
+            if (preset == "tampered" || preset == "expired" || preset == "mismatch")
+            {
+                return new EkycLivenessResult
+                {
+                    Success = false,
+                    IsLive = false,
+                    MatchScore = 0.428, // 42.8% - Dưới ngưỡng an toàn
+                    ReviewRequired = true,
+                    Provider = "FPT.AI (Sandbox Mode - Cảnh Báo An Ninh)",
+                    Message = "CẢNH BÁO: Tỉ lệ khớp khuôn mặt chỉ đạt 42.8% (dưới ngưỡng 80%). Phát hiện dấu hiệu giả mạo sinh trắc học hoặc ảnh selfie không đồng nhất với CCCD."
+                };
+            }
+
             return new EkycLivenessResult
             {
                 Success = true,
                 IsLive = true,
                 MatchScore = 0.942, // 94.2% khớp khuôn mặt
                 ReviewRequired = false,
-                Provider = "FPT.AI (Sandbox Mode)",
-                Message = "Khuôn mặt trùng khớp 94.2% với ảnh chân dung trên CCCD. Xác thực thành công."
+                Provider = "FPT.AI (Sandbox Mode - FPT Biometrics v3.2)",
+                Message = "Khuôn mặt trùng khớp 94.2% với ảnh chân dung trên CCCD gắn chip. Chống giả mạo Liveness đạt chuẩn sinh trắc học."
             };
         }
 
-        // Live API: Tuyệt đối không mockup data
+        // Live API: Kiểm tra nếu dùng nhầm key của FPT Cloud AI Marketplace (sk-...)
+        if (effectiveKey.StartsWith("sk-", StringComparison.OrdinalIgnoreCase))
+        {
+            return new EkycLivenessResult
+            {
+                Success = false,
+                IsLive = false,
+                MatchScore = 0,
+                ReviewRequired = true,
+                Provider = "FPT.AI (Live API Check)",
+                Message = "Khóa API 'sk-...' bạn cung cấp thuộc nền tảng FPT Cloud AI Marketplace (LLM/VLM). Cổng eKYC FaceMatch (api.fpt.ai) yêu cầu khóa Enterprise B2B từ console.fpt.ai. Vui lòng chuyển sang Sandbox Mode để thử nghiệm trơn tru."
+            };
+        }
+
         if (!hasApiKey)
         {
             return new EkycLivenessResult
@@ -171,7 +259,7 @@ public class EkycService : IEkycService
                 MatchScore = 0,
                 ReviewRequired = true,
                 Provider = "FPT.AI (Live API)",
-                Message = "Chưa cung cấp FPT.AI API Key để chạy Live API. Vui lòng nhập API Key từ https://console.fpt.ai vào ô API Key."
+                Message = "Chưa cung cấp FPT.AI B2B API Key để chạy Live API. Theo thông báo ngừng cấp tài khoản cá nhân từ 29/08/2026 của FPT.AI Console, vui lòng bật 'Sandbox Mode' để kiểm thử sinh trắc học chuẩn hóa."
             };
         }
 

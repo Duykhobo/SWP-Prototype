@@ -24,6 +24,7 @@ public class EkycController : ControllerBase
         IFormFile? backCard, 
         [FromForm] bool useSandbox = true,
         [FromForm] string? apiKey = null,
+        [FromForm] string? preset = null,
         CancellationToken ct = default)
     {
         string? effectiveApiKey = !string.IsNullOrWhiteSpace(apiKey) 
@@ -33,7 +34,7 @@ public class EkycController : ControllerBase
         using var frontStream = frontCard.OpenReadStream();
         Stream? backStream = backCard?.OpenReadStream();
 
-        var result = await _ekycService.ExtractIdCardOcrAsync(frontStream, backStream, useSandbox, effectiveApiKey, ct);
+        var result = await _ekycService.ExtractIdCardOcrAsync(frontStream, backStream, useSandbox, effectiveApiKey, preset, ct);
 
         return Ok(result);
     }
@@ -48,6 +49,7 @@ public class EkycController : ControllerBase
         IFormFile selfieImage, 
         [FromForm] bool useSandbox = true,
         [FromForm] string? apiKey = null,
+        [FromForm] string? preset = null,
         CancellationToken ct = default)
     {
         string? effectiveApiKey = !string.IsNullOrWhiteSpace(apiKey) 
@@ -57,7 +59,7 @@ public class EkycController : ControllerBase
         using var cardStream = cardImage.OpenReadStream();
         using var selfieStream = selfieImage.OpenReadStream();
 
-        var result = await _ekycService.VerifyFaceMatchAsync(cardStream, selfieStream, useSandbox, effectiveApiKey, ct);
+        var result = await _ekycService.VerifyFaceMatchAsync(cardStream, selfieStream, useSandbox, effectiveApiKey, preset, ct);
 
         return Ok(result);
     }

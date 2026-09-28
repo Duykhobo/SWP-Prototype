@@ -108,12 +108,35 @@ public class MailKitEmailService : IMailKitService
     {
         var sw = System.Diagnostics.Stopwatch.StartNew();
 
-        string host = smtpOverride?.Host ?? _config["Smtp:Host"] ?? "smtp.gmail.com";
-        int port = smtpOverride?.Port ?? (int.TryParse(_config["Smtp:Port"], out int p) ? p : 587);
-        string? username = smtpOverride?.Username ?? _config["Smtp:Username"];
-        string? password = smtpOverride?.Password ?? _config["Smtp:Password"];
-        string senderEmail = smtpOverride?.SenderEmail ?? _config["Smtp:SenderEmail"] ?? username ?? "security@legacyvault.vn";
-        string senderName = smtpOverride?.SenderName ?? _config["Smtp:SenderName"] ?? "LegacyVault Security Alert";
+        string host = smtpOverride?.Host 
+            ?? Environment.GetEnvironmentVariable("SMTP__HOST")
+            ?? Environment.GetEnvironmentVariable("SMTP_HOST")
+            ?? _config["Smtp:Host"] 
+            ?? "smtp.gmail.com";
+
+        int port = smtpOverride?.Port 
+            ?? (int.TryParse(Environment.GetEnvironmentVariable("SMTP__PORT") ?? Environment.GetEnvironmentVariable("SMTP_PORT") ?? _config["Smtp:Port"], out int p) ? p : 587);
+
+        string? username = smtpOverride?.Username 
+            ?? Environment.GetEnvironmentVariable("SMTP__USERNAME")
+            ?? Environment.GetEnvironmentVariable("SMTP_USERNAME")
+            ?? _config["Smtp:Username"];
+
+        string? password = smtpOverride?.Password 
+            ?? Environment.GetEnvironmentVariable("SMTP__PASSWORD")
+            ?? Environment.GetEnvironmentVariable("SMTP_PASSWORD")
+            ?? _config["Smtp:Password"];
+
+        string senderEmail = smtpOverride?.SenderEmail 
+            ?? Environment.GetEnvironmentVariable("SMTP__SENDEREMAIL")
+            ?? _config["Smtp:SenderEmail"] 
+            ?? username 
+            ?? "security@legacyvault.vn";
+
+        string senderName = smtpOverride?.SenderName 
+            ?? Environment.GetEnvironmentVariable("SMTP__SENDERNAME")
+            ?? _config["Smtp:SenderName"] 
+            ?? "LegacyVault Security Alert";
 
         bool hasCredentials = !string.IsNullOrWhiteSpace(username) && 
                               !string.IsNullOrWhiteSpace(password) &&
@@ -127,7 +150,7 @@ public class MailKitEmailService : IMailKitService
                 Success = false,
                 IsRealSmtp = false,
                 LatencyMs = sw.ElapsedMilliseconds,
-                Message = "Chưa cung cấp thông tin SMTP (Username và Mật khẩu ứng dụng Gmail/Brevo). Vui lòng nhập thông tin SMTP để gửi email thật tới hộp thư.",
+                Message = "Chưa cung cấp thông tin SMTP (Username và Mật khẩu ứng dụng Gmail/Brevo). Vui lòng nhập Username và Mật khẩu ứng dụng 16 ký tự của Gmail trên giao diện tab '5. MailKit SMTP' hoặc cấu hình biến môi trường 'SMTP__USERNAME' và 'SMTP__PASSWORD' trên backend để gửi email thật.",
                 ErrorDetails = "SMTP Credentials Missing"
             };
         }

@@ -52,7 +52,7 @@ export const TestbenchPage: React.FC = () => {
           {activeTab === 'r2' && <R2StorageTestbench />}
           {activeTab === 'sepay' && <SePayTestbench />}
           {activeTab === 'mailkit' && <MailKitTestbench />}
-          {activeTab === 'ekyc' && <EkycTestbench />}
+          {activeTab === 'ekyc' && <EkycTestbench onNavigateToMarketplace={() => setActiveTab('fpt-marketplace')} />}
           {activeTab === 'timelock' && <RescueTimeLockTestbench />}
           {activeTab === 'oidc' && <GoogleOidcTestbench />}
           {activeTab === 'fpt-marketplace' && <FptMarketplaceTestbench />}

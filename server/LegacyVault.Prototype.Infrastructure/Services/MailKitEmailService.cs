@@ -165,7 +165,8 @@ public class MailKitEmailService : IMailKitService
         {
             using var client = new SmtpClient();
             await client.ConnectAsync(host, port, SecureSocketOptions.StartTls, ct);
-            await client.AuthenticateAsync(username!, password!, ct);
+            string cleanPassword = password!.Replace(" ", "").Trim();
+            await client.AuthenticateAsync(username!.Trim(), cleanPassword, ct);
             string sendResponse = await client.SendAsync(message, ct);
             await client.DisconnectAsync(true, ct);
 

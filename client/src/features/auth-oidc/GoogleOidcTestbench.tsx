@@ -70,9 +70,11 @@ declare global {
 }
 
 export const GoogleOidcTestbench: React.FC = () => {
-  // Lấy Client ID đã lưu hoặc để trống để người dùng nhập
+  const DEFAULT_CLIENT_ID = '717961939025-32a9snln6rvn7pu3va9are8dhcabvmr7.apps.googleusercontent.com';
+
+  // Lấy Client ID đã lưu hoặc dùng Client ID cấu hình sẵn
   const [googleClientId, setGoogleClientId] = useState<string>(() => {
-    return localStorage.getItem('lv_google_client_id') || '';
+    return localStorage.getItem('lv_google_client_id') || DEFAULT_CLIENT_ID;
   });
   const [isGisReady, setIsGisReady] = useState<boolean>(false);
   const [idToken, setIdToken] = useState<string>('');

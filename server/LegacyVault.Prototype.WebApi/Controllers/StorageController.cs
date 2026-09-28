@@ -21,6 +21,21 @@ public class StorageController : ControllerBase
     }
 
     /// <summary>
+    /// Kiểm tra trạng thái kết nối Cloudflare R2
+    /// </summary>
+    [HttpGet("status")]
+    public IActionResult GetStorageStatus()
+    {
+        return Ok(new
+        {
+            isConfigured = _r2Service.IsConfigured,
+            bucketName = _r2Service.BucketName,
+            provider = _r2Service.IsConfigured ? "Cloudflare R2 (S3-Compatible Private Storage)" : "In-Memory Fallback",
+            mode = _r2Service.IsConfigured ? "LIVE_CLOUDFLARE_R2" : "LOCAL_MOCK_FALLBACK"
+        });
+    }
+
+    /// <summary>
     /// Sinh Presigned URL để upload file thẳng lên Cloudflare R2
     /// </summary>
     [HttpPost("presigned-upload-url")]

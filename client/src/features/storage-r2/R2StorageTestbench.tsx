@@ -19,6 +19,13 @@ export const R2StorageTestbench: React.FC = () => {
   const [uploadedAsset, setUploadedAsset] = useState<any | null>(null);
   const [isDownloadingRam, setIsDownloadingRam] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [storageStatus, setStorageStatus] = useState<{ isConfigured: boolean; bucketName: string; provider: string; mode: string } | null>(null);
+
+  React.useEffect(() => {
+    axiosClient.get('/api/v1/storage/status')
+      .then((res) => setStorageStatus(res.data))
+      .catch(() => setStorageStatus(null));
+  }, []);
 
   const handleGenerateUploadUrl = async () => {
     setIsGeneratingUpload(true);
@@ -106,7 +113,16 @@ export const R2StorageTestbench: React.FC = () => {
       title="3. Lưu trữ Đám mây Riêng tư Cloudflare R2 (S3-Compatible)"
       subtitle="Ciphertext được lưu trữ trong Bucket riêng tư, hỗ trợ Presigned URL có thời hạn và tải về giải mã RAM-Only streaming qua TLS (0đ chi phí băng thông tải về - Egress 0$)."
       icon={<Cloud className="w-5 h-5" />}
-      badge={<HeritageBadge variant="gold">Cloudflare R2 Zero-Egress</HeritageBadge>}
+      badge={
+        <div className="flex items-center gap-1.5">
+          {storageStatus?.isConfigured ? (
+            <HeritageBadge variant="success">Cloudflare R2 Live ({storageStatus.bucketName})</HeritageBadge>
+          ) : (
+            <HeritageBadge variant="neutral">In-Memory Mock Fallback</HeritageBadge>
+          )}
+          <HeritageBadge variant="gold">Zero-Egress $0</HeritageBadge>
+        </div>
+      }
     >
       <div className="space-y-6">
         {errorMessage && (

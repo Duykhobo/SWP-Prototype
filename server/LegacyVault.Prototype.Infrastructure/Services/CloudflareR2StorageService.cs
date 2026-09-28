@@ -18,23 +18,46 @@ public class CloudflareR2StorageService : IR2StorageService
     private readonly ILogger<CloudflareR2StorageService> _logger;
     private readonly Dictionary<string, byte[]> _localFallbackStore = new();
 
+    public bool IsConfigured => _isConfigured;
+    public string BucketName => _bucketName;
+
     public CloudflareR2StorageService(IConfiguration configuration, ILogger<CloudflareR2StorageService> logger)
     {
         _logger = logger;
-        string? accountId = configuration["CloudflareR2:AccountId"];
-        string? accessKeyId = configuration["CloudflareR2:AccessKeyId"];
-        string? secretAccessKey = configuration["CloudflareR2:SecretAccessKey"];
-        _bucketName = configuration["CloudflareR2:BucketName"] ?? "legacyvault-private";
+        string? accountId = Environment.GetEnvironmentVariable("R2__ACCOUNTID") 
+            ?? Environment.GetEnvironmentVariable("R2__AccountId") 
+            ?? Environment.GetEnvironmentVariable("CLOUDFLARE_R2_ACCOUNT_ID") 
+            ?? configuration["R2:AccountId"]
+            ?? configuration["CloudflareR2:AccountId"];
+
+        string? accessKeyId = Environment.GetEnvironmentVariable("R2__ACCESSKEYID") 
+            ?? Environment.GetEnvironmentVariable("R2__AccessKeyId") 
+            ?? Environment.GetEnvironmentVariable("CLOUDFLARE_R2_ACCESS_KEY_ID") 
+            ?? configuration["R2:AccessKeyId"]
+            ?? configuration["CloudflareR2:AccessKeyId"];
+
+        string? secretAccessKey = Environment.GetEnvironmentVariable("R2__SECRETACCESSKEY") 
+            ?? Environment.GetEnvironmentVariable("R2__SecretAccessKey") 
+            ?? Environment.GetEnvironmentVariable("CLOUDFLARE_R2_SECRET_ACCESS_KEY") 
+            ?? configuration["R2:SecretAccessKey"]
+            ?? configuration["CloudflareR2:SecretAccessKey"];
+
+        _bucketName = Environment.GetEnvironmentVariable("R2__BUCKET") 
+            ?? Environment.GetEnvironmentVariable("R2__Bucket") 
+            ?? Environment.GetEnvironmentVariable("CLOUDFLARE_R2_BUCKET_NAME") 
+            ?? configuration["R2:Bucket"]
+            ?? configuration["CloudflareR2:BucketName"] 
+            ?? "legacyvault-prototype-private";
 
         if (!string.IsNullOrWhiteSpace(accountId) && 
             !string.IsNullOrWhiteSpace(accessKeyId) && 
             !string.IsNullOrWhiteSpace(secretAccessKey) &&
             !accessKeyId.Contains("YOUR_"))
         {
-            var credentials = new BasicAWSCredentials(accessKeyId, secretAccessKey);
+            var credentials = new BasicAWSCredentials(accessKeyId.Trim(), secretAccessKey.Trim());
             var s3Config = new AmazonS3Config
             {
-                ServiceURL = $"https://{accountId}.r2.cloudflarestorage.com",
+                ServiceURL = $"https://{accountId.Trim()}.r2.cloudflarestorage.com",
                 AuthenticationRegion = "auto",
                 ForcePathStyle = true
             };

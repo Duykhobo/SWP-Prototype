@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "LegacyVault Cryptographic Dataflow & Storage Sequence",
+    "viewBox": [1080, 680],
+    "column_fit": "spread",
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "ingest-and-hash",
+        "label": "1. Ingest & SHA-256 Hashing",
+        "focus": ["user", "client", "server"],
+        "note": "Client calculates SHA-256 fingerprint in RAM before TLS transmission."
+      },
+      {
+        "id": "encrypt-and-store",
+        "label": "2. Envelope Encrypt & Dual Storage",
+        "focus": ["server", "r2", "db"],
+        "note": "AES-256-GCM encryption, streaming .enc to R2, persisting metadata and Share 1 to DB."
+      },
+      {
+        "id": "return-and-verify",
+        "label": "3. Share 2 Return & Anti-Rogue Verify",
+        "focus": ["server", "client", "user"],
+        "note": "Client receives Share 2, confirms checksum match; server admin has 0-bit plain info."
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "Asset Owner",
+      "sublabel": "Browser Session"
+    },
+    {
+      "id": "client",
+      "type": "frontend",
+      "label": "Client RAM",
+      "sublabel": "React 19 & WebCrypto",
+      "brand": "react"
+    },
+    {
+      "id": "server",
+      "type": "backend",
+      "label": ".NET 8 API",
+      "sublabel": "Clean Architecture",
+      "brand": "dotnet"
+    },
+    {
+      "id": "r2",
+      "type": "cloud",
+      "label": "Cloudflare R2",
+      "sublabel": "Private S3 Bucket",
+      "brand": "cloudflare"
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "Postgres DB",
+      "sublabel": "Metadata Store",
+      "brand": "postgresql"
+    }
+  ],
+  "segments": [
+    { "from": 150, "to": 260, "label": "Client Ingest & Fingerprint" },
+    { "from": 270, "to": 470, "label": "Server Encryption & Dual Storage" },
+    { "from": 480, "to": 600, "label": "Key Handover & Anti-Rogue Confirmation" }
+  ],
+  "messages": [
+    {
+      "id": "msg-select",
+      "from": "user",
+      "to": "client",
+      "y": 170,
+      "label": "Select File (PDF / Image / Seeds)",
+      "variant": "default"
+    },
+    {
+      "id": "msg-upload",
+      "from": "client",
+      "to": "server",
+      "y": 215,
+      "label": "POST /storage/upload-envelope (File + SHA-256 Checksum)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "msg-r2-put",
+      "from": "server",
+      "to": "r2",
+      "y": 290,
+      "label": "PutObjectAsync (Body: Ciphertext .enc blob)",
+      "variant": "security"
+    },
+    {
+      "id": "msg-r2-ack",
+      "from": "r2",
+      "to": "server",
+      "y": 335,
+      "label": "HTTP 200 OK (ETag header)",
+      "variant": "return"
+    },
+    {
+      "id": "msg-db-insert",
+      "from": "server",
+      "to": "db",
+      "y": 385,
+      "label": "INSERT INTO assets (Metadata, Nonce, Tag, Checksum, Share 1)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "msg-db-ack",
+      "from": "db",
+      "to": "server",
+      "y": 430,
+      "label": "Commit Serializable Transaction OK",
+      "variant": "return"
+    },
+    {
+      "id": "msg-server-res",
+      "from": "server",
+      "to": "client",
+      "y": 500,
+      "label": "HTTP 200 OK (Body: Shamir Share 2 + AssetId)",
+      "variant": "return"
+    },
+    {
+      "id": "msg-ui-success",
+      "from": "client",
+      "to": "user",
+      "y": 550,
+      "label": "Render Protected Badge (Anti-Rogue Confirmed)",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    { "participant": "client", "from": 170, "to": 220, "type": "frontend" },
+    { "participant": "server", "from": 215, "to": 505, "type": "backend" },
+    { "participant": "r2", "from": 290, "to": 340, "type": "cloud" },
+    { "participant": "db", "from": 385, "to": 435, "type": "database" },
+    { "participant": "client", "from": 495, "to": 555, "type": "frontend" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "What is Sent (Request Payload)",
+      "items": [
+        "Client sends: Multipart stream of plaintext file + SHA-256 checksum calculated locally in RAM",
+        "Encrypted transit: TLS 1.3 protocol protects data in-flight between Client and Server"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "What is Stored (Separation of Concerns)",
+      "items": [
+        "Cloudflare R2: Stores ONLY ciphertext binary blobs (.enc) with zero metadata and zero keys",
+        "PostgreSQL DB: Stores non-secret metadata, Nonce 12B, Tag 16B, Checksum SHA-256, and Shamir Share 1"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "What is Received (Response & Verification)",
+      "items": [
+        "Client receives: HTTP 200 containing AssetId and Shamir Share 2 for local device escrow",
+        "Anti-Rogue guarantee: Server Admin holding Share 1 has exactly 0-bit information to decrypt files"
+      ]
+    }
+  ]
+}

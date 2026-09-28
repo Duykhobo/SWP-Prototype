@@ -52,7 +52,7 @@
         <mxCell id="d2" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Valid &amp;amp; Active&lt;br/&gt;Paid Plan?" vertex="1">
           <mxGeometry height="85" width="190" x="605" y="630" as="geometry" />
         </mxCell>
-        <mxCell id="e2" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E1 · Free Tier / Expired / Unpaid Order:&lt;br&gt;Server returns HTTP 402/403.&lt;br&gt;Client renders SePay VietQR modal.&lt;br&gt;[LOOP-BACK]: Upon payment, loop to Step 02.1." vertex="1">
+        <mxCell id="e2" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E1 · Free Tier / Expired / Unpaid Order:&lt;br&gt;Server returns HTTP 402/403.&lt;br&gt;Client renders SePay VietQR modal.&lt;br&gt;[LOOP-BACK]: Upon payment, proceed to Step 03." vertex="1">
           <mxGeometry height="105" width="310" x="2045" y="620" as="geometry" />
         </mxCell>
         <mxCell id="a3" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="03 · Input Assets &amp;amp; Secrets&lt;br/&gt;User fills secret credentials, crypto seeds,&lt;br/&gt;or uploads PDF documents / wills" vertex="1">
@@ -259,10 +259,11 @@
         <mxCell id="edge_a13_end" edge="1" parent="1" source="a13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=11;labelBackgroundColor=#FFFFFF;" target="end" value="HTTP 200 (ACTIVE + DMS)">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="loop_e2_a3" edge="1" parent="1" source="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#B88930;endArrow=block;endFill=1;fontColor=#5A4215;fontSize=11;labelBackgroundColor=#FFF8EB;dashed=1;dashPattern=6 3;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="sepay_node" value="Payment Confirmed via Webhook → Loop back to Step 02.1">
+        <mxCell id="loop_e2_a3" edge="1" parent="1" source="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#B88930;endArrow=block;endFill=1;fontColor=#5A4215;fontSize=11;labelBackgroundColor=#FFF8EB;dashed=1;dashPattern=6 3;" target="a3" value="Payment Confirmed via Webhook → Proceed to Step 03">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="2200.03" y="537.48" />
+              <mxPoint x="2200" y="740" />
+              <mxPoint x="160" y="740" />
             </Array>
           </mxGeometry>
         </mxCell>

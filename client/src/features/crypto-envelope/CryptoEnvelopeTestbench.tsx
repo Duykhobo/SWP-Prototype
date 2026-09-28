@@ -3,7 +3,8 @@ import { axiosClient } from '@/shared/api/axiosClient';
 import { HeritageCard } from '@/shared/ui/HeritageCard';
 import { HeritageButton } from '@/shared/ui/HeritageButton';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
-import { Shield, Key, FileCheck, Lock, Unlock, AlertCircle } from 'lucide-react';
+import { Shield, Key, FileCheck, Lock, Unlock, AlertCircle, Cloud, Database } from 'lucide-react';
+import { LivePipelineProgress, type PipelineStage } from '@/shared/ui/LivePipelineProgress';
 
 interface EncryptMetadata {
   assetId: string;
@@ -164,6 +165,47 @@ export const CryptoEnvelopeTestbench: React.FC = () => {
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{errorMessage}</span>
           </div>
+        )}
+
+        {/* Live Animated Pipeline Progress */}
+        {(isEncrypting || metadata) && (
+          <LivePipelineProgress
+            stages={[
+              {
+                id: 'hash',
+                label: 'Băm SHA-256',
+                sublabel: 'RAM Checksum <= 20MB',
+                icon: <FileCheck className="w-4 h-4" />,
+                status: isEncrypting ? 'processing' : metadata ? 'completed' : 'pending',
+                detail: metadata ? `${metadata.checksumSha256.substring(0, 18)}...` : undefined,
+              },
+              {
+                id: 'aes',
+                label: 'AES-256-GCM',
+                sublabel: 'Sinh DEK + KEK Wrap',
+                icon: <Shield className="w-4 h-4" />,
+                status: isEncrypting ? 'processing' : metadata ? 'completed' : 'pending',
+                detail: metadata ? `Nonce: ${metadata.nonceBase64.substring(0, 10)}...` : undefined,
+              },
+              {
+                id: 'r2',
+                label: 'Cloudflare R2',
+                sublabel: 'Lưu .enc Ciphertext',
+                icon: <Cloud className="w-4 h-4" />,
+                status: isEncrypting ? 'processing' : metadata ? 'completed' : 'pending',
+                detail: metadata ? metadata.storageKey : undefined,
+              },
+              {
+                id: 'db',
+                label: 'PostgreSQL Seal',
+                sublabel: 'Ghi Metadata Bằng Chứng',
+                icon: <Database className="w-4 h-4" />,
+                status: isEncrypting ? 'processing' : metadata ? 'completed' : 'pending',
+                detail: metadata ? `ID: ${metadata.assetId}` : undefined,
+              },
+            ]}
+            isProcessing={isEncrypting}
+          />
         )}
 
         {/* Kết quả mã hóa Envelope */}

@@ -19,10 +19,11 @@ import { EkycTestbench } from '@/features/ekyc-verification/EkycTestbench';
 import { RescueTimeLockTestbench } from '@/features/rescue-timelock/RescueTimeLockTestbench';
 import { GoogleOidcTestbench } from '@/features/auth-oidc/GoogleOidcTestbench';
 import { FptMarketplaceTestbench } from '@/features/fpt-marketplace/FptMarketplaceTestbench';
+import { InteractiveWorkflowVisualizer } from '@/features/workflow-visualizer/InteractiveWorkflowVisualizer';
 import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 
 export const TestbenchPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>('envelope');
+  const [activeTab, setActiveTab] = useState<string>('flow');
   const [currentRole, setCurrentRole] = useState<string>('OWNER');
 
   return (
@@ -49,6 +50,7 @@ export const TestbenchPage: React.FC = () => {
         {/* Tab Content Display */}
         <div className="transition-all duration-300">
           <ErrorBoundary fallbackTitle="Lỗi hiển thị thành phần thử nghiệm">
+            {activeTab === 'flow' && <InteractiveWorkflowVisualizer onNavigateTab={setActiveTab} />}
             {activeTab === 'envelope' && <CryptoEnvelopeTestbench />}
             {activeTab === 'shamir' && <ShamirTestbench />}
             {activeTab === 'r2' && <R2StorageTestbench />}

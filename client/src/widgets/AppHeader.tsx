@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Shield, KeyRound, Clock, CreditCard, Mail, Scan, LogIn, ExternalLink, Cpu } from 'lucide-react';
+import { Shield, KeyRound, Clock, CreditCard, Mail, Scan, LogIn, ExternalLink, Cpu, Sparkles } from 'lucide-react';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
 
 interface AppHeaderProps {
@@ -21,6 +21,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   onRoleChange,
 }) => {
   const tabs = [
+    { id: 'flow', label: '🌟 0. Quy Trình Hoạt Hình (Flow Visualizer)', icon: <Sparkles className="w-4 h-4 text-amber-300" /> },
     { id: 'envelope', label: '1. Envelope AES-GCM', icon: <Shield className="w-4 h-4" /> },
     { id: 'shamir', label: '2. Shamir SSS (2/3)', icon: <KeyRound className="w-4 h-4" /> },
     { id: 'r2', label: '3. Cloudflare R2', icon: <Shield className="w-4 h-4" /> },

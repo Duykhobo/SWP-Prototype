@@ -1,41 +1,41 @@
 <mxfile host="Electron" agent="Codex">
   <diagram id="flow02_dedicated_services" name="Flow 02 - Dedicated External Services Architecture">
-    <mxGraphModel dx="2020" dy="1179" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2450" pageHeight="3500" math="0" shadow="0">
+    <mxGraphModel dx="2020" dy="1179" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2450" pageHeight="3600" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#173F38;strokeColor=#173F38;fontColor=#FFFFFF;fontSize=15;fontFamily=Arial;fontStyle=1;" value="FLOW 02 · ENTERPRISE SYSTEM ARCHITECTURE WITH DEDICATED SERVICE SWIMLANES" vertex="1">
+        <mxCell id="title" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#173F38;strokeColor=#173F38;fontColor=#FFFFFF;fontSize=15;fontFamily=Arial;fontStyle=1;" value="FLOW 02 · EXPLICIT CRYPTO, HASHING, R2 STORAGE &amp; DATABASE DATAFLOW SPECIFICATION" vertex="1">
           <mxGeometry height="60" width="2320" x="50" y="30" as="geometry" />
         </mxCell>
-        <mxCell id="intro" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#E9F3EE;strokeColor=#C9DED2;fontColor=#225A4C;fontSize=13;fontFamily=Arial;" value="Architecture: Full separation of Client, Server, and dedicated external integrations (SePay VietQR, Cloudflare R2, MailKit SMTP, FPT.AI eKYC). Demonstrates per-asset AES-256-GCM Envelope Encryption, 2/3 Shamir Secret Sharing (Anti-Rogue), RAM-Only WebCrypto Checksum, and Dead Man's Switch (DMS) initialization." vertex="1">
+        <mxCell id="intro" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#E9F3EE;strokeColor=#C9DED2;fontColor=#225A4C;fontSize=13;fontFamily=Arial;" value="Data Governance Spec: Hashing (SHA-256) compresses file into a 64-hex digital fingerprint for tamper detection. Encryption (AES-256-GCM) scrambles plaintext into unreadable ciphertext via random DEK. Cloudflare R2 stores ONLY Ciphertext (.enc). Database stores ONLY Metadata + Wrapped DEK + Nonce + Tag + Shamir Share 1. Zero plain secrets in DB." vertex="1">
           <mxGeometry height="60" width="2320" x="50" y="100" as="geometry" />
         </mxCell>
         <mxCell id="lane0" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#EEF5EF;swimlaneFillColor=#EEF5EF;strokeColor=#C9D5D0;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="OWNER · ASSET CREATOR" vertex="1">
-          <mxGeometry height="3150" width="220" x="50" y="180" as="geometry" />
+          <mxGeometry height="3250" width="220" x="50" y="180" as="geometry" />
         </mxCell>
         <mxCell id="lane1" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#EDF3F7;swimlaneFillColor=#EDF3F7;strokeColor=#B8CBD8;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="CLIENT (REACT 19 WEB APP)&lt;br/&gt;[Zod, WebCrypto, Ephemeral RAM]" vertex="1">
-          <mxGeometry height="3150" width="250" x="290" y="180" as="geometry" />
+          <mxGeometry height="3250" width="250" x="290" y="180" as="geometry" />
         </mxCell>
         <mxCell id="lane2" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#F4F0E7;swimlaneFillColor=#F4F0E7;strokeColor=#D5C9B8;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="SERVER (.NET 8 WEBAPI)&lt;br/&gt;[Controllers, AES-GCM, Shamir SSS]" vertex="1">
-          <mxGeometry height="3150" width="280" x="560" y="180" as="geometry" />
+          <mxGeometry height="3250" width="280" x="560" y="180" as="geometry" />
         </mxCell>
         <mxCell id="lane3" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#FFF9E6;swimlaneFillColor=#FFF9E6;strokeColor=#E5C875;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="SEPAY GATEWAY&lt;br/&gt;[Dynamic VietQR &amp; Webhook]" vertex="1">
-          <mxGeometry height="3150" width="210" x="860" y="180" as="geometry" />
+          <mxGeometry height="3250" width="210" x="860" y="180" as="geometry" />
         </mxCell>
-        <mxCell id="lane4" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#F1F2F7;swimlaneFillColor=#F1F2F7;strokeColor=#B8C0D8;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="CLOUDFLARE R2&lt;br/&gt;[Private S3 Bucket - $0 Egress]" vertex="1">
-          <mxGeometry height="3150" width="220" x="1090" y="180" as="geometry" />
+        <mxCell id="lane4" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#F1F2F7;swimlaneFillColor=#F1F2F7;strokeColor=#B8C0D8;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="CLOUDFLARE R2 STORAGE&lt;br/&gt;[Private S3 Bucket - $0 Egress]" vertex="1">
+          <mxGeometry height="3250" width="220" x="1090" y="180" as="geometry" />
         </mxCell>
         <mxCell id="lane5" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#F5EFF9;swimlaneFillColor=#F5EFF9;strokeColor=#C8B0D8;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="MAILKIT SMTP&lt;br/&gt;[TLS 587 Notification Service]" vertex="1">
-          <mxGeometry height="3150" width="210" x="1330" y="180" as="geometry" />
+          <mxGeometry height="3250" width="210" x="1330" y="180" as="geometry" />
         </mxCell>
         <mxCell id="lane6" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#E6F7F5;swimlaneFillColor=#E6F7F5;strokeColor=#80D0C7;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="FPT.AI VISION &amp; eKYC&lt;br/&gt;[Chip ID OCR &amp; Liveness Match]" vertex="1">
-          <mxGeometry height="3150" width="210" x="1560" y="180" as="geometry" />
+          <mxGeometry height="3250" width="210" x="1560" y="180" as="geometry" />
         </mxCell>
         <mxCell id="lane7" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#F3EFF6;swimlaneFillColor=#F3EFF6;strokeColor=#C9D5D0;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="EXECUTOR (ESTATE ADMIN)&lt;br/&gt;[Legal Acceptance Portal]" vertex="1">
-          <mxGeometry height="3150" width="220" x="1790" y="180" as="geometry" />
+          <mxGeometry height="3250" width="220" x="1790" y="180" as="geometry" />
         </mxCell>
         <mxCell id="lane8" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#FFF7F1;swimlaneFillColor=#FFF7F1;strokeColor=#C9D5D0;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="EXCEPTION HANDLING (E1 - E6)&lt;br/&gt;[Rollbacks &amp; Corrective Flows]" vertex="1">
-          <mxGeometry height="3150" width="340" x="2030" y="180" as="geometry" />
+          <mxGeometry height="3250" width="340" x="2030" y="180" as="geometry" />
         </mxCell>
         <mxCell id="s" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#1F5C51;strokeColor=#1F5C51;fontColor=#FFFFFF;fontSize=13;fontFamily=Arial;fontStyle=1;" value="START&lt;br/&gt;Owner authenticated via Google OIDC&lt;br/&gt;(JWT Token &amp;amp; Subject ID session)" vertex="1">
           <mxGeometry height="80" width="200" x="60" y="258" as="geometry" />
@@ -58,80 +58,80 @@
         <mxCell id="a3" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="03 · Input Assets &amp;amp; Secrets&lt;br/&gt;User fills secret credentials, crypto seeds,&lt;br/&gt;or uploads PDF documents / wills" vertex="1">
           <mxGeometry height="80" width="200" x="60" y="760" as="geometry" />
         </mxCell>
-        <mxCell id="a4" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="04 · Client Validation &amp;amp; SHA-256 Checksum&lt;br/&gt;[CLIENT] Enforce file size ≤ 20 MiB &amp;amp; quota.&lt;br/&gt;Compute SHA-256 in RAM (Web Crypto API).&lt;br/&gt;Prepare User Passphrase (for Share 2)." vertex="1">
-          <mxGeometry height="90" width="230" x="300" y="880" as="geometry" />
+        <mxCell id="a4" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="04 · SHA-256 BĂM MÃ TOÀN VẸN (HASHING)&lt;br/&gt;[MÃ BĂM LÀM GÌ?]: Nén dữ liệu 1 chiều ra&lt;br/&gt;chuỗi 'dấu vân tay' 64 ký tự hex cố định.&lt;br/&gt;Dùng để đối soát chống sửa đổi tệp (Art 95 BLTTDS).&lt;br/&gt;Kiểm tra file ≤ 20 MiB &amp;amp; quota gói." vertex="1">
+          <mxGeometry height="100" width="240" x="295" y="880" as="geometry" />
         </mxCell>
         <mxCell id="d4" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Form &amp;amp; Quota&lt;br/&gt;Valid?" vertex="1">
-          <mxGeometry height="85" width="180" x="325" y="1010" as="geometry" />
+          <mxGeometry height="85" width="180" x="325" y="1020" as="geometry" />
         </mxCell>
         <mxCell id="e4" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E2 · Validation Error / File &amp;gt; 20 MiB / Quota Full:&lt;br/&gt;Client Zod halts submission immediately.&lt;br/&gt;No network call to server; no DB persistence.&lt;br/&gt;User prompted to correct inputs at Step 03." vertex="1">
-          <mxGeometry height="105" width="310" x="2045" y="1000" as="geometry" />
+          <mxGeometry height="105" width="310" x="2045" y="1010" as="geometry" />
         </mxCell>
-        <mxCell id="a5" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="05 · Server Envelope Encryption &amp;amp; Shamir (2/3)&lt;br/&gt;[SERVER] Generate random 256-bit DEK.&lt;br/&gt;Encrypt file via AES-256-GCM (IV 12B, Tag 16B).&lt;br/&gt;Split Master KEK into 3 Shamir Shares (GF256):&lt;br/&gt;• Share 1: Server DB | • Share 3: Executor Escrow" vertex="1">
-          <mxGeometry height="100" width="260" x="570" y="1140" as="geometry" />
+        <mxCell id="a5" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="05 · MÃ HÓA PHONG BÌ (ENCRYPTION)&lt;br/&gt;[MÃ HÓA LÀM GÌ?]: Xáo trộn nhị phân file gốc&lt;br/&gt;thành Ciphertext ngẫu nhiên bằng chìa DEK 256-bit.&lt;br/&gt;Bọc chìa DEK bằng KEK. Tách KEK ra 3 Mảnh Shamir:&lt;br/&gt;• Mảnh 1: Server DB | • Mảnh 3: Executor Escrow" vertex="1">
+          <mxGeometry height="105" width="270" x="565" y="1150" as="geometry" />
         </mxCell>
-        <mxCell id="r2_node" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="05.1 · Cloudflare R2 Storage&lt;br/&gt;Store ciphertext (.enc) in Private Bucket.&lt;br/&gt;Provide RAM-Only streaming via TLS&lt;br/&gt;(Zero-Egress $0 bandwidth fees)." vertex="1">
-          <mxGeometry height="90" width="200" x="1100" y="1145" as="geometry" />
+        <mxCell id="r2_node" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="05.1 · KHO CLOUDFLARE R2&lt;br/&gt;[R2 LƯU GÌ?]: CHỈ LƯU DUY NHẤT BẢN MÃ (.enc)!&lt;br/&gt;Hoàn toàn không có file gốc, không có chìa khóa,&lt;br/&gt;không có metadata. Hacker lấy được R2 cũng chỉ có&lt;br/&gt;các byte rác vô nghĩa. Băng thông tải về $0 Egress." vertex="1">
+          <mxGeometry height="105" width="210" x="1095" y="1150" as="geometry" />
         </mxCell>
         <mxCell id="d5" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Encryption + R2&lt;br/&gt;+ DB Completed?" vertex="1">
-          <mxGeometry height="85" width="190" x="605" y="1280" as="geometry" />
+          <mxGeometry height="85" width="190" x="605" y="1295" as="geometry" />
         </mxCell>
         <mxCell id="e5" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E3 · Crypto Failure / R2 Outage / DB Timeout:&lt;br/&gt;Rollback DB transaction; purge orphan R2 blobs.&lt;br/&gt;Retain Draft status; return HTTP 500.&lt;br/&gt;Client supports idempotent retry." vertex="1">
-          <mxGeometry height="105" width="310" x="2045" y="1270" as="geometry" />
+          <mxGeometry height="105" width="310" x="2045" y="1285" as="geometry" />
         </mxCell>
-        <mxCell id="a5_client" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="05.2 · Client Stores User Key Share&lt;br/&gt;[CLIENT] Receives &amp;amp; securely holds Share 2.&lt;br/&gt;Verifies Checksum against original file.&lt;br/&gt;Guarantees Anti-Rogue: Server has 0-bit info!" vertex="1">
-          <mxGeometry height="85" width="230" x="300" y="1410" as="geometry" />
+        <mxCell id="a5_client" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="05.2 · DATABASE LƯU GÌ &amp;amp; CLIENT LƯU GÌ?&lt;br/&gt;[DB LƯU GÌ?]: CHỈ LƯU METADATA VÔ HẠI!&lt;br/&gt;(AssetId, Title, SizeBytes, Checksum SHA-256,&lt;br/&gt;StorageKey, Nonce 12B, Tag 16B, Wrapped Key, Mảnh 1).&lt;br/&gt;[CLIENT LƯU GÌ?]: Lưu Mảnh 2 Shamir trên thiết bị!" vertex="1">
+          <mxGeometry height="105" width="240" x="295" y="1430" as="geometry" />
         </mxCell>
         <mxCell id="a6" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="06 · Assign Heirs &amp;amp; Share %&lt;br/&gt;Declare beneficiary profiles (name, email, ID).&lt;br/&gt;Allocate percentage share per asset (sum ≤ 100%)." vertex="1">
-          <mxGeometry height="80" width="200" x="60" y="1535" as="geometry" />
+          <mxGeometry height="80" width="200" x="60" y="1575" as="geometry" />
         </mxCell>
         <mxCell id="a7" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="07 · Server Manifest Aggregation&lt;br/&gt;Server validates person_ids &amp;amp; share sums.&lt;br/&gt;Saves immutable PlanManifest in DB.&lt;br/&gt;SECURITY RULE: Never notify beneficiaries!" vertex="1">
-          <mxGeometry height="85" width="260" x="570" y="1650" as="geometry" />
+          <mxGeometry height="85" width="260" x="570" y="1690" as="geometry" />
         </mxCell>
         <mxCell id="d7" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Valid Beneficiaries&lt;br/&gt;&amp;amp; Shares (≤ 100%)?" vertex="1">
-          <mxGeometry height="85" width="190" x="605" y="1770" as="geometry" />
+          <mxGeometry height="85" width="190" x="605" y="1810" as="geometry" />
         </mxCell>
         <mxCell id="e7" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E4 · Empty Assignment / Invalid % / Role Conflict:&lt;br/&gt;Unassigned asset flagged NOT_IN_ESTATE_PLAN.&lt;br/&gt;Server returns HTTP 422. Client displays&lt;br/&gt;allocation warnings. Return to Step 06." vertex="1">
-          <mxGeometry height="105" width="310" x="2045" y="1760" as="geometry" />
+          <mxGeometry height="105" width="310" x="2045" y="1800" as="geometry" />
         </mxCell>
         <mxCell id="a8" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="08 · Appoint Executor &amp;amp; Backups&lt;br/&gt;Select 1 Primary Executor + 1-2 Backups.&lt;br/&gt;Provide Full Name, Phone, and Email." vertex="1">
-          <mxGeometry height="80" width="200" x="60" y="1895" as="geometry" />
+          <mxGeometry height="80" width="200" x="60" y="1935" as="geometry" />
         </mxCell>
         <mxCell id="a9" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="09 · Generate Executor Invitation&lt;br/&gt;Server generates secure Token (TTL 48h).&lt;br/&gt;Instructs MailKit SMTP to dispatch invite." vertex="1">
-          <mxGeometry height="85" width="260" x="570" y="2015" as="geometry" />
+          <mxGeometry height="85" width="260" x="570" y="2055" as="geometry" />
         </mxCell>
         <mxCell id="mailkit_node" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="09.1 · MailKit SMTP Dispatch&lt;br/&gt;Connect TLS Port 587.&lt;br/&gt;Deliver formal appointment email&lt;br/&gt;linking to legal acceptance portal." vertex="1">
-          <mxGeometry height="85" width="190" x="1340" y="2015" as="geometry" />
+          <mxGeometry height="85" width="190" x="1340" y="2055" as="geometry" />
         </mxCell>
         <mxCell id="d9" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Executor Accepts&lt;br/&gt;Appointment?" vertex="1">
-          <mxGeometry height="85" width="190" x="1805" y="2140" as="geometry" />
+          <mxGeometry height="85" width="190" x="1805" y="2180" as="geometry" />
         </mxCell>
         <mxCell id="e9" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E5 · Executor Declined / 48h Timeout:&lt;br/&gt;Server records DECLINED status in DB.&lt;br/&gt;Auto-triggers invitation to next backup executor.&lt;br/&gt;Avoids re-inviting rejected contact." vertex="1">
-          <mxGeometry height="105" width="310" x="2045" y="2130" as="geometry" />
+          <mxGeometry height="105" width="310" x="2045" y="2170" as="geometry" />
         </mxCell>
         <mxCell id="a10" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="10 · Capture ID Card &amp;amp; Selfie&lt;br/&gt;Client captures Chip ID card + live selfie.&lt;br/&gt;POST /api/v1/ekyc/verify-full." vertex="1">
-          <mxGeometry height="85" width="230" x="300" y="2265" as="geometry" />
+          <mxGeometry height="85" width="230" x="300" y="2305" as="geometry" />
         </mxCell>
         <mxCell id="fptai_node" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="10.1 · FPT.AI Vision &amp;amp; Facematch&lt;br/&gt;Execute Chip ID OCR (detect tampering).&lt;br/&gt;Compute Liveness Face Match (Score ≥ 80%).&lt;br/&gt;Validate sound mind per Art. 630 BLDS." vertex="1">
-          <mxGeometry height="90" width="195" x="1567" y="2265" as="geometry" />
+          <mxGeometry height="90" width="195" x="1567" y="2305" as="geometry" />
         </mxCell>
         <mxCell id="a11" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="11 · Click 'Activate Estate Plan'&lt;br/&gt;Submit final confirmation payload to&lt;br/&gt;POST /api/v1/plans/{planId}/activate" vertex="1">
-          <mxGeometry height="80" width="200" x="60" y="2400" as="geometry" />
+          <mxGeometry height="80" width="200" x="60" y="2440" as="geometry" />
         </mxCell>
         <mxCell id="a12" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="12 · Audit SETUP-01 Governance&lt;br/&gt;Server verifies: Active paid tier, eKYC verified,&lt;br/&gt;executor ACCEPTED, manifest integrity,&lt;br/&gt;and digital consent recorded." vertex="1">
-          <mxGeometry height="85" width="260" x="570" y="2520" as="geometry" />
+          <mxGeometry height="85" width="260" x="570" y="2560" as="geometry" />
         </mxCell>
         <mxCell id="d12" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="All SETUP-01&lt;br/&gt;Prerequisites Met?" vertex="1">
-          <mxGeometry height="85" width="190" x="605" y="2640" as="geometry" />
+          <mxGeometry height="85" width="190" x="605" y="2680" as="geometry" />
         </mxCell>
         <mxCell id="e6" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E6 · Incomplete SETUP-01 Checklist:&lt;br/&gt;Server returns HTTP 422 with missing criteria.&lt;br/&gt;Plan retained as Draft. Client displays checklist&lt;br/&gt;guiding user to resolve incomplete items." vertex="1">
-          <mxGeometry height="105" width="310" x="2045" y="2630" as="geometry" />
+          <mxGeometry height="105" width="310" x="2045" y="2670" as="geometry" />
         </mxCell>
         <mxCell id="a13" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="13 · Commit ACTIVE &amp;amp; Start DMS Engine&lt;br/&gt;Atomic Serializable DB Transaction.&lt;br/&gt;Initialize 30-day Dead Man's Switch countdown&lt;br/&gt;&amp;amp; 7-day Rescue TimeLock grace period. Log Audit." vertex="1">
-          <mxGeometry height="85" width="260" x="570" y="2760" as="geometry" />
+          <mxGeometry height="85" width="260" x="570" y="2800" as="geometry" />
         </mxCell>
         <mxCell id="end" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#1F5C51;strokeColor=#1F5C51;fontColor=#FFFFFF;fontSize=13;fontFamily=Arial;fontStyle=1;" value="END: ACTIVE ESTATE PLAN&lt;br/&gt;Client updates status badge to ACTIVE.&lt;br/&gt;Live DMS Heartbeat countdown running." vertex="1">
-          <mxGeometry height="80" width="230" x="300" y="2880" as="geometry" />
+          <mxGeometry height="80" width="230" x="300" y="2920" as="geometry" />
         </mxCell>
         <mxCell id="edge_s_a1" edge="1" parent="1" source="s" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=11;labelBackgroundColor=#FFFFFF;" target="a1" value="">
           <mxGeometry relative="1" as="geometry" />
@@ -229,8 +229,8 @@
         <mxCell id="edge_a13_end" edge="1" parent="1" source="a13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=11;labelBackgroundColor=#FFFFFF;" target="end" value="HTTP 200 (ACTIVE + DMS)">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="legend" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFF6E2;strokeColor=#D8BD83;fontColor=#5A492C;fontSize=13;fontFamily=Arial;" value="DEDICATED SERVICES ARCHITECTURE: Distinct lanes for SePay, Cloudflare R2, MailKit, and FPT.AI ensure zero ambiguity. Dashed red arrows = Exception branches. Upon Step 13, Dead Man's Switch (DMS) begins its 30-day recurring countdown." vertex="1">
-          <mxGeometry height="70" width="2320" x="50" y="3000" as="geometry" />
+        <mxCell id="legend" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFF6E2;strokeColor=#D8BD83;fontColor=#5A492C;fontSize=13;fontFamily=Arial;" value="DATA GOVERNANCE SUMMARY: [HASHING]: 1-way fixed 64-hex SHA-256 fingerprint for tamper detection. [ENCRYPTION]: 2-way AES-256-GCM scrambling of plaintext into ciphertext. [R2]: Stores ONLY .enc ciphertext blob. [DATABASE]: Stores ONLY non-secret metadata + wrapped DEK + Nonce + Tag + Shamir Share 1. Zero plain secrets in DB." vertex="1">
+          <mxGeometry height="70" width="2320" x="50" y="3040" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

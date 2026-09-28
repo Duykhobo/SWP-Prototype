@@ -16,11 +16,48 @@ import {
   FileCheck,
   RefreshCw,
   Eye,
-  BarChart3
+  BarChart3,
+  Crop
 } from 'lucide-react';
 import { HeritageButton } from '@/shared/ui/HeritageButton';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
 import { TesseractBenchmarkSuite } from './TesseractBenchmarkSuite';
+
+export type RoiPreset = 'full' | 'name' | 'id' | 'dob' | 'address';
+
+export interface CropBox {
+  x: number; // 0 to 1
+  y: number; // 0 to 1
+  width: number; // 0 to 1
+  height: number; // 0 to 1
+}
+
+export const ROI_PRESETS: Record<RoiPreset, { label: string; box?: CropBox; description: string }> = {
+  full: {
+    label: 'Toàn bộ thẻ (Full Card)',
+    description: 'Quét toàn bộ ảnh, dựa vào regex bóc tách cấu trúc văn bản',
+  },
+  name: {
+    label: 'Khoanh vùng Họ Tên (Name ROI)',
+    box: { x: 0.28, y: 0.44, width: 0.58, height: 0.11 },
+    description: 'Cô lập dải chữ chứa tên — loại bỏ ảnh hưởng từ Quốc huy & hoa văn trống đồng',
+  },
+  id: {
+    label: 'Khoanh vùng Số CCCD (ID ROI)',
+    box: { x: 0.38, y: 0.33, width: 0.50, height: 0.10 },
+    description: 'Cô lập vùng chứa dãy 12 chữ số định danh',
+  },
+  dob: {
+    label: 'Khoanh vùng Ngày sinh (DOB ROI)',
+    box: { x: 0.28, y: 0.53, width: 0.65, height: 0.10 },
+    description: 'Cô lập dòng chứa Ngày sinh và Giới tính',
+  },
+  address: {
+    label: 'Khoanh vùng Địa chỉ (Address ROI)',
+    box: { x: 0.28, y: 0.63, width: 0.68, height: 0.33 },
+    description: 'Cô lập cụm Quê quán và Nơi thường trú',
+  },
+};
 
 interface ExtractedFields {
   idCardNumber?: string;
@@ -36,6 +73,8 @@ interface ExtractedFields {
 export const ClientTesseractOcrPoc: React.FC = () => {
   const [viewMode, setViewMode] = useState<'playground' | 'benchmark'>('playground');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedRoi, setSelectedRoi] = useState<RoiPreset>('full');
+  const [croppedPreviewUrl, setCroppedPreviewUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [usePreprocessing, setUsePreprocessing] = useState<boolean>(true);
   const [progressStatus, setProgressStatus] = useState<string>('');
@@ -44,43 +83,68 @@ export const ClientTesseractOcrPoc: React.FC = () => {
   const [extracted, setExtracted] = useState<ExtractedFields | null>(null);
   const [executionTimeMs, setExecutionTimeMs] = useState<number | null>(null);
 
-  // HTML5 Canvas Preprocessing: Grayscale & Contrast stretching to clear background noise
-  const preprocessImage = (imageSrc: string): Promise<string> => {
+  // HTML5 Canvas: Crop region + Grayscale & Contrast stretching
+  const preprocessAndCropImage = (
+    imageSrc: string,
+    cropBox?: CropBox,
+    applyContrast = true
+  ): Promise<{ dataUrl: string; width: number; height: number }> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
+
+        const sx = cropBox ? Math.max(0, cropBox.x * img.width) : 0;
+        const sy = cropBox ? Math.max(0, cropBox.y * img.height) : 0;
+        const sw = cropBox ? Math.min(img.width - sx, cropBox.width * img.width) : img.width;
+        const sh = cropBox ? Math.min(img.height - sy, cropBox.height * img.height) : img.height;
+
+        canvas.width = Math.round(sw);
+        canvas.height = Math.round(sh);
         const ctx = canvas.getContext('2d');
-        if (!ctx) return resolve(imageSrc);
+        if (!ctx) return resolve({ dataUrl: imageSrc, width: img.width, height: img.height });
 
-        ctx.drawImage(img, 0, 0);
-        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imgData.data;
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
 
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          // Grayscale luminance
-          let gray = 0.299 * r + 0.587 * g + 0.114 * b;
-          // Contrast boost to make dark text stand out against faint background guilloche patterns
-          gray = (gray - 128) * 1.45 + 128;
-          gray = Math.max(0, Math.min(255, gray));
+        if (applyContrast) {
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imgData.data;
 
-          data[i] = gray;
-          data[i + 1] = gray;
-          data[i + 2] = gray;
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+            gray = (gray - 128) * 1.45 + 128;
+            gray = Math.max(0, Math.min(255, gray));
+
+            data[i] = gray;
+            data[i + 1] = gray;
+            data[i + 2] = gray;
+          }
+
+          ctx.putImageData(imgData, 0, 0);
         }
 
-        ctx.putImageData(imgData, 0, 0);
-        resolve(canvas.toDataURL('image/png'));
+        resolve({ dataUrl: canvas.toDataURL('image/png'), width: canvas.width, height: canvas.height });
       };
-      img.onerror = () => resolve(imageSrc);
+      img.onerror = () => resolve({ dataUrl: imageSrc, width: 0, height: 0 });
       img.src = imageSrc;
     });
+  };
+
+  const handleSelectRoi = async (roi: RoiPreset) => {
+    setSelectedRoi(roi);
+    if (!selectedImage) return;
+
+    if (roi === 'full') {
+      setCroppedPreviewUrl(null);
+    } else {
+      const box = ROI_PRESETS[roi].box;
+      const { dataUrl } = await preprocessAndCropImage(selectedImage, box, false);
+      setCroppedPreviewUrl(dataUrl);
+    }
   };
 
   // Layout-aware parser for Vietnamese CCCD
@@ -157,11 +221,18 @@ export const ClientTesseractOcrPoc: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const reader = new FileReader();
-      reader.onload = () => {
-        setSelectedImage(reader.result as string);
+      reader.onload = async () => {
+        const data = reader.result as string;
+        setSelectedImage(data);
         setRawText('');
         setExtracted(null);
         setExecutionTimeMs(null);
+        if (selectedRoi !== 'full') {
+          const { dataUrl } = await preprocessAndCropImage(data, ROI_PRESETS[selectedRoi].box, false);
+          setCroppedPreviewUrl(dataUrl);
+        } else {
+          setCroppedPreviewUrl(null);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -171,7 +242,7 @@ export const ClientTesseractOcrPoc: React.FC = () => {
     if (!selectedImage) return;
 
     setIsProcessing(true);
-    setProgressStatus('Đang tiền xử lý ảnh (Lọc nhiễu & tăng tương phản)...');
+    setProgressStatus('Đang nạp ảnh và áp dụng vùng khoanh ROI...');
     setProgressPercent(5);
     setRawText('');
     setExtracted(null);
@@ -179,12 +250,16 @@ export const ClientTesseractOcrPoc: React.FC = () => {
     const startTime = performance.now();
 
     try {
-      const imageToProcess = usePreprocessing ? await preprocessImage(selectedImage) : selectedImage;
+      const box = ROI_PRESETS[selectedRoi].box;
+      const { dataUrl } = await preprocessAndCropImage(selectedImage, box, usePreprocessing);
+      if (selectedRoi !== 'full') {
+        setCroppedPreviewUrl(dataUrl);
+      }
 
       setProgressStatus('Đang khởi tạo Tesseract.js WASM Engine...');
       setProgressPercent(15);
 
-      const result = await Tesseract.recognize(imageToProcess, 'vie+eng', {
+      const result = await Tesseract.recognize(dataUrl, 'vie+eng', {
         logger: (m) => {
           if (m.status === 'recognizing text') {
             setProgressStatus('Đang nhận diện ký tự quang học (OCR)...');
@@ -197,7 +272,16 @@ export const ClientTesseractOcrPoc: React.FC = () => {
 
       const text = result.data.text;
       setRawText(text);
+
       const parsed = parseIdCardFields(text);
+      if (selectedRoi === 'name') {
+        const cleanName = text.replace(/[^a-zA-ZÀ-Ỹ\s]/g, '').trim().split('\n').filter((l) => l.trim().length >= 4).join(' ');
+        if (cleanName) parsed.fullName = cleanName;
+      } else if (selectedRoi === 'id') {
+        const idMatch = text.match(/\b(\d{12})\b/);
+        if (idMatch) parsed.idCardNumber = idMatch[1];
+      }
+
       setExtracted(parsed);
       setExecutionTimeMs(Math.round(performance.now() - startTime));
       setProgressStatus('Hoàn thành trích xuất');
@@ -213,19 +297,31 @@ export const ClientTesseractOcrPoc: React.FC = () => {
   return (
     <div className="space-y-5">
       {/* Academic Disclaimer Alert Box */}
-      <div className="p-4 bg-amber-50/90 border border-amber-300 rounded-xl text-xs space-y-2">
+      <div className="p-4 bg-amber-50/90 border border-amber-300 rounded-xl text-xs space-y-2.5">
         <div className="flex items-start gap-2.5">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <div className="space-y-1 text-amber-950">
+          <div className="space-y-1.5 text-amber-950">
             <p className="font-bold uppercase tracking-wide flex items-center gap-1.5 text-amber-900">
-              <span>Phạm vi thử nghiệm: Client-side OCR PoC (Tesseract.js WASM)</span>
-              <HeritageBadge variant="gold">Thử nghiệm độc lập</HeritageBadge>
+              <span>Phạm vi thử nghiệm: Thử Nghiệm OCR Trình Duyệt Hỗ Trợ Tiền Điền Biểu Mẫu (Form Pre-fill PoC)</span>
+              <HeritageBadge variant="gold">Nghiên Cứu Độc Lập</HeritageBadge>
             </p>
             <p className="leading-relaxed">
-              <strong>Tuyên bố giới hạn kỹ thuật:</strong> Module này chạy 100% trong bộ nhớ trình duyệt Client, không gửi ảnh ra bất kỳ máy chủ bên ngoài nào.
-              Việc nhận diện được ký tự chữ <em>không đồng nghĩa Căn cước công dân là thật</em>. Đồ án cần đo lường độ chính xác (Precision / Recall) trên bộ dữ liệu kiểm thử.
-              Trong môi trường sản xuất (Production), việc xác minh tính pháp lý bắt buộc phải đối soát với CSDL Quốc gia về dân cư hoặc đọc chip NFC ICAO.
+              <strong>Tuyên bố giới hạn khoa học & học thuật:</strong>
             </p>
+            <ul className="list-disc pl-4 space-y-1 text-amber-900/90">
+              <li>
+                <strong>Không tuyệt đối hóa độ chính xác:</strong> Không khẳng định các tỷ lệ "gần như 100%" hay "98–99%" khi chưa đo đạc trên tập ảnh mẫu chuẩn hóa và thiết bị kiểm thử cụ thể.
+              </li>
+              <li>
+                <strong>Bảo mật biên:</strong> Xử lý trong trình duyệt giúp giảm việc truyền tải ảnh thô lên mạng, nhưng <em>không tương đương với Zero-Knowledge tuyệt đối</em> nếu ứng dụng vẫn gửi thông tin trích xuất về máy chủ để lưu trữ hoặc đối soát.
+              </li>
+              <li>
+                <strong>Xác thực danh tính:</strong> Mã băm SHA-256 chỉ bảo đảm tính toàn vẹn (Integrity); kiểm tra 12 chữ số chỉ là kiểm tra định dạng (Format Validation). Cả hai không chứng minh thẻ là thật hay thuộc về người đang thao tác.
+              </li>
+              <li>
+                <strong>Nguyên tắc An Toàn (Fail-Safe):</strong> Trạng thái định danh trong hệ thống khi thiếu API eKYC thương mại có thẩm quyền luôn được chuyển sang <code>MANUAL_REVIEW</code> (Chờ duyệt thủ công).
+              </li>
+            </ul>
           </div>
         </div>
       </div>
@@ -297,6 +393,51 @@ export const ClientTesseractOcrPoc: React.FC = () => {
               </label>
             )}
           </div>
+
+          {/* ROI Presets Selector */}
+          <div className="space-y-1.5 p-3 bg-white rounded-lg border border-[#DCD9D0]">
+            <span className="text-[11px] font-bold text-[#0B291E] flex items-center gap-1.5">
+              <Crop className="w-3.5 h-3.5 text-[#B88E4C]" />
+              <span>Khoanh Vùng Quan Tâm (ROI Cropping - Giảm Nhiễu Nền):</span>
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1">
+              {(Object.keys(ROI_PRESETS) as RoiPreset[]).map((key) => {
+                const preset = ROI_PRESETS[key];
+                const isSelected = selectedRoi === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => handleSelectRoi(key)}
+                    className={`px-2 py-1.5 rounded-md text-[11px] font-semibold text-center transition-all cursor-pointer truncate ${
+                      isSelected
+                        ? 'bg-[#0B291E] text-white shadow-xs'
+                        : 'bg-[#FAF9F5] border border-[#DCD9D0] text-[#44554C] hover:border-[#B88E4C]'
+                    }`}
+                  >
+                    {preset.label.split('(')[0].trim()}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[10px] text-[#66786E] italic mt-1">
+              {ROI_PRESETS[selectedRoi].description}
+            </p>
+          </div>
+
+          {/* Cropped ROI Preview Thumbnail if active */}
+          {croppedPreviewUrl && selectedRoi !== 'full' && (
+            <div className="p-2.5 bg-amber-50/80 border border-amber-300 rounded-lg space-y-1">
+              <span className="text-[10px] font-bold text-amber-900 block">
+                Vùng ảnh được cô lập đưa vào Tesseract (ROI Snippet):
+              </span>
+              <img
+                src={croppedPreviewUrl}
+                alt="ROI Preview"
+                className="max-h-16 mx-auto rounded border border-amber-300 shadow-xs object-contain bg-white"
+              />
+            </div>
+          )}
 
           {/* Preprocessing toggle */}
           <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-[#DCD9D0] text-xs">

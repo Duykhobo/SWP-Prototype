@@ -1,0 +1,199 @@
+<mxfile host="Electron" agent="Codex">
+  <diagram id="flow02_system_merged" name="Flow 02 - Thiet lap va Kich hoat (Gop System)">
+    <mxGraphModel dx="2020" dy="1179" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1780" pageHeight="3200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#173F38;strokeColor=#173F38;fontColor=#FFFFFF;fontSize=14;fontFamily=Arial;fontStyle=1;" value="FLOW 02 · CHỦ KHO THIẾT LẬP VÀ KÍCH HOẠT KẾ HOẠCH DI SẢN (CHUẨN HÓA THEO PROTOTYPE DEMO)" vertex="1">
+          <mxGeometry height="60" width="1680" x="50" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="intro" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#E9F3EE;strokeColor=#C9DED2;fontColor=#225A4C;fontSize=13;fontFamily=Arial;" value="Đầu vào: Owner đã đăng nhập Google OIDC. Frontend và Backend gộp chung thành SYSTEM điều phối logic. Tích hợp đầy đủ: SePay VietQR (Gói XS/XS Max), Mã hóa Phong bì AES-256-GCM + Shamir SSS (2/3 Anti-Rogue), Cloudflare R2, MailKit SMTP, FPT.AI eKYC (Điều 630 BLDS) và Khởi tạo Dead Man's Switch (DMS Heartbeat 30 ngày)." vertex="1">
+          <mxGeometry height="60" width="1680" x="50" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="lane0" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#EEF5EF;swimlaneFillColor=#EEF5EF;strokeColor=#C9D5D0;fontColor=#233F38;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="OWNER · CHỦ TÀI SẢN" vertex="1">
+          <mxGeometry height="2850" width="260" x="50" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="lane1" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#EDF3F7;swimlaneFillColor=#EDF3F7;strokeColor=#B8CBD8;fontColor=#233F38;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="HỆ THỐNG LEGACYVAULT (SYSTEM)&lt;br/&gt;(Frontend React 19 + Backend .NET 8)" vertex="1">
+          <mxGeometry height="2850" width="360" x="330" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="lane2" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#F1F2F7;swimlaneFillColor=#F1F2F7;strokeColor=#C9D5D0;fontColor=#233F38;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="HẠ TẦNG &amp; DỊCH VỤ NGOÀI&lt;br/&gt;(Cloudflare R2, FPT.AI, SePay, MailKit)" vertex="1">
+          <mxGeometry height="2850" width="270" x="710" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="lane3" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#F3EFF6;swimlaneFillColor=#F3EFF6;strokeColor=#C9D5D0;fontColor=#233F38;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="EXECUTOR (NGƯỜI THỪA HÀNH)" vertex="1">
+          <mxGeometry height="2850" width="250" x="1000" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="lane4" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#FFF7F1;swimlaneFillColor=#FFF7F1;strokeColor=#C9D5D0;fontColor=#233F38;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" value="NHÁNH LỖI / XỬ LÝ (E1 - E6)" vertex="1">
+          <mxGeometry height="2850" width="360" x="1270" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="s" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#1F5C51;strokeColor=#1F5C51;fontColor=#FFFFFF;fontSize=13;fontFamily=Arial;fontStyle=1;" value="BẮT ĐẦU&lt;br/&gt;Owner đăng nhập qua Google OIDC&lt;br/&gt;(Nhận JWT Token &amp; Subject ID)" vertex="1">
+          <mxGeometry height="80" width="230" x="65" y="258" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="01 · Xem &amp; Chọn Gói Di sản&lt;br/&gt;Gói Free: 0đ (canPlanEstate=false)&lt;br/&gt;Gói XS: 199k • XS Max: 399k / năm" vertex="1">
+          <mxGeometry height="80" width="230" x="65" y="375" as="geometry" />
+        </mxCell>
+        <mxCell id="a2" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="02 · Kiểm tra Gói &amp; Cổng SePay&lt;br/&gt;[SYSTEM] Kiểm tra hạn gói; Nếu nâng cấp:&lt;br/&gt;Tạo đơn hàng, sinh VietQR qua SePay API&lt;br/&gt;và tự động kích hoạt gói qua Webhook" vertex="1">
+          <mxGeometry height="85" width="320" x="350" y="495" as="geometry" />
+        </mxCell>
+        <mxCell id="d2" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=13;fontFamily=Arial;fontStyle=1;" value="Gói XS / XS Max&lt;br/&gt;hợp lệ &amp; còn hạn?" vertex="1">
+          <mxGeometry height="85" width="200" x="410" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E1 · Gói Free / Hết hạn / Chưa thanh toán:&lt;br/&gt;Chặn quyền thiết lập di sản (canPlanEstate=false).&lt;br/&gt;Hiển thị VietQR hướng dẫn thanh toán nâng cấp.&lt;br/&gt;Tự động mở khóa ngay khi nhận Webhook SePay." vertex="1">
+          <mxGeometry height="105" width="330" x="1285" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="a3" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="03 · Thêm tài sản &amp; bí mật số&lt;br/&gt;Bí mật tài khoản, ví điện tử crypto&lt;br/&gt;hoặc tải tệp tin PDF di chúc/giấy tờ" vertex="1">
+          <mxGeometry height="80" width="230" x="65" y="745" as="geometry" />
+        </mxCell>
+        <mxCell id="a4" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="04 · Kiểm tra Dữ liệu &amp; Quota&lt;br/&gt;[SYSTEM] Xác thực form, tệp tin ≤ 20 MiB.&lt;br/&gt;Kiểm tra Quota lưu trữ gói (200MB / 500MB)&lt;br/&gt;và cấu trúc metadata an toàn" vertex="1">
+          <mxGeometry height="85" width="320" x="350" y="865" as="geometry" />
+        </mxCell>
+        <mxCell id="d4" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=13;fontFamily=Arial;fontStyle=1;" value="Dữ liệu &amp; Quota&lt;br/&gt;hợp lệ?" vertex="1">
+          <mxGeometry height="85" width="200" x="410" y="990" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E2 · Thiếu trường, tệp &gt; 20 MiB, quá Quota:&lt;br/&gt;Báo lỗi chi tiết từng trường nhập (Zod Validation).&lt;br/&gt;Từ chối tạo tài sản; không ghi database.&lt;br/&gt;Người dùng quay lại bước 03 để sửa thông tin." vertex="1">
+          <mxGeometry height="105" width="330" x="1285" y="980" as="geometry" />
+        </mxCell>
+        <mxCell id="a5" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="05 · Mã hóa Phong bì &amp; Shamir SSS (2/3)&lt;br/&gt;[SYSTEM] Sinh DEK mã hóa tệp (AES-256-GCM).&lt;br/&gt;Phân mảnh Khóa theo Shamir 2/3 (Anti-Rogue).&lt;br/&gt;Bảo vệ chống Admin nội bộ tự ý giải mã." vertex="1">
+          <mxGeometry height="85" width="320" x="350" y="1115" as="geometry" />
+        </mxCell>
+        <mxCell id="r2" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="05.1 · Cloudflare R2 Storage&lt;br/&gt;Lưu bản mã (.enc) vào Private Bucket.&lt;br/&gt;Cung cấp cơ chế tải về RAM-Only qua TLS&lt;br/&gt;(Zero-Egress $0 chi phí băng thông)." vertex="1">
+          <mxGeometry height="85" width="240" x="725" y="1240" as="geometry" />
+        </mxCell>
+        <mxCell id="d5" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=13;fontFamily=Arial;fontStyle=1;" value="Mã hóa + R2 + DB&lt;br/&gt;hoàn tất?" vertex="1">
+          <mxGeometry height="85" width="200" x="410" y="1365" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E3 · Lỗi mã hóa / R2 sập / DB Timeout:&lt;br/&gt;Giữ nguyên trạng thái Draft; không lưu hỏng.&lt;br/&gt;Rollback giao dịch DB, xóa object rác trên R2.&lt;br/&gt;Hỗ trợ cơ chế Retry với Idempotency Key." vertex="1">
+          <mxGeometry height="105" width="330" x="1285" y="1355" as="geometry" />
+        </mxCell>
+        <mxCell id="a6" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="06 · Chỉ định Người nhận (Beneficiaries)&lt;br/&gt;Khai báo danh sách người thừa hưởng;&lt;br/&gt;Phân chia tỷ lệ % hưởng cho từng tài sản" vertex="1">
+          <mxGeometry height="80" width="230" x="65" y="1490" as="geometry" />
+        </mxCell>
+        <mxCell id="a7" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="07 · Tự động gom kho (Plan Manifest)&lt;br/&gt;[SYSTEM] Kiểm tra person_id và tỷ lệ % (≤ 100%).&lt;br/&gt;Tạo bản gom kho nội bộ (Manifest).&lt;br/&gt;TUYỆT ĐỐI KHÔNG gửi thông báo cho Beneficiary!" vertex="1">
+          <mxGeometry height="85" width="320" x="350" y="1610" as="geometry" />
+        </mxCell>
+        <mxCell id="d7" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=13;fontFamily=Arial;fontStyle=1;" value="Ít nhất 1 chỉ định&lt;br/&gt;hợp lệ &amp; tỷ lệ đúng?" vertex="1">
+          <mxGeometry height="85" width="200" x="410" y="1735" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E4 · Chỉ định rỗng / Sai tỷ lệ / Role conflict:&lt;br/&gt;Tài sản chưa gán = NOT_IN_ESTATE_PLAN.&lt;br/&gt;Báo lỗi xung đột vai trò hoặc tổng % vượt 100.&lt;br/&gt;Quay lại bước 06 để hoàn thiện danh sách." vertex="1">
+          <mxGeometry height="105" width="330" x="1285" y="1725" as="geometry" />
+        </mxCell>
+        <mxCell id="a8" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="08 · Bổ nhiệm Người thừa hành (Executor)&lt;br/&gt;Chọn 1 Executor chính + 1-2 Executor dự phòng&lt;br/&gt;(Cung cấp Họ tên, SĐT và Email liên hệ)" vertex="1">
+          <mxGeometry height="80" width="230" x="65" y="1860" as="geometry" />
+        </mxCell>
+        <mxCell id="a9" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="09 · Gửi thư mời qua MailKit SMTP&lt;br/&gt;Sinh Invitation Token bảo mật (TTL 48h).&lt;br/&gt;Gửi email mời nhận nhiệm vụ Người thừa hành&lt;br/&gt;kèm liên kết xác nhận và cam kết pháp lý." vertex="1">
+          <mxGeometry height="85" width="240" x="725" y="1980" as="geometry" />
+        </mxCell>
+        <mxCell id="d9" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=13;fontFamily=Arial;fontStyle=1;" value="Executor xác nhận&lt;br/&gt;nhận nhiệm vụ?" vertex="1">
+          <mxGeometry height="85" width="200" x="1025" y="2100" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E5 · Executor từ chối / Quá 48h không phản hồi:&lt;br/&gt;Hệ thống ghi nhận trạng thái DECLINED / EXPIRED.&lt;br/&gt;Tự động kích hoạt gửi thư mời cho Executor dự phòng.&lt;br/&gt;Không mời lặp lại người đã từ chối." vertex="1">
+          <mxGeometry height="105" width="330" x="1285" y="2090" as="geometry" />
+        </mxCell>
+        <mxCell id="a10" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="10 · Định danh eKYC FPT.AI &amp; Cam kết&lt;br/&gt;Chủ kho quét CCCD + Face Match qua FPT.AI&lt;br/&gt;(Đảm bảo minh bạch theo Điều 630 BLDS 2015).&lt;br/&gt;Ký cam kết điện tử theo Luật GDĐT 2023." vertex="1">
+          <mxGeometry height="85" width="230" x="65" y="2225" as="geometry" />
+        </mxCell>
+        <mxCell id="a11" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="11 · Bấm Kích hoạt Kế hoạch Di sản&lt;br/&gt;Xác nhận kích hoạt và bắt đầu vận hành&lt;br/&gt;Dead Man's Switch (DMS)" vertex="1">
+          <mxGeometry height="80" width="230" x="65" y="2350" as="geometry" />
+        </mxCell>
+        <mxCell id="a12" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="12 · Thẩm định Điều kiện SETUP-01&lt;br/&gt;[SYSTEM] Kiểm tra tổng lực: Gói XS/XS Max còn hạn,&lt;br/&gt;eKYC FPT.AI đã đạt, Executor đã ACCEPTED,&lt;br/&gt;Manifest tài sản hợp lệ và cam kết đã ký" vertex="1">
+          <mxGeometry height="85" width="320" x="350" y="2470" as="geometry" />
+        </mxCell>
+        <mxCell id="d12" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=13;fontFamily=Arial;fontStyle=1;" value="Đủ 100% điều kiện&lt;br/&gt;kích hoạt?" vertex="1">
+          <mxGeometry height="85" width="200" x="410" y="2590" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E6 · Không đạt tiêu chí SETUP-01:&lt;br/&gt;Trả Checklist lỗi chi tiết: Thiếu eKYC / Executor chưa&lt;br/&gt;nhận lời / chưa gán tài sản. Giữ nguyên trạng thái Draft.&lt;br/&gt;Hướng dẫn người dùng hoàn tất từng mục còn thiếu." vertex="1">
+          <mxGeometry height="105" width="330" x="1285" y="2580" as="geometry" />
+        </mxCell>
+        <mxCell id="a13" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=13;fontFamily=Arial;" value="13 · Ghi ACTIVE &amp; Khởi tạo Dead Man's Switch&lt;br/&gt;[SYSTEM] Ghi ACTIVE (Giao dịch nguyên tử + Audit).&lt;br/&gt;Khởi chạy cơ chế đếm ngược DMS Heartbeat (30 ngày)&lt;br/&gt;&amp; Cấu hình thời gian cứu hộ Rescue TimeLock (7 ngày)." vertex="1">
+          <mxGeometry height="85" width="330" x="345" y="2710" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#1F5C51;strokeColor=#1F5C51;fontColor=#FFFFFF;fontSize=13;fontFamily=Arial;fontStyle=1;" value="KẾT THÚC&lt;br/&gt;Kế hoạch Di sản ACTIVE&lt;br/&gt;DMS Heartbeat bắt đầu đếm ngược" vertex="1">
+          <mxGeometry height="80" width="230" x="65" y="2825" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_s_a1" edge="1" parent="1" source="s" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a1" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a1_a2" edge="1" parent="1" source="a1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a2_d2" edge="1" parent="1" source="a2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="d2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d2_a3" edge="1" parent="1" source="d2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a3" value="Có (Hợp lệ)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d2_e2" edge="1" parent="1" source="d2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;fontColor=#613A35;fontSize=12;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=5 3;" target="e2" value="Không">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a3_a4" edge="1" parent="1" source="a3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a4_d4" edge="1" parent="1" source="a4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="d4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d4_a5" edge="1" parent="1" source="d4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a5" value="Có (Hợp lệ)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d4_e4" edge="1" parent="1" source="d4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;fontColor=#613A35;fontSize=12;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=5 3;" target="e4" value="Không">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a5_r2" edge="1" parent="1" source="a5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="r2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_r2_d5" edge="1" parent="1" source="r2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="d5" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d5_a6" edge="1" parent="1" source="d5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a6" value="Có (Hoàn tất)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d5_e5" edge="1" parent="1" source="d5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;fontColor=#613A35;fontSize=12;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=5 3;" target="e5" value="Không">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a6_a7" edge="1" parent="1" source="a6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a7" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a7_d7" edge="1" parent="1" source="a7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="d7" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d7_a8" edge="1" parent="1" source="d7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a8" value="Có (Hợp lệ)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d7_e7" edge="1" parent="1" source="d7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;fontColor=#613A35;fontSize=12;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=5 3;" target="e7" value="Không">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a8_a9" edge="1" parent="1" source="a8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a9" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a9_d9" edge="1" parent="1" source="a9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="d9" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d9_a10" edge="1" parent="1" source="d9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a10" value="Có (Đã nhận lời)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d9_e9" edge="1" parent="1" source="d9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;fontColor=#613A35;fontSize=12;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=5 3;" target="e9" value="Không">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a10_a11" edge="1" parent="1" source="a10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a11" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a11_a12" edge="1" parent="1" source="a11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a12" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a12_d12" edge="1" parent="1" source="a12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="d12" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d12_a13" edge="1" parent="1" source="d12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="a13" value="Có (Đủ 100%)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_d12_e6" edge="1" parent="1" source="d12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;fontColor=#613A35;fontSize=12;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=5 3;" target="e6" value="Không">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_a13_end" edge="1" parent="1" source="a13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;fontColor=#225A4C;fontSize=12;labelBackgroundColor=#FFFFFF;" target="end" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFF6E2;strokeColor=#D8BD83;fontColor=#5A492C;fontSize=13;fontFamily=Arial;" value="LƯU Ý THIẾT KẾ BẢO MẬT &amp; DEMO: Nét đỏ đứt = Nhánh từ chối / lỗi nghiệp vụ. Không gửi email cho Beneficiary lúc lập kế hoạch. Khi kích hoạt thành công (Bước 13), Dead Man's Switch (DMS) tự động bắt đầu chu kỳ đếm ngược 30 ngày." vertex="1">
+          <mxGeometry height="70" width="1680" x="50" y="2940" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

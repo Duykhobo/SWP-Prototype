@@ -107,20 +107,27 @@
 
 ---
 
-### 2.6. Thẩm Định Danh Tính eKYC FPT.AI So Với VNPT AI
+### 2.6. Thẩm Định Danh Tính eKYC FPT.AI & Hệ Sinh Thái FPT Cloud AI Marketplace
 
-- **Nguyên lý hoạt động thật:**
-  - Gửi ảnh mặt trước/sau của CCCD gắn chip lên API nhận diện OCR của FPT.AI để tự động trích xuất: Họ tên, Số CCCD 12 số, Ngày sinh, Giới tính, Quê quán, Nơi thường trú, Ngày hết hạn.
-  - Gửi đồng thời ảnh chân dung trên CCCD và ảnh selfie để thuật toán AI phân tích đặc trưng sinh trắc học khuôn mặt và trả về tỉ lệ tương đồng (ngưỡng an toàn $\ge 80\%$).
-- **Ưu điểm vượt trội của FPT.AI:**
-  - **Có Cổng nhà phát triển mở (Developer Portal)**: Cho phép lập trình viên cá nhân đăng ký tài khoản tại `console.fpt.ai` và cấp ngay API Key miễn phí (Free Tier) để thử nghiệm trực tiếp.
-  - **Độ chính xác rất cao với CCCD Việt Nam**: Được huấn luyện riêng cho các mẫu giấy tờ tùy thân của Việt Nam (CMND 9 số, CMND 12 số, CCCD mã vạch, CCCD gắn chip, Căn cước mới 2024).
-  - **Tốc độ phản hồi cực nhanh**: Thời gian nhận diện OCR và đối sánh khuôn mặt chỉ từ 0.8 đến 1.8 giây.
-- **Lý do loại bỏ VNPT eKYC:**
-  - VNPT yêu cầu hợp đồng pháp nhân doanh nghiệp (B2B Enterprise License), có giấy chứng nhận đăng ký kinh doanh và kiểm duyệt hồ sơ công ty mới cấp tài liệu SDK và tenant API. Nhóm sinh viên không có pháp nhân doanh nghiệp nên không thể ký kết hợp đồng này.
-- **Nhược điểm của FPT.AI:**
-  - Giới hạn lượt gọi miễn phí (khoảng vài trăm lượt test).
-  - Chất lượng ảnh chụp phụ thuộc người dùng: Nếu ảnh bị lóa đèn flash trên phôi chip hoặc bị mất góc, độ tin cậy của AI có thể giảm dưới 80%, đòi hỏi hệ thống chuyển sang quy trình duyệt thủ công (`reviewRequired = true`).
+- **Phân định 2 cổng dịch vụ của FPT:**
+  1. **FPT.AI Vision SDK (`api.fpt.ai` - Cổng `console.fpt.ai`)**:
+     - *Nhiệm vụ cốt lõi*: Định danh pháp lý eKYC cứng theo quy định nhà nước (OCR CCCD gắn chip `/vision/idr/vnm/`, Face Match đối sánh ảnh chân dung `/dmp/checkface/v1/`, Liveness `/dmp/liveness/v3`).
+     - *Đặc điểm*: Dữ liệu trả về chuẩn hóa cấu trúc JSON (Họ tên, 12 số CCCD, Quê quán, Địa chỉ, Ngày cấp, Dấu vết nhận dạng).
+     - *Ưu điểm*: Cổng Developer mở, cấp API Key test cá nhân ngay lập tức, độ chính xác nhận diện giấy tờ Việt Nam cao nhất thị trường.
+     - *So với VNPT eKYC*: VNPT bắt buộc hợp đồng pháp nhân doanh nghiệp (B2B Enterprise License) có đăng ký kinh doanh; FPT.AI mở cho sinh viên và dev độc lập.
+  2. **FPT Cloud AI Marketplace (`mkp-api.fptcloud.com` - Repository: `https://github.com/fpt-corp/ai-marketplace`)**:
+     - *Nhiệm vụ cốt lõi*: Cung cấp các mô hình Trí tuệ nhân tạo nền tảng (Foundation Models) gồm LLM, Vision Language Model (VLM), Embedding, Rerank, Speech-to-Text tương thích chuẩn OpenAI SDK (`OpenAI(base_url="https://mkp-api.fptcloud.com")`).
+     - *Ứng dụng đột phá trong LegacyVault*:
+       * **AI Legal Copilot (LLM `/chat/completions`)**: Rà soát tự động các điều khoản di chúc, phát hiện điều khoản vô hiệu theo Bộ luật Dân sự 2015 (ví dụ: vi phạm Điều 644 về quyền của người thừa kế không phụ thuộc nội dung di chúc).
+       * **VLM Document Inspection (Vision Language Model)**: Phân tích ảnh chụp tài liệu sở hữu tài sản phức tạp (Sổ đỏ, Sổ hồng, Đăng ký xe, Cổ phiếu) hoặc bản di chúc viết tay để trích xuất danh mục tài sản tự động.
+       * **RAG Legal Search (Embedding + Rerank)**: Tra cứu nhanh điều luật và án lệ thừa kế Việt Nam được host 100% tại trung tâm dữ liệu FPT (đảm bảo Chủ quyền dữ liệu quốc gia).
+       * **Speech-to-Text (STT)**: Chuyển đổi video/audio khẩu dụ di chúc thành văn bản có mốc thời gian để hỗ trợ Công chứng viên.
+- **Ưu điểm vượt trội của hạ tầng FPT AI:**
+  - **Chủ quyền dữ liệu (Data Sovereignty)**: Toàn bộ máy chủ suy luận (Inference GPU) đặt tại trung tâm dữ liệu FPT trong nước, không truyền dữ liệu nhạy cảm ra nước ngoài như OpenAI quốc tế.
+  - **Chuẩn hóa giao diện OpenAI**: Dễ dàng tích hợp vào backend ASP.NET Core thông qua thư viện `Azure.AI.OpenAI` hoặc `OpenAI` client chính thức.
+- **Nhược điểm & Biện pháp kiểm soát:**
+  - Hạn ngạch API Key: Với tài khoản dùng thử cần quản lý lượt gọi bằng in-memory caching.
+  - Chất lượng ảnh chụp đầu vào: Nếu ảnh CCCD bị lóa đèn flash trên phôi chip hoặc mất góc, AI sẽ gắn cờ `reviewRequired = true` để Công chứng viên duyệt thủ công.
 
 ---
 

@@ -161,6 +161,8 @@ await smtp.DisconnectAsync(true, cancellationToken);
 
 ---
 
+---
+
 ## 6. Quyết định Kiến trúc: Loại bỏ VNPT eKYC & Chuẩn hóa FPT.AI Vision SDK
 
 - **Lý do loại bỏ VNPT eKYC**:
@@ -171,7 +173,33 @@ await smtp.DisconnectAsync(true, cancellationToken);
 
 ---
 
-## 7. Kế hoạch kiểm thử và điều kiện đưa vào dự án
+## 7. Mở Rộng: FPT Cloud AI Marketplace (`fpt-corp/ai-marketplace`)
+
+- **Tài liệu tham chiếu chính thức**: [https://github.com/fpt-corp/ai-marketplace](https://github.com/fpt-corp/ai-marketplace)
+- **Cổng dịch vụ**: [https://marketplace.fptcloud.com/](https://marketplace.fptcloud.com/)
+- **Base URL API**: `https://mkp-api.fptcloud.com`
+- **Cơ chế xác thực (Authentication)**:
+  - Header: `api-key: {YOUR_API_KEY}` hoặc `Authorization: Bearer {YOUR_API_KEY}`
+  - Lấy API Key tại: `My Account -> My API Keys` trên FPT Cloud Marketplace.
+  - Chuẩn SDK tương thích: Tương thích 100% với OpenAI SDK (`openai` trong Python, `Azure.AI.OpenAI` hoặc `OpenAI` client trong .NET 8/10), LiteLLM, và REST HTTP.
+- **Các dịch vụ tiêu biểu & Ứng dụng trong LegacyVault**:
+  1. **Vision Language Model (VLM)** (`API Integration - Vision Language Model.md`):
+     - **Ứng dụng**: Phân tích thị giác đa phương tiện cho tài liệu di chúc viết tay, giấy chứng nhận quyền sử dụng đất (Sổ đỏ/Sổ hồng), giấy đăng ký phương tiện, cổ phiếu. VLM có thể trích xuất ngữ cảnh văn bản và phát hiện các dấu hiệu chỉnh sửa phi cấu trúc.
+     - **Cơ chế gửi**: Chuyển ảnh sang chuỗi Base64 (`image/jpeg` hoặc `image/png`), gửi cùng prompt phân tích cấu trúc di sản.
+  2. **Large Language Model (LLM)** (`API Integration - Large Language Model.md`):
+     - **Endpoint**: `POST https://mkp-api.fptcloud.com/chat/completions` (hỗ trợ Server-Sent Events SSE `stream: true`).
+     - **Ứng dụng**: **AI Legal Assistant** — Rà soát xung đột điều khoản di chúc với Bộ luật Dân sự 2015 (ví dụ: kiểm tra người thừa kế không phụ thuộc nội dung di chúc theo Điều 644 BLDS, kiểm tra tỷ lệ phân chia di sản, điều kiện mở khóa).
+  3. **Embedding Model & Rerank Model** (`API Integration - Embedding Model.md`, `API Integration - Rerank model.md`):
+     - **Ứng dụng**: Xây dựng hệ thống RAG (Retrieval-Augmented Generation) tra cứu cơ sở dữ liệu luật thừa kế và án lệ Việt Nam. Toàn bộ dữ liệu pháp lý được nhúng vector (embedding) và xếp hạng (rerank) cục bộ tại data center FPT ở Việt Nam, đảm bảo tuyệt đối yêu cầu về chủ quyền dữ liệu (Data Sovereignty).
+  4. **Speech-to-Text (STT)** (`API Integration - Speech to text.md`):
+     - **Ứng dụng**: Chuyển đổi khẩu dụ / di chúc miệng (Audio/Video Will) ghi âm từ Người lập di chúc thành văn bản có mốc thời gian để hỗ trợ Công chứng viên thẩm định.
+- **Quy tắc phân định hệ thống**:
+  - `api.fpt.ai` (FPT.AI Console): Chuyên trách định danh eKYC bắt buộc (OCR CCCD, Face Match, Liveness).
+  - `mkp-api.fptcloud.com` (FPT AI Marketplace): Chuyên trách xử lý trí tuệ nhân tạo tạo sinh nâng cao (AI Assistant, VLM, RAG pháp lý).
+
+---
+
+## 8. Kế hoạch kiểm thử và điều kiện đưa vào dự án
 
 | ID | Bài test | Điều kiện PASS | Bằng chứng cần lưu |
 | :---: | :--- | :--- | :--- |

@@ -15,10 +15,12 @@ import {
   Sparkles,
   FileCheck,
   RefreshCw,
-  Eye
+  Eye,
+  BarChart3
 } from 'lucide-react';
 import { HeritageButton } from '@/shared/ui/HeritageButton';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
+import { TesseractBenchmarkSuite } from './TesseractBenchmarkSuite';
 
 interface ExtractedFields {
   idCardNumber?: string;
@@ -32,6 +34,7 @@ interface ExtractedFields {
 }
 
 export const ClientTesseractOcrPoc: React.FC = () => {
+  const [viewMode, setViewMode] = useState<'playground' | 'benchmark'>('playground');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [usePreprocessing, setUsePreprocessing] = useState<boolean>(true);
@@ -227,10 +230,42 @@ export const ClientTesseractOcrPoc: React.FC = () => {
         </div>
       </div>
 
-      {/* Upload and Control Area */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Left: Input Card */}
-        <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-xl p-5 space-y-4">
+      {/* Mode Switcher: Playground vs Benchmark Suite */}
+      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-[#EFECE6] border border-[#DCD9D0] rounded-xl w-fit">
+        <button
+          type="button"
+          onClick={() => setViewMode('playground')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            viewMode === 'playground'
+              ? 'bg-[#0B291E] text-white shadow-xs'
+              : 'text-[#44554C] hover:text-[#0B291E] hover:bg-white/60'
+          }`}
+        >
+          <Upload className="w-3.5 h-3.5 text-[#B88E4C]" />
+          <span>1. Tải ảnh & Trích xuất tự do (Playground)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setViewMode('benchmark')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            viewMode === 'benchmark'
+              ? 'bg-[#0B291E] text-white shadow-xs'
+              : 'text-[#44554C] hover:text-[#0B291E] hover:bg-white/60'
+          }`}
+        >
+          <BarChart3 className="w-3.5 h-3.5 text-amber-500" />
+          <span>2. Bộ Bài Kiểm Thử Benchmark Đa Kịch Bản (5 Test Cases)</span>
+        </button>
+      </div>
+
+      {viewMode === 'benchmark' && <TesseractBenchmarkSuite />}
+
+      {/* Upload and Control Area (Playground Mode) */}
+      {viewMode === 'playground' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Left: Input Card */}
+          <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-xl p-5 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-[#DCD9D0]">
             <h4 className="text-xs font-bold text-[#0B291E] flex items-center gap-2">
               <Upload className="w-4 h-4 text-[#B88E4C]" />
@@ -398,6 +433,7 @@ export const ClientTesseractOcrPoc: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };

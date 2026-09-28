@@ -1,0 +1,192 @@
+<mxfile host="app.diagrams.net" modified="2026-09-28T20:00:00.000Z" agent="LegacyVault Architecture Engine" version="24.7.17" type="device">
+  <diagram id="legacyvault-dev-swimlane" name="LegacyVault Developer Technical Swimlane">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1200" background="#F8F9FA" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== SWIMLANE POOL ==================== -->
+        <mxCell id="pool" value="HỆ THỐNG LEGACYVAULT - KỸ THUẬT TRIỂN KHAI CHO LẬP TRÌNH VIÊN (DEVELOPER TECHNICAL WORKFLOW)" style="swimlane;html=1;childLayout=stackLayout;resizeParent=1;resizeParentMax=0;startSize=40;horizontal=1;fontFamily=Helvetica;fontSize=14;fontStyle=1;fillColor=#0B291E;strokeColor=#B88E4C;fontColor=#FAF9F5;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1800" height="1060" as="geometry" />
+        </mxCell>
+
+        <!-- LANE 1: FRONTEND (REACT 19 + TS) -->
+        <mxCell id="lane_fe" value="1. FRONTEND LAYER (React 19, Vite, TailwindCSS, RAM-Only State)&#xa;Files: client/src/features/*, client/src/shared/*" style="swimlane;html=1;startSize=30;horizontal=0;fillColor=#FAF6EE;strokeColor=#B88E4C;fontColor=#0B291E;fontStyle=1;fontSize=12;" vertex="1" parent="pool">
+          <mxGeometry y="40" width="1800" height="240" as="geometry" />
+        </mxCell>
+
+        <!-- LANE 2: BACKEND CONTROLLER & APP (.NET 8) -->
+        <mxCell id="lane_be" value="2. BACKEND API &amp; APPLICATION LAYER (.NET 8 WebApi, Clean Architecture)&#xa;Files: WebApi/Controllers/*, Application/Services/*" style="swimlane;html=1;startSize=30;horizontal=0;fillColor=#E5EDE8;strokeColor=#0B291E;fontColor=#0B291E;fontStyle=1;fontSize=12;" vertex="1" parent="pool">
+          <mxGeometry y="280" width="1800" height="280" as="geometry" />
+        </mxCell>
+
+        <!-- LANE 3: CRYPTO & CLOUD INFRA -->
+        <mxCell id="lane_infra" value="3. CRYPTO ENGINE &amp; CLOUD INFRASTRUCTURE (AES-256-GCM, SSS 2/3, Cloudflare R2, MailKit)&#xa;Files: Infrastructure/Services/*, AWSS3Client, MailKit" style="swimlane;html=1;startSize=30;horizontal=0;fillColor=#F0F4F1;strokeColor=#0B291E;fontColor=#0B291E;fontStyle=1;fontSize=12;" vertex="1" parent="pool">
+          <mxGeometry y="560" width="1800" height="260" as="geometry" />
+        </mxCell>
+
+        <!-- LANE 4: EXTERNAL CLOUD SERVICES & STATE -->
+        <mxCell id="lane_ext" value="4. EXTERNAL IDENTITY &amp; STORAGE (Google OIDC, FPT.AI Vision, R2 Private S3, DB / RAM)&#xa;Hosts: accounts.google.com, api.fpt.ai, r2.cloudflarestorage.com" style="swimlane;html=1;startSize=30;horizontal=0;fillColor=#E8ECE9;strokeColor=#66786E;fontColor=#14241C;fontStyle=1;fontSize=12;" vertex="1" parent="pool">
+          <mxGeometry y="820" width="1800" height="240" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== NODES: STAGE 1 (AUTH OIDC & MFA) ==================== -->
+        <!-- FE 1.1 -->
+        <mxCell id="node_fe_login" value="[UI] GoogleOidcTestbench.tsx&#xa;window.google.accounts.id.renderButton()&#xa;Callback: onGoogleSuccess(credential)&#xa;→ Payload: { idToken: string }" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#B88E4C;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_fe">
+          <mxGeometry x="60" y="50" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- EXT 1.2 -->
+        <mxCell id="node_ext_google" value="[Google Auth Server]&#xa;Xác thực tài khoản người dùng&#xa;Ký phát RS256 JWT ID Token&#xa;Claims: sub, email, name, exp" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#4285F4;fontColor=#174EA6;fontSize=11;" vertex="1" parent="lane_ext">
+          <mxGeometry x="60" y="60" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- BE 1.3 -->
+        <mxCell id="node_be_auth" value="[Controller] AuthController.cs&#xa;POST /api/v1/auth/google&#xa;Method: GoogleJsonWebSignature.ValidateAsync()&#xa;→ Trả về: { accessToken, requiresMfa: true }" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0B291E;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_be">
+          <mxGeometry x="60" y="50" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- INFRA 1.4 -->
+        <mxCell id="node_infra_mfa" value="[Service] MailKitEmailService.cs&#xa;SendOtpEmailAsync(email, otpCode)&#xa;Host: smtp.gmail.com:587&#xa;Cache: MemoryCache (TTL: 5 mins, max: 3)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0B291E;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_infra">
+          <mxGeometry x="60" y="50" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== NODES: STAGE 2 (eKYC FPT.AI) ==================== -->
+        <!-- FE 2.1 -->
+        <mxCell id="node_fe_ekyc" value="[UI] EkycTestbench.tsx&#xa;1. Upload frontCardFile (CCCD)&#xa;2. Chụp selfieFile (Webcam / Liveness)&#xa;POST /api/v1/ekyc/ocr &amp; /match-face" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#B88E4C;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_fe">
+          <mxGeometry x="340" y="50" width="230" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- BE 2.2 -->
+        <mxCell id="node_be_ekyc" value="[Controller] EkycController.cs&#xa;Service: EkycService.cs&#xa;Fallback: Sandbox Preset nếu 401 B2B Key&#xa;Validate: isTampered==false &amp;&amp; matchScore&gt;=80" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0B291E;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_be">
+          <mxGeometry x="340" y="50" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- EXT 2.3 -->
+        <mxCell id="node_ext_fpt" value="[FPT.AI Vision &amp; DMP Server]&#xa;POST https://api.fpt.ai/vision/idr/vnm&#xa;POST https://api.fpt.ai/dmp/checkface/v1&#xa;Header: api-key: sk-wGxN10o3..." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF8E1;strokeColor=#FFB300;fontColor=#F57F17;fontSize=11;" vertex="1" parent="lane_ext">
+          <mxGeometry x="340" y="60" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== NODES: STAGE 3 (CREATE & ENVELOPE) ==================== -->
+        <!-- FE 3.1 -->
+        <mxCell id="node_fe_vault" value="[UI] CryptoEnvelopeTestbench.tsx&#xa;1. Phân loại 3 nhóm dữ liệu (Đ.105, 612, 38)&#xa;2. Ghi video tuyên thệ 15s (MediaRecorder)&#xa;3. Chỉ định Beneficiary &amp; Executor" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#B88E4C;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_fe">
+          <mxGeometry x="640" y="50" width="250" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- BE 3.2 -->
+        <mxCell id="node_be_crypto" value="[Controller] CryptoEnvelopeController.cs&#xa;POST /api/v1/crypto/encrypt-envelope&#xa;1. Sinh DEK 256-bit (RNG)&#xa;2. Mã hóa AES-256-GCM (Ciphertext+Tag)&#xa;3. Mã hóa DEK bằng Master KEK" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0B291E;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_be">
+          <mxGeometry x="640" y="50" width="250" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- INFRA 3.3 -->
+        <mxCell id="node_infra_shamir" value="[Service] ShamirSecretSharingService.cs&#xa;SplitSecret(dekBytes, threshold=2, shares=3)&#xa;• Share 1: Database (Encrypted)&#xa;• Share 2: Verifier / Legal Custody&#xa;• Share 3: Executor Email Package" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0B291E;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_infra">
+          <mxGeometry x="640" y="50" width="250" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- INFRA 3.4 -->
+        <mxCell id="node_infra_r2" value="[Service] CloudflareR2StorageService.cs&#xa;UploadCiphertextAsync(stream, bucket, key)&#xa;Client: AmazonS3Client (Signature V4)&#xa;Bucket: legacyvault-prototype-private" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0B291E;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_infra">
+          <mxGeometry x="930" y="50" width="250" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- EXT 3.5 -->
+        <mxCell id="node_ext_r2" value="[Cloudflare R2 Object Storage]&#xa;https://562cae34066c...r2.cloudflarestorage.com&#xa;Store Encrypted Vault File (.enc)&#xa;Block Public Access: 100% Private" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBE9E7;strokeColor=#FF5722;fontColor=#BF360C;fontSize=11;" vertex="1" parent="lane_ext">
+          <mxGeometry x="930" y="60" width="250" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== NODES: STAGE 4 (ACTIVE & DMS) ==================== -->
+        <!-- FE 4.1 -->
+        <mxCell id="node_fe_dms" value="[UI] LiveDmsHeartbeatCard.tsx&#xa;Action: &quot;Active the Plan&quot;&#xa;POST /api/v1/dms/activate&#xa;State: DRAFT → ACTIVE_MONITORING" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#B88E4C;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_fe">
+          <mxGeometry x="1220" y="50" width="230" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- BE 4.2 -->
+        <mxCell id="node_be_dms" value="[Background Worker] DmsHeartbeatService.cs&#xa;CheckCycleJob() (Cron: daily / hourly)&#xa;If Overdue &gt; CycleDays:&#xa;→ Trigger Grace Period (14 days)&#xa;→ Send Alert Email to Owner" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0B291E;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_be">
+          <mxGeometry x="1220" y="50" width="240" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== NODES: STAGE 5 (CLAIM & TIMELOCK) ==================== -->
+        <!-- FE 5.1 -->
+        <mxCell id="node_fe_claim" value="[UI] RescueTimeLockTestbench.tsx&#xa;1. Executor nộp đơn báo tử + eKYC&#xa;2. Owner nhận mail cảnh báo đỏ&#xa;3. Nút bấm: &quot;1-Click Cancel Emergency Claim&quot;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#B88E4C;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_fe">
+          <mxGeometry x="1500" y="50" width="250" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- BE 5.2 -->
+        <mxCell id="node_be_timelock" value="[Controller] RescueTimeLockController.cs&#xa;POST /api/v1/timelock/initiate-claim&#xa;→ Set Vault.State = PENDING_VERIFICATION&#xa;→ Start Countdown: 30 days (TimeLock)&#xa;POST /api/v1/timelock/cancel-claim (1-Click)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0B291E;fontSize=11;align=left;spacingLeft=8;" vertex="1" parent="lane_be">
+          <mxGeometry x="1500" y="50" width="250" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- INFRA 5.3 -->
+        <mxCell id="node_infra_restore" value="[Crypto Decrypt &amp; Handover]&#xa;1. Combine Shamir (Share 1 + Share 2/3)&#xa;2. Lagrange Interpolation over GF(2^8)&#xa;3. Decrypt AES-256-GCM from R2&#xa;4. Secure Erase Category 3 (Bí mật đời tư)&#xa;5. Beneficiary eKYC &amp; Download" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0B291E;strokeColor=#B88E4C;fontColor=#FAF9F5;fontSize=11;align=left;spacingLeft=8;strokeWidth=2;" vertex="1" parent="lane_infra">
+          <mxGeometry x="1500" y="40" width="250" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- ==================== CONNECTORS ==================== -->
+        <!-- 1. FE to Google -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4285F4;strokeWidth=2;" edge="1" parent="1" source="node_fe_login" target="node_ext_google">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 2. Google to BE Auth -->
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0B291E;strokeWidth=2;" edge="1" parent="1" source="node_ext_google" target="node_be_auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 3. BE Auth to MailKit -->
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0B291E;strokeWidth=2;" edge="1" parent="1" source="node_be_auth" target="node_infra_mfa">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 4. MailKit to FE eKYC -->
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#B88E4C;strokeWidth=2;" edge="1" parent="1" source="node_infra_mfa" target="node_fe_ekyc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 5. FE eKYC to BE eKYC -->
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0B291E;strokeWidth=2;" edge="1" parent="1" source="node_fe_ekyc" target="node_be_ekyc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 6. BE eKYC to FPT Server -->
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FFB300;strokeWidth=2;" edge="1" parent="1" source="node_be_ekyc" target="node_ext_fpt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 7. BE eKYC to FE Vault -->
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#B88E4C;strokeWidth=2;" edge="1" parent="1" source="node_be_ekyc" target="node_fe_vault">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 8. FE Vault to BE Crypto -->
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0B291E;strokeWidth=2;" edge="1" parent="1" source="node_fe_vault" target="node_be_crypto">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 9. BE Crypto to Shamir -->
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0B291E;strokeWidth=2;" edge="1" parent="1" source="node_be_crypto" target="node_infra_shamir">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 10. Shamir to R2 Service -->
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0B291E;strokeWidth=2;" edge="1" parent="1" source="node_infra_shamir" target="node_infra_r2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 11. R2 Service to R2 Storage -->
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#FF5722;strokeWidth=2;" edge="1" parent="1" source="node_infra_r2" target="node_ext_r2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 12. R2 to FE DMS -->
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#B88E4C;strokeWidth=2;" edge="1" parent="1" source="node_ext_r2" target="node_fe_dms">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 13. FE DMS to BE Worker -->
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0B291E;strokeWidth=2;" edge="1" parent="1" source="node_fe_dms" target="node_be_dms">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 14. BE Worker to FE Claim -->
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#B88E4C;strokeWidth=2;" edge="1" parent="1" source="node_be_dms" target="node_fe_claim">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 15. FE Claim to BE TimeLock -->
+        <mxCell id="e15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0B291E;strokeWidth=2;" edge="1" parent="1" source="node_fe_claim" target="node_be_timelock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- 16. BE TimeLock to Restore -->
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#B88E4C;strokeWidth=2;" edge="1" parent="1" source="node_be_timelock" target="node_infra_restore">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -36,6 +36,7 @@ builder.Services.AddSingleton<IR2StorageService, CloudflareR2StorageService>();
 builder.Services.AddSingleton<IPaymentService, SePayPaymentService>();
 builder.Services.AddSingleton<IMailKitService, MailKitEmailService>();
 builder.Services.AddHttpClient<IEkycService, EkycService>();
+builder.Services.AddHttpClient<IFptMarketplaceService, FptMarketplaceService>();
 builder.Services.AddSingleton<ITimeLockRescueService, TimeLockRescueService>();
 builder.Services.AddTransient<IOidcValidationService, GoogleOidcValidationService>();
 

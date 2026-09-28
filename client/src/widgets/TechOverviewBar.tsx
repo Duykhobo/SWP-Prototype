@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
-import { ShieldCheck, Cloud, CreditCard, Mail, Scan, KeyRound, Clock, LogIn } from 'lucide-react';
+import { ShieldCheck, Cloud, CreditCard, Mail, Scan, KeyRound, Clock, LogIn, Cpu } from 'lucide-react';
 
 export const TechOverviewBar: React.FC = () => {
   const techs = [
@@ -17,6 +17,7 @@ export const TechOverviewBar: React.FC = () => {
     { name: 'eKYC FPT.AI', status: 'OCR & Liveness', icon: <Scan className="w-3.5 h-3.5" />, variant: 'gold' as const },
     { name: 'Time-Lock 48h / Demo 2m', status: 'AliveClaim Engine', icon: <Clock className="w-3.5 h-3.5" />, variant: 'success' as const },
     { name: 'Google OIDC Identity', status: 'OAuth 2.0 Validated', icon: <LogIn className="w-3.5 h-3.5" />, variant: 'forest' as const },
+    { name: 'FPT AI Marketplace', status: 'LLM & VLM Live', icon: <Cpu className="w-3.5 h-3.5" />, variant: 'gold' as const },
   ];
 
   return (

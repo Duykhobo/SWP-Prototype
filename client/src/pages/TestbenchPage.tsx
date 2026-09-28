@@ -18,6 +18,7 @@ import { MailKitTestbench } from '@/features/notification-mailkit/MailKitTestben
 import { EkycTestbench } from '@/features/ekyc-verification/EkycTestbench';
 import { RescueTimeLockTestbench } from '@/features/rescue-timelock/RescueTimeLockTestbench';
 import { GoogleOidcTestbench } from '@/features/auth-oidc/GoogleOidcTestbench';
+import { FptMarketplaceTestbench } from '@/features/fpt-marketplace/FptMarketplaceTestbench';
 
 export const TestbenchPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('envelope');
@@ -54,6 +55,7 @@ export const TestbenchPage: React.FC = () => {
           {activeTab === 'ekyc' && <EkycTestbench />}
           {activeTab === 'timelock' && <RescueTimeLockTestbench />}
           {activeTab === 'oidc' && <GoogleOidcTestbench />}
+          {activeTab === 'fpt-marketplace' && <FptMarketplaceTestbench />}
         </div>
 
         {/* Legal Dropzone at bottom for testing standalone hashing */}

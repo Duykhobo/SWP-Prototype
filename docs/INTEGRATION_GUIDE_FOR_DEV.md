@@ -163,13 +163,20 @@ await smtp.DisconnectAsync(true, cancellationToken);
 
 ---
 
-## 6. Quyết định Kiến trúc: Loại bỏ VNPT eKYC & Chuẩn hóa FPT.AI Vision SDK
+## 6. Quyết định Kiến trúc: Đánh giá VNPT vs FPT & Cập nhật Chính sách FPT.AI (29/08/2026)
 
-- **Lý do loại bỏ VNPT eKYC**:
-  1. **Yêu cầu pháp nhân**: VNPT AI eKYC yêu cầu ký kết hợp đồng doanh nghiệp (B2B Enterprise Agreement), có giấy phép đăng ký kinh doanh và thẩm định pháp nhân mới được cấp quyền truy cập tài liệu tích hợp/tenant API chính thức.
-  2. **Không khả thi cho đồ án Capstone sinh viên**: Nhóm phát triển là đồ án tốt nghiệp sinh viên (SWP391), không có pháp nhân công ty để ký hợp đồng B2B với VNPT.
-  3. **Ưu thế của FPT.AI**: Cung cấp Cổng thông tin nhà phát triển mở (`console.fpt.ai`), cho phép đăng ký tài khoản lập trình viên cá nhân, cấp API Key ngay lập tức với hạn mức miễn phí (Free Tier) phù hợp hoàn hảo cho môi trường Prototype, Thử nghiệm tích hợp và Bảo vệ đồ án.
-- **Kết luận**: Toàn bộ hệ thống LegacyVault chuẩn hóa 100% trên **FPT.AI Vision SDK** (hỗ trợ OCR CCCD gắn chip, Face Matching & Liveness Detection). Loại bỏ hoàn toàn mock và dependency của VNPT khỏi mã nguồn.
+- **Bối cảnh chính sách nhà cung cấp eKYC tại Việt Nam (Cập nhật 2026)**:
+  1. **VNPT AI eKYC**: Bắt buộc ký hợp đồng pháp nhân doanh nghiệp (B2B Enterprise Agreement), có giấy phép đăng ký kinh doanh và thẩm định pháp nhân mới được cấp quyền truy cập tài liệu tích hợp/tenant API chính thức. Không hỗ trợ tài khoản sinh viên/cá nhân độc lập.
+  2. **FPT.AI Console (`console.fpt.ai`)**: Theo thông báo chính thức ngày 30/06/2026 của FPT.AI ([Xem chi tiết](https://fpt.ai/vi/tin-tuc/thong-bao-quan-trong-ve-viec-ngung-cung-cap-dich-vu-ca-nhan-tren-fpt-ai-console/)):
+     - Từ ngày **06/07/2026**: Ngừng cấp mới các dịch vụ nhận dạng eKYC (OCR CCCD, Passport, Liveness, FaceMatch) cho khách hàng cá nhân.
+     - Từ ngày **29/08/2026**: Toàn bộ gói dịch vụ eKYC cá nhân trên `console.fpt.ai` **chính thức ngừng hoạt động**.
+     - FPT chuyển hướng toàn bộ khách hàng cá nhân/lập trình viên sang nền tảng **FPT AI Marketplace** (`https://marketplace.fptcloud.com/`).
+     - Dịch vụ eKYC định danh CCCD và FaceMatch truyền thống được chuyển hoàn toàn thành kênh giải pháp Doanh nghiệp B2B (FPT Smart Cloud Enterprise).
+- **Quyết định kiến trúc cho LegacyVault**:
+  - **Môi trường Sản phẩm Thương mại (Production Enterprise)**: LegacyVault là nền tảng quản lý di chúc số có pháp nhân ủy thác/công chứng, do đó giai đoạn triển khai thực tế sẽ ký kết hợp đồng Doanh nghiệp B2B với FPT Smart Cloud để sử dụng dịch vụ FPT.AI eKYC Enterprise chuyên dụng.
+  - **Môi trường Thử nghiệm Đồ án (Capstone Testbench)**:
+    - Module `IEkycService` tuân thủ nguyên tắc Clean Architecture: Kết nối trực tiếp API FPT.AI (`https://api.fpt.ai/vision/idr/vnm/`), cho phép người dùng/thẩm định viên nhập API Key doanh nghiệp hoặc API Key FPT Cloud khi chạy Live API thật.
+    - Song song đó, chuẩn bị tích hợp **FPT AI Marketplace** (`https://mkp-api.fptcloud.com`) với các mô hình Vision Language Model (VLM) và LLM thế hệ mới phục vụ rà soát di chúc và phân tích tài sản.
 
 ---
 

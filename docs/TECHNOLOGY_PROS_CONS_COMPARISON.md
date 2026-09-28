@@ -113,8 +113,8 @@
   1. **FPT.AI Vision SDK (`api.fpt.ai` - Cổng `console.fpt.ai`)**:
      - *Nhiệm vụ cốt lõi*: Định danh pháp lý eKYC cứng theo quy định nhà nước (OCR CCCD gắn chip `/vision/idr/vnm/`, Face Match đối sánh ảnh chân dung `/dmp/checkface/v1/`, Liveness `/dmp/liveness/v3`).
      - *Đặc điểm*: Dữ liệu trả về chuẩn hóa cấu trúc JSON (Họ tên, 12 số CCCD, Quê quán, Địa chỉ, Ngày cấp, Dấu vết nhận dạng).
-     - *Ưu điểm*: Cổng Developer mở, cấp API Key test cá nhân ngay lập tức, độ chính xác nhận diện giấy tờ Việt Nam cao nhất thị trường.
-     - *So với VNPT eKYC*: VNPT bắt buộc hợp đồng pháp nhân doanh nghiệp (B2B Enterprise License) có đăng ký kinh doanh; FPT.AI mở cho sinh viên và dev độc lập.
+     - *Ưu điểm*: Độ chính xác nhận diện giấy tờ Việt Nam cao nhất thị trường.
+     - *Biến động chính sách quan trọng (29/08/2026)*: FPT.AI đã chính thức thông báo ngừng cung cấp dịch vụ eKYC cho tài khoản cá nhân trên `console.fpt.ai` từ ngày 29/08/2026 và chuyển toàn bộ dịch vụ cá nhân/developer sang FPT AI Marketplace (`marketplace.fptcloud.com`). Dịch vụ eKYC truyền thống được FPT chuẩn hóa thành giải pháp Doanh nghiệp B2B (tương tự như VNPT). Do đó, ở môi trường Production, LegacyVault ký hợp đồng B2B với FPT Smart Cloud để cấp tenant eKYC doanh nghiệp.
   2. **FPT Cloud AI Marketplace (`mkp-api.fptcloud.com` - Repository: `https://github.com/fpt-corp/ai-marketplace`)**:
      - *Nhiệm vụ cốt lõi*: Cung cấp các mô hình Trí tuệ nhân tạo nền tảng (Foundation Models) gồm LLM, Vision Language Model (VLM), Embedding, Rerank, Speech-to-Text tương thích chuẩn OpenAI SDK (`OpenAI(base_url="https://mkp-api.fptcloud.com")`).
      - *Ứng dụng đột phá trong LegacyVault*:

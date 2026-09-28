@@ -1,0 +1,324 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "LegacyVault End-to-End Cryptographic & Handover Workflow",
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "ingest",
+        "label": "1. Ingest & Encrypt",
+        "focus": [
+          "plan_pay",
+          "client_hash",
+          "server_crypto",
+          "r2_store",
+          "client_share2"
+        ],
+        "note": "From plan selection to zero-knowledge AES-256-GCM storage in Cloudflare R2."
+      },
+      {
+        "id": "govern",
+        "label": "2. Govern & Invite",
+        "focus": [
+          "asset_allocate",
+          "executor_invite",
+          "executor_accept"
+        ],
+        "note": "Beneficiary allocation and legal executor onboarding via secure invite."
+      },
+      {
+        "id": "verify",
+        "label": "3. Verify & DMS",
+        "focus": [
+          "ekyc_ocr",
+          "dms_active"
+        ],
+        "note": "FPT.AI biometric verification and 30-day Dead Mans Switch activation."
+      },
+      {
+        "id": "recover",
+        "label": "4. Exception Recovery",
+        "focus": [
+          "crypto_retry",
+          "verify_retry"
+        ],
+        "note": "E1-E3 crypto rollback and E4-E6 verification recovery paths."
+      }
+    ],
+    "output": "docs/legacyvault-full-workflow.html"
+  },
+  "lanes": [
+    {
+      "id": "owner",
+      "label": "Owner · Asset Creator"
+    },
+    {
+      "id": "client",
+      "label": "Client (React 19)"
+    },
+    {
+      "id": "server",
+      "label": "Server (.NET 8)"
+    },
+    {
+      "id": "external",
+      "label": "External Services"
+    },
+    {
+      "id": "exceptions",
+      "label": "Exception Recovery",
+      "variant": "exception"
+    }
+  ],
+  "phases": [
+    {
+      "id": "p1",
+      "label": "Ingest & Encrypt",
+      "fromCol": 0,
+      "toCol": 2
+    },
+    {
+      "id": "p2",
+      "label": "Govern & Invite",
+      "fromCol": 3,
+      "toCol": 4,
+      "variant": "emphasis"
+    },
+    {
+      "id": "p3",
+      "label": "Verify & DMS",
+      "fromCol": 5,
+      "toCol": 5,
+      "variant": "security"
+    }
+  ],
+  "groups": [
+    {
+      "id": "grp_crypto",
+      "label": "Envelope Encryption",
+      "lane": "server",
+      "fromCol": 1,
+      "toCol": 2,
+      "variant": "emphasis"
+    }
+  ],
+  "mainPath": [
+    "plan_pay",
+    "client_hash",
+    "server_crypto",
+    "r2_store",
+    "client_share2",
+    "asset_allocate",
+    "executor_invite",
+    "executor_accept",
+    "ekyc_ocr",
+    "dms_active"
+  ],
+  "nodes": [
+    {
+      "id": "plan_pay",
+      "lane": "owner",
+      "col": 0,
+      "type": "frontend",
+      "label": "Plan & Pay",
+      "sublabel": "VietQR SePay"
+    },
+    {
+      "id": "client_hash",
+      "lane": "client",
+      "col": 1,
+      "type": "frontend",
+      "label": "SHA-256 Hash",
+      "sublabel": "RAM Checksum"
+    },
+    {
+      "id": "server_crypto",
+      "lane": "server",
+      "col": 2,
+      "type": "backend",
+      "label": "AES-256-GCM",
+      "sublabel": "DEK + SSS 2/3"
+    },
+    {
+      "id": "r2_store",
+      "lane": "external",
+      "col": 2,
+      "type": "cloud",
+      "label": "Cloudflare R2",
+      "sublabel": "Store .enc blob"
+    },
+    {
+      "id": "client_share2",
+      "lane": "client",
+      "col": 3,
+      "type": "frontend",
+      "label": "Hold Share 2",
+      "sublabel": "Anti-Rogue Key"
+    },
+    {
+      "id": "asset_allocate",
+      "lane": "owner",
+      "col": 3,
+      "type": "frontend",
+      "label": "Allocate",
+      "sublabel": "Quota <= 100%"
+    },
+    {
+      "id": "executor_invite",
+      "lane": "external",
+      "col": 4,
+      "type": "external",
+      "label": "MailKit SMTP",
+      "sublabel": "TLS 587 Invite"
+    },
+    {
+      "id": "executor_accept",
+      "lane": "owner",
+      "col": 4,
+      "type": "frontend",
+      "label": "Accept Role",
+      "sublabel": "Legal Trustee"
+    },
+    {
+      "id": "ekyc_ocr",
+      "lane": "external",
+      "col": 5,
+      "type": "external",
+      "label": "FPT.AI OCR",
+      "sublabel": "Chip ID Vision"
+    },
+    {
+      "id": "dms_active",
+      "lane": "server",
+      "col": 5,
+      "type": "backend",
+      "label": "Start DMS",
+      "sublabel": "30-Day Cron",
+      "tag": "ACTIVE"
+    },
+    {
+      "id": "crypto_retry",
+      "lane": "exceptions",
+      "col": 2,
+      "type": "security",
+      "label": "E1-E3 Rollback",
+      "sublabel": "Re-upload & Fix"
+    },
+    {
+      "id": "verify_retry",
+      "lane": "exceptions",
+      "col": 4,
+      "type": "security",
+      "label": "E4-E6 Fallback",
+      "sublabel": "Backup Executor"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e01",
+      "from": "plan_pay",
+      "to": "client_hash",
+      "label": "paid",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e02",
+      "from": "client_hash",
+      "to": "server_crypto",
+      "label": "POST envelope",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e03",
+      "from": "server_crypto",
+      "to": "r2_store",
+      "label": "PutObject",
+      "variant": "security"
+    },
+    {
+      "id": "e04",
+      "from": "r2_store",
+      "to": "client_share2",
+      "label": "Share 2",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e05",
+      "from": "client_share2",
+      "to": "asset_allocate"
+    },
+    {
+      "id": "e06",
+      "from": "asset_allocate",
+      "to": "executor_invite",
+      "label": "manifest",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e07",
+      "from": "executor_invite",
+      "to": "executor_accept",
+      "label": "portal link",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e08",
+      "from": "executor_accept",
+      "to": "ekyc_ocr",
+      "label": "submit ID",
+      "variant": "emphasis"
+    },
+    {
+      "id": "e09",
+      "from": "ekyc_ocr",
+      "to": "dms_active",
+      "label": ">= 80%",
+      "variant": "security"
+    },
+    {
+      "id": "err01",
+      "from": "server_crypto",
+      "to": "crypto_retry",
+      "label": "E1-E3",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "err02",
+      "from": "executor_accept",
+      "to": "verify_retry",
+      "label": "E4-E6",
+      "variant": "security",
+      "role": "error"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Zero-Knowledge Storage",
+      "items": [
+        "Cloudflare R2 stores ONLY AES-256-GCM ciphertext (.enc) — zero plaintext, zero keys",
+        "PostgreSQL stores metadata, Nonce, Auth Tag, and Shamir Share 1 only"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Key Sharding & Custody",
+      "items": [
+        "DEK split via Shamir 2/3 Secret Sharing over GF(256)",
+        "Client holds Share 2; Server holds Share 1; Executor gets Share 3 on verified claim"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Governance & Dead Mans Switch",
+      "items": [
+        "FPT.AI biometric OCR verifies executor identity before estate access",
+        "Active plans run a 30-day DMS heartbeat with 7-day rescue timelock"
+      ]
+    }
+  ]
+}

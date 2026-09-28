@@ -25,19 +25,62 @@ interface ExtractedFields {
   fullName?: string;
   dateOfBirth?: string;
   gender?: string;
-  address?: string;
+  nationality?: string;
+  origin?: string;
+  residence?: string;
+  expiryDate?: string;
 }
 
 export const ClientTesseractOcrPoc: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [usePreprocessing, setUsePreprocessing] = useState<boolean>(true);
   const [progressStatus, setProgressStatus] = useState<string>('');
   const [progressPercent, setProgressPercent] = useState<number>(0);
   const [rawText, setRawText] = useState<string>('');
   const [extracted, setExtracted] = useState<ExtractedFields | null>(null);
   const [executionTimeMs, setExecutionTimeMs] = useState<number | null>(null);
 
-  // Parse regex from Vietnamese ID Card text
+  // HTML5 Canvas Preprocessing: Grayscale & Contrast stretching to clear background noise
+  const preprocessImage = (imageSrc: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(imageSrc);
+
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          // Grayscale luminance
+          let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+          // Contrast boost to make dark text stand out against faint background guilloche patterns
+          gray = (gray - 128) * 1.45 + 128;
+          gray = Math.max(0, Math.min(255, gray));
+
+          data[i] = gray;
+          data[i + 1] = gray;
+          data[i + 2] = gray;
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => resolve(imageSrc);
+      img.src = imageSrc;
+    });
+  };
+
+  // Layout-aware parser for Vietnamese CCCD
   const parseIdCardFields = (text: string): ExtractedFields => {
     const fields: ExtractedFields = {};
 
@@ -45,23 +88,64 @@ export const ClientTesseractOcrPoc: React.FC = () => {
     const idMatch = text.match(/\b(\d{12})\b/);
     if (idMatch) fields.idCardNumber = idMatch[1];
 
-    // Date of birth pattern (dd/mm/yyyy)
-    const dobMatch = text.match(/(?:sinh|birth|ngày)[\s\S]{0,15}?(\d{2}[\/\.-]\d{2}[\/\.-]\d{4})/i);
-    if (dobMatch) fields.dateOfBirth = dobMatch[1];
+    // Dates (Date of birth and Date of expiry)
+    const dates = [...text.matchAll(/\b(\d{2}[\/\.-]\d{2}[\/\.-]\d{4})\b/g)].map((m) => m[1]);
+    if (dates.length > 0) fields.dateOfBirth = dates[0];
+    if (dates.length > 1) fields.expiryDate = dates[1];
 
-    // Full name uppercase pattern
-    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
-    for (const line of lines) {
-      // Find uppercase line with length >= 6 that looks like Vietnamese name
-      if (/^[A-ZÀ-Ỹ\s]{6,35}$/.test(line) && !line.includes('CỘNG HÒA') && !line.includes('VIỆT NAM') && !line.includes('CĂN CƯỚC')) {
-        fields.fullName = line;
-        break;
+    // Name: Look strictly between the 12-digit ID line and the birth date line
+    const betweenIdAndDob = text.match(/\b\d{12}\b[\s\S]*?(?:sinh|birth|ngày|\d{2}\/\d{2}\/\d{4})/i);
+    if (betweenIdAndDob) {
+      const segment = betweenIdAndDob[0];
+      const lines = segment.split('\n');
+      for (const l of lines) {
+        const m = l.match(/([A-ZÀ-Ỹ]{2,}(?:\s+[A-ZÀ-Ỹ]{2,}){1,4})/);
+        if (m && !m[1].includes('CAN CUOC') && !m[1].includes('CONG DAN')) {
+          fields.fullName = m[1].trim();
+          break;
+        }
       }
     }
 
-    // Gender pattern
-    if (/Nam|NAM/.test(text)) fields.gender = 'Nam';
-    else if (/Nữ|NỮ/.test(text)) fields.gender = 'Nữ';
+    // Fallback name search
+    if (!fields.fullName) {
+      const lines = text.split('\n');
+      for (const l of lines) {
+        const cleaned = l.replace(/^[^a-zA-ZÀ-Ỹ]+/, '').replace(/[^a-zA-ZÀ-Ỹ\s]+$/, '').trim();
+        const m = cleaned.match(/([A-ZÀ-Ỹ]{2,}(?:\s+[A-ZÀ-Ỹ]{2,}){1,4})/);
+        if (m) {
+          const candidate = m[1].trim();
+          const forbidden = ['CONG HOA', 'SOCIALIST', 'REPUBLIC', 'CAN CUOC', 'CONG DAN', 'VIET NAM', 'CHỦ NGHĨA', 'ĐỘC LẬP'];
+          if (!forbidden.some((f) => candidate.includes(f))) {
+            fields.fullName = candidate;
+            break;
+          }
+        }
+      }
+    }
+
+    // Gender
+    if (/Nam/i.test(text)) fields.gender = 'Nam';
+    else if (/Nữ/i.test(text)) fields.gender = 'Nữ';
+
+    // Nationality
+    if (/Việt\s*Nam|Việt\s*Mam/i.test(text)) fields.nationality = 'Việt Nam';
+
+    // Origin (Quê quán)
+    const originMatch = text.match(/(?:origin|Quê quán)[\s\S]*?\n([\s\S]*?)(?:residence|thường trú|$)/i);
+    if (originMatch) {
+      const raw = originMatch[1].replace(/^[^\wÀ-ỹ]+/gm, '').trim();
+      const parts = raw.split('\n').map((s) => s.trim()).filter((s) => s.length > 3 && !s.includes('Place') && !s.includes('residence'));
+      if (parts.length > 0) fields.origin = parts.join(', ');
+    }
+
+    // Residence (Nơi thường trú)
+    const resMatch = text.match(/(?:residence|thường trú)[\s\S]*?\n?([\s\S]*?)(?:có giá trị|expiry|$)/i);
+    if (resMatch) {
+      const raw = resMatch[1].replace(/^[^\wÀ-ỹ]+/gm, '').trim();
+      const parts = raw.split('\n').map((s) => s.trim()).filter((s) => s.length > 3 && !s.includes('expiry') && !s.includes('giá trị'));
+      if (parts.length > 0) fields.residence = parts.join(', ');
+    }
 
     return fields;
   };
@@ -84,7 +168,7 @@ export const ClientTesseractOcrPoc: React.FC = () => {
     if (!selectedImage) return;
 
     setIsProcessing(true);
-    setProgressStatus('Đang khởi tạo Tesseract.js WASM Engine...');
+    setProgressStatus('Đang tiền xử lý ảnh (Lọc nhiễu & tăng tương phản)...');
     setProgressPercent(5);
     setRawText('');
     setExtracted(null);
@@ -92,11 +176,16 @@ export const ClientTesseractOcrPoc: React.FC = () => {
     const startTime = performance.now();
 
     try {
-      const result = await Tesseract.recognize(selectedImage, 'vie+eng', {
+      const imageToProcess = usePreprocessing ? await preprocessImage(selectedImage) : selectedImage;
+
+      setProgressStatus('Đang khởi tạo Tesseract.js WASM Engine...');
+      setProgressPercent(15);
+
+      const result = await Tesseract.recognize(imageToProcess, 'vie+eng', {
         logger: (m) => {
           if (m.status === 'recognizing text') {
             setProgressStatus('Đang nhận diện ký tự quang học (OCR)...');
-            setProgressPercent(Math.round(m.progress * 100));
+            setProgressPercent(15 + Math.round(m.progress * 85));
           } else if (m.status.includes('loading')) {
             setProgressStatus(`Đang nạp mô hình ngôn ngữ: ${m.status}...`);
           }
@@ -174,6 +263,20 @@ export const ClientTesseractOcrPoc: React.FC = () => {
             )}
           </div>
 
+          {/* Preprocessing toggle */}
+          <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-[#DCD9D0] text-xs">
+            <span className="text-[#44554C]">Bộ lọc tương phản & làm sạch nền:</span>
+            <label className="flex items-center gap-1.5 cursor-pointer font-semibold text-[#0B291E]">
+              <input
+                type="checkbox"
+                checked={usePreprocessing}
+                onChange={(e) => setUsePreprocessing(e.target.checked)}
+                className="rounded text-[#0B291E] focus:ring-[#B88E4C]"
+              />
+              <span>Bật bộ lọc Grayscale + Contrast</span>
+            </label>
+          </div>
+
           <HeritageButton
             variant="primary"
             onClick={handleRunOcr}
@@ -241,12 +344,33 @@ export const ClientTesseractOcrPoc: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="flex justify-between">
-                    <span className="text-[#66786E]">Giới tính:</span>
+                  <div className="flex justify-between border-b border-black/5 pb-1">
+                    <span className="text-[#66786E]">Giới tính & Quốc tịch:</span>
                     <span className="text-[#0B291E]">
-                      {extracted.gender || <span className="text-slate-400 italic">Chưa nhận diện được</span>}
+                      {extracted.gender || '---'} • {extracted.nationality || 'Việt Nam'}
                     </span>
                   </div>
+
+                  <div className="flex justify-between border-b border-black/5 pb-1">
+                    <span className="text-[#66786E]">Có giá trị đến (Hạn dùng):</span>
+                    <span className="font-mono text-[#0B291E]">
+                      {extracted.expiryDate || <span className="text-slate-400 italic">---</span>}
+                    </span>
+                  </div>
+
+                  {extracted.origin && (
+                    <div className="flex justify-between border-b border-black/5 pb-1">
+                      <span className="text-[#66786E]">Quê quán:</span>
+                      <span className="text-[#0B291E] text-right max-w-[60%]">{extracted.origin}</span>
+                    </div>
+                  )}
+
+                  {extracted.residence && (
+                    <div className="flex justify-between">
+                      <span className="text-[#66786E]">Nơi thường trú:</span>
+                      <span className="text-[#0B291E] text-right max-w-[60%]">{extracted.residence}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Raw Text Output */}

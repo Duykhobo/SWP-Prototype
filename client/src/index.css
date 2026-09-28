@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --color-heritage-canvas: #EFECE6;
+  --color-heritage-surface: #FAF9F5;
+  --color-heritage-forest: #0B291E;
+  --color-heritage-forest-hover: #133E2F;
+  --color-heritage-forest-light: #E5EDE8;
+  --color-heritage-gold: #B88E4C;
+  --color-heritage-gold-hover: #A07839;
+  --color-heritage-gold-light: #FBF7EE;
+  --color-heritage-gold-border: #E8DCC6;
+  --color-heritage-text: #14241C;
+  --color-heritage-muted: #66786E;
+  --color-heritage-border: #DCD9D0;
+  --color-heritage-danger: #D9534F;
+  --color-heritage-success: #059669;
+}
+
+:root {
+  --bg-canvas: #EFECE6;
+  --surface: #FAF9F5;
+  --primary: #0B291E;
+  --primary-hover: #133E2F;
+  --primary-light: #E5EDE8;
+  --gold: #B88E4C;
+  --gold-hover: #A07839;
+  --gold-light: #FBF7EE;
+  --gold-border: #E8DCC6;
+  --text-main: #14241C;
+  --text-muted: #66786E;
+  --border-ui: #DCD9D0;
+  --danger: #D9534F;
+  --success: #059669;
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}

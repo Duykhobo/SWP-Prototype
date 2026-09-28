@@ -1,0 +1,46 @@
+namespace LegacyVault.Prototype.Domain;
+
+/// <summary>
+/// Danh mục mã lỗi định danh chuẩn RFC 7807 (SRS v3.11.0)
+/// </summary>
+public static class ErrorCodes
+{
+    // Xác thực & Vai trò
+    public const string ERR_AUTH_UNAUTHORIZED = "ERR_AUTH_UNAUTHORIZED";
+    public const string ERR_AUTH_FORBIDDEN = "ERR_AUTH_FORBIDDEN";
+    public const string ERR_ROLE_THREE_PERSON_CONFLICT = "ERR_ROLE_THREE_PERSON_CONFLICT";
+    public const string ERR_BENEFICIARY_ROLE_CONFLICT = "ERR_BENEFICIARY_ROLE_CONFLICT";
+
+    // Kho & Tài sản
+    public const string ERR_ASSET_VERSION_LOCKED = "ERR_ASSET_VERSION_LOCKED";
+    public const string ERR_FILE_SIZE_EXCEEDS_LIMIT = "ERR_FILE_SIZE_EXCEEDS_LIMIT";
+    public const string ERR_INVALID_FILE_TYPE = "ERR_INVALID_FILE_TYPE";
+
+    // Lập di sản
+    public const string ERR_SETUP_NO_RECIPIENT_DESIGNATED = "ERR_SETUP_NO_RECIPIENT_DESIGNATED";
+
+    // Thẩm định & Cứu hộ
+    public const string ERR_DEATH_ATTESTATION_REQUIRED = "ERR_DEATH_ATTESTATION_REQUIRED";
+    public const string ERR_DEATH_CERTIFICATE_INVALID = "ERR_DEATH_CERTIFICATE_INVALID";
+    public const string ERR_ALIVE_CLAIM_NOT_ALLOWED = "ERR_ALIVE_CLAIM_NOT_ALLOWED";
+    public const string ERR_RESCUE_DECISION_INVALID = "ERR_RESCUE_DECISION_INVALID";
+
+    // Bàn giao di sản
+    public const string ERR_HANDOVER_SCHEDULE_REQUIRED = "ERR_HANDOVER_SCHEDULE_REQUIRED";
+    public const string ERR_HANDOVER_NOT_STARTED = "ERR_HANDOVER_NOT_STARTED";
+    public const string ERR_DECISION_WINDOW_EXPIRED = "ERR_DECISION_WINDOW_EXPIRED";
+    public const string ERR_RECONSIDERATION_WINDOW_EXPIRED = "ERR_RECONSIDERATION_WINDOW_EXPIRED";
+
+    // Thanh toán SePay
+    public const string ERR_PAYMENT_ORDER_EXPIRED = "ERR_PAYMENT_ORDER_EXPIRED";
+    public const string ERR_PAYMENT_AMOUNT_INSUFFICIENT = "ERR_PAYMENT_AMOUNT_INSUFFICIENT";
+    public const string ERR_PAYMENT_ORDER_NOT_FOUND = "ERR_PAYMENT_ORDER_NOT_FOUND";
+
+    // eKYC
+    public const string ERR_EKYC_PROCESSING_FAILED = "ERR_EKYC_PROCESSING_FAILED";
+    public const string ERR_EKYC_LIVENESS_FAILED = "ERR_EKYC_LIVENESS_FAILED";
+
+    // Hệ thống
+    public const string ERR_VALIDATION_FAILED = "ERR_VALIDATION_FAILED";
+    public const string ERR_INTERNAL_SERVER_ERROR = "ERR_INTERNAL_SERVER_ERROR";
+}

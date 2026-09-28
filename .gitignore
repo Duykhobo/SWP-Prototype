@@ -1,0 +1,23 @@
+# Dependencies
+**/node_modules/
+.pnpm-store/
+
+# Production Build
+**/dist/
+build/
+
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+.vs/
+
+# Environment & Logs
+.env
+.env.local
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

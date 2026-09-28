@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
             return BadRequest(new { success = false, message = "ID Token is required." });
         }
 
-        var userInfo = await _oidcService.ValidateGoogleIdTokenAsync(request.IdToken, ct);
+        var userInfo = await _oidcService.ValidateGoogleIdTokenAsync(request.IdToken, request.ClientId, ct);
 
         return Ok(new
         {
@@ -53,4 +53,5 @@ public class AuthController : ControllerBase
 public class GoogleOidcRequest
 {
     public string IdToken { get; set; } = string.Empty;
+    public string? ClientId { get; set; }
 }

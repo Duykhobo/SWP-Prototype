@@ -20,9 +20,12 @@ public class GoogleOidcValidationService : IOidcValidationService
         _logger = logger;
     }
 
-    public async Task<OidcUserInfo> ValidateGoogleIdTokenAsync(string idToken, CancellationToken ct = default)
+    public async Task<OidcUserInfo> ValidateGoogleIdTokenAsync(string idToken, string? clientId = null, CancellationToken ct = default)
     {
-        string? googleClientId = _config["GoogleOidc:ClientId"];
+        string? googleClientId = !string.IsNullOrWhiteSpace(clientId)
+            ? clientId
+            : Environment.GetEnvironmentVariable("GOOGLE_OIDC_CLIENT_ID") 
+            ?? _config["GoogleOidc:ClientId"];
 
         try
         {
@@ -33,7 +36,7 @@ public class GoogleOidcValidationService : IOidcValidationService
             }
 
             var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
-            _logger.LogInformation("Google ID Token verified successfully for {Email}", payload.Email);
+            _logger.LogInformation("Google ID Token verified successfully for {Email} (Subject: {Subject})", payload.Email, payload.Subject);
 
             return new OidcUserInfo
             {

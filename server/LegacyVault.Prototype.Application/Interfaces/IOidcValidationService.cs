@@ -14,5 +14,5 @@ public class OidcUserInfo
 
 public interface IOidcValidationService
 {
-    Task<OidcUserInfo> ValidateGoogleIdTokenAsync(string idToken, CancellationToken ct = default);
+    Task<OidcUserInfo> ValidateGoogleIdTokenAsync(string idToken, string? clientId = null, CancellationToken ct = default);
 }

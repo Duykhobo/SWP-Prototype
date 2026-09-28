@@ -33,93 +33,93 @@
       "label": "Google OAuth 2.0",
       "sublabel": "OIDC Identity",
       "pos": [50, 130],
-      "size": [140, 60],
+      "size": [160, 60],
       "tag": "JWT Session"
     },
     {
       "id": "client",
       "type": "frontend",
       "label": "React 19 Web App",
-      "sublabel": "Zod + Web Crypto",
+      "sublabel": "Computes SHA-256 | Holds Share 2",
       "brand": "react",
       "pos": [50, 300],
-      "size": [140, 64],
+      "size": [160, 64],
       "tag": "Ephemeral RAM"
     },
     {
       "id": "executor",
       "type": "external",
       "label": "Executor Portal",
-      "sublabel": "Legal Claims",
+      "sublabel": "Legal Claims Portal",
       "pos": [50, 470],
-      "size": [140, 60],
+      "size": [160, 60],
       "tag": "Art. 609-687 BLDS"
     },
     {
       "id": "sepay",
       "type": "external",
       "label": "SePay Gateway",
-      "sublabel": "VietQR Pay",
-      "pos": [310, 130],
-      "size": [140, 60],
-      "tag": "Webhook HMAC"
+      "sublabel": "Dynamic VietQR Pay",
+      "pos": [350, 130],
+      "size": [160, 60],
+      "tag": "Instant Webhook"
     },
     {
       "id": "api",
       "type": "backend",
       "label": ".NET 8 WebAPI",
-      "sublabel": "Clean Architecture",
+      "sublabel": "AES-GCM (DEK) + Shamir SSS",
       "brand": "dotnet",
-      "pos": [310, 300],
-      "size": [140, 64],
-      "tag": "Core Platform"
+      "pos": [350, 300],
+      "size": [160, 64],
+      "tag": "Returns Share 2"
     },
     {
       "id": "mailkit",
       "type": "backend",
       "label": "MailKit SMTP",
-      "sublabel": "TLS 587 Relay",
-      "pos": [310, 470],
-      "size": [140, 60],
+      "sublabel": "TLS 587 Notification",
+      "pos": [350, 470],
+      "size": [160, 60],
       "tag": "Legal Mails"
     },
     {
       "id": "r2",
       "type": "cloud",
       "label": "Cloudflare R2",
-      "sublabel": "Private S3 Bucket",
+      "sublabel": "STORES ONLY .enc Ciphertext",
       "brand": "cloudflare",
-      "pos": [570, 130],
-      "size": [140, 60],
-      "tag": "Ciphertext (.enc)"
+      "pos": [650, 130],
+      "size": [160, 60],
+      "tag": "Zero Plain | $0 Egress"
     },
     {
       "id": "db",
       "type": "database",
       "label": "PostgreSQL DB",
-      "sublabel": "Metadata & Share 1",
+      "sublabel": "STORES ONLY Nonce, Tag, Share 1",
       "brand": "postgresql",
-      "pos": [570, 300],
-      "size": [140, 64],
-      "tag": "No Plain Secrets"
+      "pos": [650, 300],
+      "size": [160, 64],
+      "tag": "Zero Plain Secrets"
     },
     {
       "id": "fptai",
       "type": "external",
       "label": "FPT.AI Vision",
-      "sublabel": "Chip ID OCR",
-      "pos": [570, 470],
-      "size": [140, 60],
+      "sublabel": "Chip ID OCR & Facematch",
+      "pos": [650, 470],
+      "size": [160, 60],
       "tag": "Score >= 80%"
     },
     {
       "id": "dms",
       "type": "backend",
       "label": "DMS Engine",
-      "sublabel": "30-Day Heartbeat",
-      "pos": [810, 300],
+      "sublabel": "Dead Man's Switch Cron",
+      "pos": [930, 300],
       "size": [140, 64],
-      "tag": "Background Cron"
+      "tag": "30-Day Heartbeat"
     }
   ],
   "connections": [
@@ -129,14 +129,17 @@
       "to": "client",
       "label": "OAuth Token",
       "variant": "security",
-      "labelAt": [120, 245]
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [130, 245]
     },
     {
       "id": "client-api",
       "from": "client",
       "to": "api",
-      "label": "HTTPS REST",
-      "variant": "emphasis"
+      "label": "Upload File + SHA-256",
+      "variant": "emphasis",
+      "labelDy": -20
     },
     {
       "id": "api-sepay",
@@ -145,7 +148,7 @@
       "label": "Order Init",
       "fromSide": "top",
       "toSide": "bottom",
-      "labelAt": [380, 245]
+      "labelAt": [430, 245]
     },
     {
       "id": "api-mailkit",
@@ -154,7 +157,7 @@
       "label": "Send Invite",
       "fromSide": "bottom",
       "toSide": "top",
-      "labelAt": [380, 415]
+      "labelAt": [430, 415]
     },
     {
       "id": "mailkit-executor",
@@ -166,7 +169,7 @@
       "id": "api-r2",
       "from": "api",
       "to": "r2",
-      "label": "PutObject (.enc)",
+      "label": "Store .enc (Zero Keys)",
       "variant": "security"
     },
     {
@@ -191,26 +194,26 @@
   "cards": [
     {
       "dot": "cyan",
-      "title": "Zero-Knowledge Storage",
+      "title": "What is Sent & Returned (Payloads)",
       "items": [
-        "Cloudflare R2 stores only ciphertext binary blobs (.enc) with zero plaintext and zero egress fees",
-        "PostgreSQL DB stores only SHA-256 checksums, nonces, tags, and wrapped Shamir Share 1"
+        "Client sends: Plaintext file + irreversible SHA-256 fingerprint computed in RAM",
+        "Server returns: HTTP 200 containing Shamir Share 2 + AssetId for client storage"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "What is Stored (Separation of State)",
+      "items": [
+        "Cloudflare R2: STORES ONLY .enc ciphertext binary blobs with zero plaintext and zero keys",
+        "PostgreSQL DB: STORES ONLY Nonce 12B, Tag 16B, Checksum SHA-256, and Shamir Share 1"
       ]
     },
     {
       "dot": "emerald",
-      "title": "Cryptographic Protection",
+      "title": "Anti-Rogue & Legal Guarantee",
       "items": [
-        "Client computes irreversible SHA-256 fingerprint in ephemeral RAM before transmission",
-        "Server executes AES-256-GCM envelope encryption and 2/3 Shamir's Secret Sharing (GF256)"
-      ]
-    },
-    {
-      "dot": "rose",
-      "title": "Legal & Life Monitoring",
-      "items": [
-        "FPT.AI Vision provides Chip ID OCR and Face Liveness verification under Art. 630 BLDS",
-        "Dead Man's Switch runs 30-day recurring heartbeat with 7-day rescue timelock"
+        "Server Admin holding Share 1 has exactly 0-bit plain info to decrypt any customer vault",
+        "Full compliance with Art. 609-687 Civil Code 2015 and Art. 95 Civil Procedure Code"
       ]
     }
   ]

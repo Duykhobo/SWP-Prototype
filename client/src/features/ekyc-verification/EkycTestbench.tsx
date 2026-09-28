@@ -20,6 +20,9 @@ import {
   ChevronUp
 } from 'lucide-react';
 
+import { ClientTesseractOcrPoc } from './ClientTesseractOcrPoc';
+import { ClientMediaPipeFacePoc } from './ClientMediaPipeFacePoc';
+
 interface OcrData {
   success: boolean;
   idCardNumber: string;
@@ -51,6 +54,7 @@ interface EkycTestbenchProps {
 }
 
 export const EkycTestbench: React.FC<EkycTestbenchProps> = ({ onNavigateToMarketplace }) => {
+  const [subTab, setSubTab] = useState<'service' | 'tesseract' | 'mediapipe'>('service');
   // Mặc định Sandbox Mode = true để trải nghiệm kiểm thử hoạt động ngay 100%
   const [useSandbox, setUseSandbox] = useState<boolean>(true);
   const [selectedPreset, setSelectedPreset] = useState<'valid' | 'tampered' | 'custom'>('valid');
@@ -152,12 +156,63 @@ export const EkycTestbench: React.FC<EkycTestbenchProps> = ({ onNavigateToMarket
 
   return (
     <HeritageCard
-      title="6. Thẩm Định Danh Tính eKYC (Chuẩn FPT.AI Vision SDK)"
-      subtitle="Trích xuất OCR Căn cước công dân gắn chip và đối sánh khuôn mặt sinh trắc học (Liveness / Face Matching) với chế độ Sandbox / Enterprise Live."
+      title="6. Thẩm Định Danh Tính eKYC & Phòng Thí Nghiệm AI Thị Giác"
+      subtitle="Khảo sát giải pháp thẩm định danh tính: Dịch vụ FPT.AI Spec (Sandbox/B2B), PoC Trích xuất OCR tại trình duyệt (Tesseract.js) và PoC Tương tác cử động mặt (Google MediaPipe)."
       icon={<Scan className="w-5 h-5" />}
-      badge={<HeritageBadge variant="forest">FPT.AI Vision Spec</HeritageBadge>}
+      badge={<HeritageBadge variant="forest">FPT.AI Spec · PoC Labs</HeritageBadge>}
     >
       <div className="space-y-6">
+        {/* Sub-Tab Navigation Switcher */}
+        <div className="flex flex-wrap items-center gap-2 p-1.5 bg-[#EFECE6] border border-[#DCD9D0] rounded-xl">
+          <button
+            type="button"
+            onClick={() => setSubTab('service')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              subTab === 'service'
+                ? 'bg-[#0B291E] text-white shadow-xs'
+                : 'text-[#44554C] hover:text-[#0B291E] hover:bg-white/60'
+            }`}
+          >
+            <Cpu className="w-4 h-4 text-[#B88E4C]" />
+            <span>1. Dịch Vụ eKYC / FPT Spec (Sandbox & B2B)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubTab('tesseract')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              subTab === 'tesseract'
+                ? 'bg-[#0B291E] text-white shadow-xs'
+                : 'text-[#44554C] hover:text-[#0B291E] hover:bg-white/60'
+            }`}
+          >
+            <FileText className="w-4 h-4 text-emerald-500" />
+            <span>2. Thử Nghiệm OCR Trình Duyệt (Tesseract.js WASM)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubTab('mediapipe')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              subTab === 'mediapipe'
+                ? 'bg-[#0B291E] text-white shadow-xs'
+                : 'text-[#44554C] hover:text-[#0B291E] hover:bg-white/60'
+            }`}
+          >
+            <Camera className="w-4 h-4 text-cyan-500" />
+            <span>3. Thử Nghiệm Chuyển Động Mặt (Google MediaPipe)</span>
+          </button>
+        </div>
+
+        {/* View 2: Tesseract OCR PoC */}
+        {subTab === 'tesseract' && <ClientTesseractOcrPoc />}
+
+        {/* View 3: MediaPipe Face PoC */}
+        {subTab === 'mediapipe' && <ClientMediaPipeFacePoc />}
+
+        {/* View 1: Existing Service & Sandbox */}
+        {subTab === 'service' && (
+          <div className="space-y-6">
         {/* Banner Chính sách FPT.AI Console & Cầu nối Module 9 */}
         <div className="p-4 bg-gradient-to-r from-[#FAF6EE] to-[#F3EDE0] border border-[#D5C29E] rounded-xl text-xs space-y-2.5">
           <div className="flex items-start gap-2.5">
@@ -545,6 +600,8 @@ export const EkycTestbench: React.FC<EkycTestbenchProps> = ({ onNavigateToMarket
                 <pre>{JSON.stringify(JSON.parse(ocrResult.rawJson), null, 2)}</pre>
               </div>
             )}
+          </div>
+        )}
           </div>
         )}
       </div>

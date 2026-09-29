@@ -39,12 +39,11 @@ Tài liệu này là mục lục chính thức điều hướng toàn bộ hồ 
 ## 4. BỘ ĐẶC TẢ CHI TIẾT & SƠ ĐỒ DRAW.IO THEO TỪNG LUỒNG (FLOW SPECS & XML)
 
 ### Luồng 01: Xác Thực, Phân Quyền Vai Trò & Tự Động Tạo Tài Khoản (JIT)
-* **[FLOW_01_SYSTEM_MERGED.xml](FLOW_01_SYSTEM_MERGED.xml)**: Sơ đồ Draw.io XML 6 làn bơi chuẩn hóa cho Luồng 01 kèm 6 nhánh ngoại lệ `E0.1` $\rightarrow$ `E0.6` và mũi tên hồi quy (Mở trực tiếp trên [app.diagrams.net](https://app.diagrams.net)).
-* **[FLOW_01_DEVELOPER_IMPLEMENTATION_SPEC.md](FLOW_01_DEVELOPER_IMPLEMENTATION_SPEC.md)**: Đặc tả chi tiết triển khai code cho lập trình viên (Google OIDC JIT, Form mật khẩu băm muối SEC-02, 1-Click Persona Switcher và giao dịch ACID trên 2 bảng SQL Server 2022 `[Persons]` + `[Users]`).
+* **[FLOW_01_SYSTEM_MERGED.xml](FLOW_01_SYSTEM_MERGED.xml)**: Sơ đồ Draw.io XML 6 làn bơi chuẩn hóa cho Luồng 01 (100% Full English) kèm 6 nhánh ngoại lệ `E0.1` $\rightarrow$ `E0.6` và mũi tên hồi quy (Mở trực tiếp trên [app.diagrams.net](https://app.diagrams.net)).
+* **[FLOW_01_DEVELOPER_IMPLEMENTATION_SPEC.md](FLOW_01_DEVELOPER_IMPLEMENTATION_SPEC.md)**: Đặc tả chi tiết triển khai code cho lập trình viên (Google OIDC JIT, Form mật khẩu băm muối SEC-02, phân quyền Zero-Trust RBAC và giao dịch ACID trên 2 bảng SQL Server 2022 `[Persons]` + `[Users]`).
 
 ### Luồng 02: Thiết Lập Kế Hoạch, Mã Hóa Phong Bì & Kích Hoạt Kho Di Sản
-* **[FLOW_02_SYSTEM_MERGED.xml](FLOW_02_SYSTEM_MERGED.xml)**: Sơ đồ Draw.io XML chuẩn cho Luồng 02 kèm 6 nhánh ngoại lệ `E1` $\rightarrow$ `E6` và các đường phản hồi sửa lỗi.
-* **[FLOW_02_ENGLISH_SYSTEM_MERGED.xml](FLOW_02_ENGLISH_SYSTEM_MERGED.xml)**: Bản vẽ Draw.io XML tiếng Anh phục vụ tài liệu quốc tế.
+* **[FLOW_02_SYSTEM_MERGED.xml](FLOW_02_SYSTEM_MERGED.xml)**: Sơ đồ Draw.io XML chuẩn cho Luồng 02 (100% Full English) kèm 6 nhánh ngoại lệ `E1` $\rightarrow$ `E6` và các đường phản hồi sửa lỗi.
 * **[FLOW_02_DEVELOPER_IMPLEMENTATION_SPEC.md](FLOW_02_DEVELOPER_IMPLEMENTATION_SPEC.md)**: Đặc tả chi tiết triển khai code Luồng 02 (Mã hóa AES-256-GCM, Gom kho AC-01, SePay VietQR, MailKit, Cloudflare R2, FPT.AI eKYC và kích hoạt DMS).
 * **[DEVELOPER_SWIMLANE_GUIDE.md](DEVELOPER_SWIMLANE_GUIDE.md)**: Bảng tra cứu code chi tiết theo 4 tầng kiến trúc phần mềm thực tế.
 

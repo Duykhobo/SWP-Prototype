@@ -1,6 +1,6 @@
 # HƯỚNG DẪN LẬP TRÌNH THEO SƠ ĐỒ SWIMLANE KỸ THUẬT (DEVELOPER CODE SPEC)
 ## HỆ THỐNG LEGACYVAULT - CLEAN ARCHITECTURE .NET 8 & REACT 19
-**Tệp đồ họa tương ứng**: [`docs/SWIMLANE_DEVELOPER_IMPLEMENTATION.xml`](file:///c:/Users/ThanhDuy/Documents/01_Code_Projects/SWP-Prototype/docs/SWIMLANE_DEVELOPER_IMPLEMENTATION.xml)  
+**Tệp đồ họa tương ứng**: [`docs/FLOW_02_SYSTEM_MERGED.xml`](file:///c:/Users/ThanhDuy/Documents/01_Code_Projects/SWP-Prototype/docs/FLOW_02_SYSTEM_MERGED.xml)  
 *(Cách xem: Mở [app.diagrams.net](https://app.diagrams.net) $\rightarrow$ Chọn **File** $\rightarrow$ **Open From** $\rightarrow$ **Device** $\rightarrow$ Chọn tệp `.xml` này).*
 
 ---
@@ -89,5 +89,5 @@ Sơ đồ phân định trách nhiệm thành **4 tầng kiến trúc phần m�
 
 1. Mở trình duyệt web và truy cập: **[app.diagrams.net](https://app.diagrams.net)**.
 2. Trên thanh menu, chọn: **Tệp (File)** $\rightarrow$ **Mở từ (Open from)** $\rightarrow$ **Thiết bị (Device)**.
-3. Chọn tệp: **`c:\Users\ThanhDuy\Documents\01_Code_Projects\SWP-Prototype\docs\SWIMLANE_DEVELOPER_IMPLEMENTATION.xml`**.
+3. Chọn tệp: **`c:\Users\ThanhDuy\Documents\01_Code_Projects\SWP-Prototype\docs\FLOW_02_SYSTEM_MERGED.xml`**.
 4. Toàn bộ sơ đồ 4 làn bơi chi tiết sẽ xuất hiện với đầy đủ màu sắc Heritage Design System, các hàm API, DTO, mã nguồn frontend/backend và các đường mũi tên liên kết chuẩn xác!

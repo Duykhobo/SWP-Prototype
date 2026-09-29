@@ -1,0 +1,318 @@
+<mxfile host="Electron" agent="LegacyVault Architecture Engine">
+  <diagram id="flow01_authentication_jit" name="Flow 01 - Authentication, Role Personas & JIT Provisioning">
+    <mxGraphModel dx="2357" dy="1375" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="3200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title Banner -->
+        <mxCell id="title" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#173F38;strokeColor=#173F38;fontColor=#FFFFFF;fontSize=15;fontFamily=Arial;fontStyle=1;" value="FLOW 01 · XÁC THỰC, PHÂN QUYỀN PERSONA &amp; TỰ ĐỘNG TẠO TÀI KHOẢN (JIT PROVISIONING TRÊN SQL SERVER 2022)" vertex="1">
+          <mxGeometry height="60" width="2060" x="50" y="30" as="geometry" />
+        </mxCell>
+
+        <!-- Intro Banner -->
+        <mxCell id="intro" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#E9F3EE;strokeColor=#C9DED2;fontColor=#225A4C;fontSize=13;fontFamily=Arial;" value="Quy trình hoàn chỉnh: 6 Làn bơi chuyên dụng với cơ chế xử lý ngoại lệ (E0.1 - E0.6), mũi tên hồi quy (Corrective Loop-back) và tam quyền phân lập ASSIGN-06. Hỗ trợ Google OIDC JIT, Form thường băm muối SEC-02 và bộ chuyển đổi vai diễn 1-Click phục vụ bảo vệ đồ án." vertex="1">
+          <mxGeometry height="60" width="2060" x="50" y="100" as="geometry" />
+        </mxCell>
+
+        <!-- Lane 0: User / Khách thăm -->
+        <mxCell id="lane0" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#EEF5EF;swimlaneFillColor=#EEF5EF;strokeColor=#C9D5D0;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="NGƯỜI DÙNG / KHÁCH THĂM&#xa;[User / Persona Actor]" vertex="1">
+          <mxGeometry height="2800" width="240" x="50" y="180" as="geometry" />
+        </mxCell>
+
+        <!-- Lane 1: Client React 19 -->
+        <mxCell id="lane1" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#EDF3F7;swimlaneFillColor=#EDF3F7;strokeColor=#B8CBD8;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="TRÌNH DUYỆT CLIENT (REACT 19)&#xa;[Web Crypto API, Memory RAM State]" vertex="1">
+          <mxGeometry height="2800" width="280" x="310" y="180" as="geometry" />
+        </mxCell>
+
+        <!-- Lane 2: Google OIDC GIS Provider -->
+        <mxCell id="lane2" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#E6F7F5;swimlaneFillColor=#E6F7F5;strokeColor=#80D0C7;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="NHÀ CUNG CẤP DANH TÍNH&#xa;[Google GIS OIDC Provider]" vertex="1">
+          <mxGeometry height="2800" width="250" x="610" y="180" as="geometry" />
+        </mxCell>
+
+        <!-- Lane 3: Server .NET 8 WebApi -->
+        <mxCell id="lane3" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#F4F0E7;swimlaneFillColor=#F4F0E7;strokeColor=#D5C9B8;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="MÁY CHỦ .NET 8 WEBAPI&#xa;[AuthController, JWT Factory, JWKS]" vertex="1">
+          <mxGeometry height="2800" width="310" x="880" y="180" as="geometry" />
+        </mxCell>
+
+        <!-- Lane 4: Microsoft SQL Server 2022 -->
+        <mxCell id="lane4" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#F1F2F7;swimlaneFillColor=#F1F2F7;strokeColor=#B8C0D8;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="CSDL SQL SERVER 2022&#xa;[[dbo].[Persons] &amp; [dbo].[Users]]" vertex="1">
+          <mxGeometry height="2800" width="290" x="1210" y="180" as="geometry" />
+        </mxCell>
+
+        <!-- Lane 5: Exception Handling & Rollback (E0.1 - E0.6) -->
+        <mxCell id="lane5" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#FFF7F1;swimlaneFillColor=#FFF7F1;strokeColor=#C9D5D0;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="TUYẾN HỒI QUY &amp; XỬ LÝ NGOẠI LỆ&#xa;[Exception Handling &amp; Rollback E0.1 - E0.6]" vertex="1">
+          <mxGeometry height="2800" width="320" x="1520" y="180" as="geometry" />
+        </mxCell>
+
+        <!-- START NODE -->
+        <mxCell id="start_node" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#1F5C51;strokeColor=#1F5C51;fontColor=#FFFFFF;fontSize=13;fontFamily=Arial;fontStyle=1;" value="START&#xa;Người dùng truy cập&#xa;Cổng LegacyVault" vertex="1">
+          <mxGeometry height="80" width="180" x="80" y="260" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 01: Client UI Selection -->
+        <mxCell id="step01_user" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="01 · Chọn Phương Thức Đăng Nhập:&#xa;• Đăng nhập bằng Google OIDC&#xa;• Đăng nhập Form Email / Mật khẩu&#xa;• Hoặc chọn Persona Switcher 1-Click" vertex="1">
+          <mxGeometry height="90" width="220" x="60" y="380" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step01_client" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="01.1 · Khởi Tạo Luồng Xác Thực&#xa;• Sinh mã Cryptographic Nonce 256-bit&#xa;• Khởi tạo Google GIS Client Library&#xa;• Chuẩn bị kênh mã hóa an toàn TLS 1.3" vertex="1">
+          <mxGeometry height="90" width="240" x="330" y="380" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dec_popup" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Kết nối mạng &amp;&#xa;Popup hợp lệ?" vertex="1">
+          <mxGeometry height="85" width="180" x="360" y="510" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e01" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.1 · Popup Blocked / Network Timeout:&#xa;Trình duyệt chặn mở cửa sổ Google Identity.&#xa;[HỒI QUY]: Chuyển sang Form đăng nhập&#xa;Email/Mật khẩu hoặc dùng Demo Switcher." vertex="1">
+          <mxGeometry height="95" width="280" x="1540" y="505" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 02: Google GIS Credential -->
+        <mxCell id="step02_google" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="02 · Xác Thực Danh Tính &amp; Ký Số Token&#xa;• Người dùng cấp quyền tài khoản Google&#xa;• Google ký phát ID Token JWT (RS256)&#xa;• Chứa: sub, email_verified, name, pic" vertex="1">
+          <mxGeometry height="95" width="220" x="625" y="650" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dec_token" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="ID Token nguyên vẹn&#xa;&amp; còn hạn?" vertex="1">
+          <mxGeometry height="85" width="180" x="645" y="780" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e02" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.2 · Invalid Google ID Token:&#xa;Token bị can thiệp hoặc exp trong quá khứ.&#xa;[HỒI QUY]: Hủy session tạm, thông báo lỗi&#xa;xác thực và yêu cầu đăng nhập lại Bước 01." vertex="1">
+          <mxGeometry height="95" width="280" x="1540" y="775" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 03: Server Signature & DB Lookup -->
+        <mxCell id="step03_server" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="03 · Đối Soát Chữ Ký Google &amp; SQL Server&#xa;• POST /api/v1/auth/google-oidc&#xa;• Thẩm định chữ ký số qua Google JWKS&#xa;• Tra cứu CSDL: Users JOIN Persons" vertex="1">
+          <mxGeometry height="95" width="270" x="900" y="920" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dec_jwks" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Chữ ký JWKS&#xa;hợp lệ?" vertex="1">
+          <mxGeometry height="85" width="180" x="945" y="1050" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e03" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.3 · Google Signature Mismatch:&#xa;Chữ ký ID Token không khớp Google Public Keys.&#xa;[HỒI QUY]: Trả HTTP 401 ERR_INVALID_OIDC_SIGNATURE,&#xa;ghi log kiểm toán bảo mật và chặn phiên." vertex="1">
+          <mxGeometry height="95" width="280" x="1540" y="1045" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step03_db" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="03.1 · T-SQL Đối Soát Quan Hệ&#xa;SELECT u.UserId, u.PersonId, u.Role, p.FullName&#xa;FROM [dbo].[Users] u&#xa;INNER JOIN [dbo].[Persons] p&#xa;ON u.PersonId = p.PersonId WHERE u.Email = @Email" vertex="1">
+          <mxGeometry height="95" width="260" x="1225" y="1190" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dec_user_exists" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="User đã tồn tại&#xa;trong CSDL?" vertex="1">
+          <mxGeometry height="85" width="180" x="945" y="1320" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 04: JIT Provisioning Transaction -->
+        <mxCell id="step04_jit" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="04 · Tự Động Tạo Tài Khoản (JIT Provisioning)&#xa;Thực thi SqlTransaction ACID trong SQL Server:&#xa;1. INSERT INTO [dbo].[Persons] (Danh tính công dân)&#xa;2. INSERT INTO [dbo].[Users] (Tài khoản Google)" vertex="1">
+          <mxGeometry height="105" width="270" x="900" y="1450" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step04_sql" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="04.1 · Cam Kết Dữ Liệu SQL Server 2022&#xa;• Tách rời PersonId (thực tế) &amp; UserId (tài khoản)&#xa;• Ràng buộc UNIQUE(Email) &amp; FK toàn vẹn&#xa;• COMMIT TRANSACTION ghi nhận thành công" vertex="1">
+          <mxGeometry height="105" width="260" x="1225" y="1450" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dec_transaction" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Giao dịch SQL&#xa;thành công?" vertex="1">
+          <mxGeometry height="85" width="180" x="945" y="1590" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e04" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.4 · Duplicate Email / Race Condition:&#xa;Xung đột tạo tài khoản đồng thời cùng email.&#xa;[HỒI QUY]: Thực thi ROLLBACK TRANSACTION,&#xa;tự động chuyển sang sử dụng tài khoản đã tạo." vertex="1">
+          <mxGeometry height="95" width="280" x="1540" y="1585" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 05: Issue JWT & Audit Log -->
+        <mxCell id="step05_jwt" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="05 · Phát Hành JWT Token &amp; Ghi Audit Log&#xa;• Ký Access Token HS256 với khóa bí mật Server&#xa;• Nhúng Claims: sub, person_id, roles, ASSIGN-06&#xa;• INSERT INTO [dbo].[AuditEvents] (AUDIT-01)" vertex="1">
+          <mxGeometry height="95" width="270" x="900" y="1730" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step05_audit" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="05.1 · Lưu Audit Log Bất Biến&#xa;INSERT INTO [dbo].[AuditEvents]&#xa;(Action = 'AUTH_LOGIN_SUCCESS',&#xa;UserId, PersonId, ClientIp, Timestamp)" vertex="1">
+          <mxGeometry height="95" width="260" x="1225" y="1730" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dec_signing" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Ký số JWT&#xa;thành công?" vertex="1">
+          <mxGeometry height="85" width="180" x="945" y="1860" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e05" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.5 · Token Signing Key Missing:&#xa;Lỗi cấu hình mất JWT_SECRET tại máy chủ.&#xa;[HỒI QUY]: Trả HTTP 500 lỗi máy chủ nội bộ,&#xa;kích hoạt chuông cảnh báo tới quản trị viên." vertex="1">
+          <mxGeometry height="95" width="280" x="1540" y="1855" as="geometry" />
+        </mxCell>
+
+        <!-- STEP 06: Client Dashboard & Persona Switcher -->
+        <mxCell id="step06_client" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="06 · Phân Quyền Vai Trò &amp; Render Dashboard&#xa;• Nhận Access Token, lưu tạm trong RAM Context&#xa;• Kích hoạt giao diện đặc thù theo vai diễn&#xa;• Kích hoạt thanh 1-Click Persona Switcher" vertex="1">
+          <mxGeometry height="100" width="250" x="325" y="2000" as="geometry" />
+        </mxCell>
+
+        <mxCell id="step06_user" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="06.1 · Trải Nghiệm Giao Diện Vai Trò:&#xa;• 🏛️ Owner: Lập di sản, nạp file, trả tiền&#xa;• ⚖️ Executor: Nộp chứng tử, duyệt mở kho&#xa;• 📜 Verifier: Thẩm tra y tế, xét duyệt hồ sơ&#xa;• 🎁 Beneficiary: Nhận bàn giao, xác nhận kho" vertex="1">
+          <mxGeometry height="110" width="220" x="60" y="2000" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dec_tamper" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Kiểm tra can thiệp&#xa;role tại RAM?" vertex="1">
+          <mxGeometry height="85" width="180" x="360" y="2150" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e06" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.6 · Role Tampering Detected:&#xa;Người dùng sửa role trái phép trong bộ nhớ RAM.&#xa;[HỒI QUY]: Máy chủ Zero-Trust chặn với HTTP 403&#xa;Forbidden vì kiểm tra claims trên từng API." vertex="1">
+          <mxGeometry height="95" width="280" x="1540" y="2145" as="geometry" />
+        </mxCell>
+
+        <!-- END NODE -->
+        <mxCell id="end_node" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#1F5C51;strokeColor=#1F5C51;fontColor=#FFFFFF;fontSize=13;fontFamily=Arial;fontStyle=1;" value="END&#xa;Đăng nhập thành công,&#xa;Sẵn sàng chuyển sang FLOW 02&#xa;(Thiết Lập Kế Hoạch Di Sản)" vertex="1">
+          <mxGeometry height="85" width="200" x="70" y="2300" as="geometry" />
+        </mxCell>
+
+        <!-- EDGES / CONNECTIONS (Happy Path & Decisions) -->
+        <mxCell id="edge_start" edge="1" parent="1" source="start_node" target="step01_user" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_step01_client" edge="1" parent="1" source="step01_user" target="step01_client" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_client_dec" edge="1" parent="1" source="step01_client" target="dec_popup" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_dec_popup_ok" edge="1" parent="1" source="dec_popup" target="step02_google" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Hợp lệ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_dec_popup_err" edge="1" parent="1" source="dec_popup" target="e01" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Lỗi / Bị chặn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_google_token" edge="1" parent="1" source="step02_google" target="dec_token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_token_ok" edge="1" parent="1" source="dec_token" target="step03_server" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Hợp lệ (ID Token JWT)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_token_err" edge="1" parent="1" source="dec_token" target="e02" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Không hợp lệ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_server_jwks" edge="1" parent="1" source="step03_server" target="dec_jwks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_jwks_ok" edge="1" parent="1" source="dec_jwks" target="step03_db" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Chữ ký đúng">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_jwks_err" edge="1" parent="1" source="dec_jwks" target="e03" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Sai chữ ký">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_db_dec_user" edge="1" parent="1" source="step03_db" target="dec_user_exists" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_user_exists_no" edge="1" parent="1" source="dec_user_exists" target="step04_jit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Chưa có (JIT Create)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_user_exists_yes" edge="1" parent="1" source="dec_user_exists" target="step05_jwt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Đã tồn tại (Login)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="840" y="1362.5" />
+              <mxPoint x="840" y="1777.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_jit_sql" edge="1" parent="1" source="step04_jit" target="step04_sql" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_sql_dec" edge="1" parent="1" source="step04_sql" target="dec_transaction" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_trans_ok" edge="1" parent="1" source="dec_transaction" target="step05_jwt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Thành công">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_trans_err" edge="1" parent="1" source="dec_transaction" target="e04" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Lỗi / Trùng email">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_jwt_audit" edge="1" parent="1" source="step05_jwt" target="step05_audit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_audit_dec" edge="1" parent="1" source="step05_audit" target="dec_signing" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_signing_ok" edge="1" parent="1" source="dec_signing" target="step06_client" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Cấp JWT 200 OK">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1035" y="1960" />
+              <mxPoint x="450" y="1960" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_signing_err" edge="1" parent="1" source="dec_signing" target="e05" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Mất key signing">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_client_user" edge="1" parent="1" source="step06_client" target="step06_user" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_client_tamper" edge="1" parent="1" source="step06_client" target="dec_tamper" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_tamper_ok" edge="1" parent="1" source="dec_tamper" target="end_node" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Quyền hợp lệ">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="2260" />
+              <mxPoint x="170" y="2260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_tamper_err" edge="1" parent="1" source="dec_tamper" target="e06" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Sửa đổi trái phép">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- CORRECTIVE LOOP-BACK ARROWS (HỒI QUY SỬA LỖI) -->
+        <mxCell id="loop_e01" edge="1" parent="1" source="e01" target="step01_user" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#B88930;endArrow=block;endFill=1;fontColor=#5A4215;fontSize=11;dashed=1;dashPattern=6 3;" value="Chuyển sang Form mật khẩu hoặc Demo Switcher">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1950" y="552.5" />
+              <mxPoint x="1950" y="350" />
+              <mxPoint x="170" y="350" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="loop_e02" edge="1" parent="1" source="e02" target="step01_user" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#B88930;endArrow=block;endFill=1;fontColor=#5A4215;fontSize=11;dashed=1;dashPattern=6 3;" value="Yêu cầu người dùng đăng nhập lại từ Bước 01">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1980" y="822.5" />
+              <mxPoint x="1980" y="330" />
+              <mxPoint x="190" y="330" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="loop_e04" edge="1" parent="1" source="e04" target="step03_server" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#B88930;endArrow=block;endFill=1;fontColor=#5A4215;fontSize=11;dashed=1;dashPattern=6 3;" value="Rollback JIT → Chuyển sang đọc User đã tạo">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1950" y="1632.5" />
+              <mxPoint x="1950" y="900" />
+              <mxPoint x="1035" y="900" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- FOOTER LEGEND -->
+        <mxCell id="legend" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFF6E2;strokeColor=#D8BD83;fontColor=#5A492C;fontSize=13;fontFamily=Arial;" value="QUY TẮC BẢO MẬT &amp; VẬN HÀNH: Nét xanh liền = Luồng nghiệp vụ chuẩn (Happy Path). Nét đỏ đứt = Nhánh từ chối / ngoại lệ bảo mật (E0.1 - E0.6). Nét vàng đứt = Tuyến hồi quy tự động. Tuân thủ nghiêm ngặt tam quyền phân lập ASSIGN-06 (Owner != Executor != Verifier) và mô hình dữ liệu quan hệ SQL Server 2022 ([Persons] + [Users])." vertex="1">
+          <mxGeometry height="70" width="2060" x="50" y="2700" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

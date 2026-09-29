@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { splitSecret, combineShares, getLagrangeTrace } from '../shamir';
+import {
+  splitSecret,
+  combineShares,
+  getLagrangeTrace,
+  splitSecretWithUserPassphrase,
+} from '../shamir';
 
 describe('Shamir Secret Sharing (SSS) GF(256) Unit Tests', () => {
   it('should split secret into 3 shares with threshold 2', () => {
@@ -49,5 +54,23 @@ describe('Shamir Secret Sharing (SSS) GF(256) Unit Tests', () => {
     expect(trace.rows.length).toBeGreaterThan(0);
     expect(trace.rows.every((r) => r.isMatch)).toBe(true);
   });
+
+  it('should allow user to define custom passphrase for Share 2 and reconstruct correctly', async () => {
+    const masterSecret = 'SuperSecretMasterKey2026';
+    const userPassphrase = 'MyCustomPersonalPassphrase@123';
+
+    // Split with user passphrase
+    const { shares } = await splitSecretWithUserPassphrase(masterSecret, userPassphrase);
+    expect(shares).toHaveLength(3);
+
+    // Reconstruct with Share 1 (Server) + Share 2 (User Passphrase derived)
+    const recoveredWithUser = combineShares([shares[0], shares[1]]);
+    expect(recoveredWithUser).toBe(masterSecret);
+
+    // Reconstruct with Share 1 (Server) + Share 3 (Beneficiary emergency)
+    const recoveredWithBeneficiary = combineShares([shares[0], shares[2]]);
+    expect(recoveredWithBeneficiary).toBe(masterSecret);
+  });
 });
+
 

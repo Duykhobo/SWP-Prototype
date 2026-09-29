@@ -3,6 +3,8 @@ import {
   splitSecret,
   combineShares,
   getLagrangeTrace,
+  splitSecretWithUserPassphrase,
+  deriveBytesFromPassphrase,
   type Share,
   type LagrangeTrace,
 } from '@/shared/crypto/shamir';
@@ -18,11 +20,18 @@ import {
   Calculator,
   Binary,
   AlertTriangle,
+  Lock,
+  Unlock,
+  Key,
 } from 'lucide-react';
 
 export const ShamirTestbench: React.FC = () => {
   const [masterSecret, setMasterSecret] = useState<string>('LegacyVault_MasterKey_2026_HighSecurity');
+  const [userPassphrase, setUserPassphrase] = useState<string>('MatKhauDiSanCuaNam@2026');
+  const [testPassphrase, setTestPassphrase] = useState<string>('MatKhauDiSanCuaNam@2026');
   const [shares, setShares] = useState<Share[]>([]);
+  const [saltUsed, setSaltUsed] = useState<string>('LegacyVault_UserSalt_2026');
+  const [isCustomMode, setIsCustomMode] = useState<boolean>(false);
   const [lagrangeTrace, setLagrangeTrace] = useState<LagrangeTrace | null>(null);
   const [simulationResult, setSimulationResult] = useState<{
     scenario: string;
@@ -35,8 +44,59 @@ export const ShamirTestbench: React.FC = () => {
     if (!masterSecret) return;
     const generatedShares = splitSecret(masterSecret, 3, 2);
     setShares(generatedShares);
+    setIsCustomMode(false);
     setLagrangeTrace(null);
     setSimulationResult(null);
+  };
+
+  const handleSplitKeyWithUserPassphrase = async () => {
+    if (!masterSecret || !userPassphrase) return;
+    const result = await splitSecretWithUserPassphrase(masterSecret, userPassphrase, 'LegacyVault_UserSalt_2026');
+    setShares(result.shares);
+    setSaltUsed(result.salt);
+    setIsCustomMode(true);
+    setTestPassphrase(userPassphrase);
+    setLagrangeTrace(null);
+    setSimulationResult({
+      scenario: 'Tạo Mảnh 2 theo Passphrase cá nhân thành công',
+      success: true,
+      message: `Mảnh 2 (User Share) đã được neo cố định theo Passphrase "${userPassphrase}". Hệ thống đã giải ngược đa thức Galois GF(256) để tạo Mảnh 1 (Server) và Mảnh 3 (Beneficiary) tương thích hoàn hảo!`,
+    });
+  };
+
+  const handleVerifyCustomPassphrase = async () => {
+    if (shares.length < 2 || !testPassphrase) return;
+    try {
+      // Phái sinh Mảnh 2 từ mật khẩu mà người dùng đang gõ thử
+      const secretBytesLen = shares[0].dataHex.length / 2;
+      const derivedBytes = await deriveBytesFromPassphrase(testPassphrase, saltUsed, secretBytesLen);
+      const derivedHex = Array.from(derivedBytes)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+      const userTestShare: Share = { x: 2, dataHex: derivedHex };
+
+      // Ghép Mảnh 1 (Server) + Mảnh 2 (Vừa gõ)
+      const recovered = combineShares([shares[0], userTestShare]);
+      const trace = getLagrangeTrace(shares[0], userTestShare, masterSecret);
+      setLagrangeTrace(trace);
+
+      const isExactMatch = recovered === masterSecret;
+      setSimulationResult({
+        scenario: `Kiểm thử mở két với Passphrase: "${testPassphrase}"`,
+        success: isExactMatch,
+        recoveredSecret: recovered,
+        message: isExactMatch
+          ? 'XÁC THỰC THÀNH CÔNG 100%! Passphrase khớp chính xác, Mảnh 2 phái sinh trùng khớp với đồ thị Galois và mở được Master Key!'
+          : 'MẬT KHẨU SAI: Mảnh 2 phái sinh bị lệch so với đồ thị, tính ra Master Key rác. Tầng AES-256-GCM Auth Tag sẽ lập tức chặn đứng!',
+      });
+    } catch (err: any) {
+      setLagrangeTrace(null);
+      setSimulationResult({
+        scenario: 'Kiểm thử Passphrase',
+        success: false,
+        message: err.message,
+      });
+    }
   };
 
   const handleSimulateRogueAdmin = () => {
@@ -131,20 +191,49 @@ export const ShamirTestbench: React.FC = () => {
     >
       <div className="space-y-6">
         {/* Input Master Key */}
-        <div className="space-y-2">
-          <label className="text-xs font-semibold text-[#0B291E] uppercase tracking-wider">
-            Chuỗi Master Secret / Khóa Gốc:
-          </label>
-          <div className="flex gap-3">
-            <input
-              type="text"
-              value={masterSecret}
-              onChange={(e) => setMasterSecret(e.target.value)}
-              className="flex-1 px-4 py-2 text-sm bg-[#FAF9F5] border border-[#DCD9D0] rounded-lg focus:outline-hidden focus:border-[#B88E4C]"
-            />
-            <HeritageButton onClick={handleSplitKey} icon={<RefreshCw className="w-4 h-4" />}>
-              Tách thành 3 Mảnh (SSS)
-            </HeritageButton>
+        <div className="space-y-4 p-4 bg-white border border-[#DCD9D0] rounded-xl">
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-[#0B291E] uppercase tracking-wider flex items-center justify-between">
+              <span>1. Chuỗi Master Secret / Khóa Gốc:</span>
+              <span className="text-[11px] text-[#66786E] font-normal">Khóa đối xứng hệ thống sinh ra</span>
+            </label>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={masterSecret}
+                onChange={(e) => setMasterSecret(e.target.value)}
+                className="flex-1 px-4 py-2 text-sm bg-[#FAF9F5] border border-[#DCD9D0] rounded-lg focus:outline-hidden focus:border-[#B88E4C]"
+              />
+              <HeritageButton variant="outline" onClick={handleSplitKey} icon={<RefreshCw className="w-4 h-4" />}>
+                Tách 3 Mảnh Ngẫu Nhiên
+              </HeritageButton>
+            </div>
+          </div>
+
+          {/* Ô Người dùng tự đặt Passphrase riêng cho Mảnh 2 */}
+          <div className="pt-3 border-t border-[#DCD9D0] space-y-2">
+            <label className="text-xs font-semibold text-[#0B291E] uppercase tracking-wider flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-[#B88E4C]">
+                <Key className="w-3.5 h-3.5" />
+                2. Người Dùng Tự Đặt Mật Khẩu (Passphrase) Cho Mảnh 2:
+              </span>
+              <span className="text-[11px] text-[#66786E] font-normal">Giải ngược đa thức Galois GF(256)</span>
+            </label>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={userPassphrase}
+                onChange={(e) => setUserPassphrase(e.target.value)}
+                placeholder="Nhập Passphrase cá nhân của bạn..."
+                className="flex-1 px-4 py-2 text-sm bg-[#FAF9F5] border border-[#B88E4C]/50 rounded-lg focus:outline-hidden focus:border-[#B88E4C]"
+              />
+              <HeritageButton variant="gold" onClick={handleSplitKeyWithUserPassphrase} icon={<Lock className="w-4 h-4" />}>
+                Tạo Mảnh 2 Từ Passphrase Này
+              </HeritageButton>
+            </div>
+            <p className="text-[11px] text-[#66786E]">
+              💡 <strong>Cơ chế toán học:</strong> Hệ thống dùng hàm băm chuẩn để neo Mảnh 2 theo Passphrase này, sau đó giải ngược hệ số dốc <code className="font-mono text-[#0B291E]">a₁ = (y₂ ⊕ S) ⊘ 2</code> trên trường hữu hạn để tạo ra Mảnh 1 (Server) và Mảnh 3 (Thừa kế) ăn khớp 100%.
+            </p>
           </div>
         </div>
 
@@ -188,6 +277,38 @@ export const ShamirTestbench: React.FC = () => {
                 </code>
               </div>
             </div>
+
+            {/* Hộp thử nghiệm gõ Passphrase mở két thực tế */}
+            {isCustomMode && (
+              <div className="p-4 bg-[#FBF7EE] border border-[#B88E4C]/40 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-[#0B291E] flex items-center gap-1.5">
+                    <Unlock className="w-4 h-4 text-[#B88E4C]" />
+                    Mô Phỏng Trình Duyệt: Nhập Lại Passphrase Để Tái Tạo Mảnh 2 &amp; Mở Két
+                  </span>
+                  <HeritageBadge variant="gold">Zero-Knowledge Verification</HeritageBadge>
+                </div>
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={testPassphrase}
+                    onChange={(e) => setTestPassphrase(e.target.value)}
+                    placeholder="Gõ Passphrase thử nghiệm..."
+                    className="flex-1 px-3 py-1.5 text-xs bg-white border border-[#DCD9D0] rounded-lg focus:outline-hidden focus:border-[#B88E4C]"
+                  />
+                  <HeritageButton
+                    variant="primary"
+                    onClick={handleVerifyCustomPassphrase}
+                    icon={<KeyRound className="w-4 h-4" />}
+                  >
+                    Ghép Mảnh 1 (Server) + Passphrase Này
+                  </HeritageButton>
+                </div>
+                <p className="text-[11px] text-[#66786E]">
+                  💡 <strong>Thử nghiệm:</strong> Thử sửa đổi 1 ký tự trong ô trên rồi bấm nút để thấy cách đồ thị Galois tính ra chuỗi rác và tầng xác thực Auth Tag sẽ phát hiện sai lệch ngay lập tức!
+                </p>
+              </div>
+            )}
 
             {/* Các nút bấm mô phỏng kịch bản tấn công và phục hồi */}
             <div className="pt-4 border-t border-[#DCD9D0] space-y-3">

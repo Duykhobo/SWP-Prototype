@@ -203,3 +203,78 @@ export function getLagrangeTrace(shareA: Share, shareB: Share, originalSecret?: 
   };
 }
 
+/**
+ * Phái sinh mảng bytes từ Passphrase người dùng cho đủ độ dài length qua SHA-256
+ */
+export async function deriveBytesFromPassphrase(
+  passphrase: string,
+  salt: string,
+  length: number
+): Promise<Uint8Array> {
+  const encoder = new TextEncoder();
+  const result = new Uint8Array(length);
+  let generated = 0;
+  let counter = 0;
+
+  while (generated < length) {
+    const data = encoder.encode(`${passphrase}:${salt}:${counter}`);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashBytes = new Uint8Array(hashBuffer);
+    const take = Math.min(hashBytes.length, length - generated);
+    result.set(hashBytes.slice(0, take), generated);
+    generated += take;
+    counter++;
+  }
+
+  return result;
+}
+
+/**
+ * Tách Master Secret với Mảnh 2 (User Share) được neo cố định theo Passphrase của người dùng
+ * Giải thuật: Giải ngược hệ số dốc a1 = (y2 ⊕ s) ⊘ 2 trên GF(256)
+ */
+export async function splitSecretWithUserPassphrase(
+  secretStr: string,
+  userPassphrase: string,
+  customSalt?: string
+): Promise<{ shares: Share[]; salt: string }> {
+  const encoder = new TextEncoder();
+  const secretBytes = encoder.encode(secretStr);
+  const salt = customSalt || 'LegacyVault_UserSalt_2026';
+  const userBytes = await deriveBytesFromPassphrase(userPassphrase, salt, secretBytes.length);
+
+  const share1Bytes = new Uint8Array(secretBytes.length);
+  const share2Bytes = userBytes; // Mảnh 2 do chính Passphrase người dùng quy định
+  const share3Bytes = new Uint8Array(secretBytes.length);
+
+  for (let b = 0; b < secretBytes.length; b++) {
+    const s = secretBytes[b];
+    const y2 = userBytes[b];
+
+    // Trong GF(256): y2 = s ⊕ (a1 ⊗ 2)
+    // => a1 ⊗ 2 = y2 ⊕ s
+    // => a1 = (y2 ⊕ s) ⊘ 2
+    const a1 = gfDiv(gfAdd(y2, s), 2);
+
+    // Mảnh 1 (x=1): y1 = s ⊕ (a1 ⊗ 1)
+    share1Bytes[b] = gfAdd(s, gfMul(a1, 1));
+    // Mảnh 3 (x=3): y3 = s ⊕ (a1 ⊗ 3)
+    share3Bytes[b] = gfAdd(s, gfMul(a1, 3));
+  }
+
+  const toHex = (bytes: Uint8Array) =>
+    Array.from(bytes)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+
+  return {
+    salt,
+    shares: [
+      { x: 1, dataHex: toHex(share1Bytes) },
+      { x: 2, dataHex: toHex(share2Bytes) },
+      { x: 3, dataHex: toHex(share3Bytes) },
+    ],
+  };
+}
+
+

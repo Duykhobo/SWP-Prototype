@@ -4,6 +4,8 @@ using LegacyVault.Prototype.Application.Interfaces;
 using LegacyVault.Prototype.Infrastructure.Services;
 using LegacyVault.Prototype.WebApi.Middlewares;
 
+LoadDotEnv();
+
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://0.0.0.0:5000");
 
@@ -61,5 +63,43 @@ app.UseCors("AllowClientApp");
 app.UseAuthorization();
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger/index.html"));
-
 app.Run();
+
+static void LoadDotEnv()
+{
+    var current = Directory.GetCurrentDirectory();
+    string? foundPath = null;
+    var dir = new DirectoryInfo(current);
+    while (dir != null)
+    {
+        var testPath = Path.Combine(dir.FullName, ".env");
+        if (File.Exists(testPath))
+        {
+            foundPath = testPath;
+            break;
+        }
+        dir = dir.Parent;
+    }
+
+    if (foundPath != null && File.Exists(foundPath))
+    {
+        foreach (var line in File.ReadAllLines(foundPath))
+        {
+            var trimmed = line.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed) || trimmed.StartsWith('#'))
+                continue;
+
+            var idx = trimmed.IndexOf('=');
+            if (idx > 0)
+            {
+                var key = trimmed.Substring(0, idx).Trim();
+                var val = trimmed.Substring(idx + 1).Trim().Trim('"', '\'');
+                if (!string.IsNullOrEmpty(key) && string.IsNullOrEmpty(Environment.GetEnvironmentVariable(key)))
+                {
+                    Environment.SetEnvironmentVariable(key, val);
+                }
+            }
+        }
+    }
+}
+

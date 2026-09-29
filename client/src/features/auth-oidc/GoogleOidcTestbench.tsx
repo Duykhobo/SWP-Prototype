@@ -34,8 +34,7 @@ interface OidcResponse {
     audience?: string;
     expiryTime?: string;
   };
-  simulatedAccessToken: string;
-  roles: string[];
+  message: string;
 }
 
 declare global {
@@ -375,7 +374,7 @@ export const GoogleOidcTestbench: React.FC = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between">
                   <span className="font-bold text-base text-[#0B291E]">{authResult.user?.name || 'Người dùng Google'}</span>
                   <span className="text-[11px] text-[#66786E]">
-                    Vai trò gán: <strong className="text-[#0B291E]">{authResult.roles?.join(', ') || 'OWNER'}</strong>
+                    Chưa cấp quyền ứng dụng
                   </span>
                 </div>
                 <div>• Email xác thực: <strong className="text-[#059669]">{authResult.user?.email || 'N/A'}</strong></div>
@@ -386,17 +385,17 @@ export const GoogleOidcTestbench: React.FC = () => {
               </div>
             </div>
 
-            {/* RAM-Only Access Token */}
+            {/* Identity validation is not an application login. */}
             <div className="p-3 bg-[#E5EDE8] border border-[#CBD5CB] rounded-lg text-xs space-y-1">
               <div className="flex items-center gap-1.5 font-bold text-[#0B291E]">
                 <Key className="w-3.5 h-3.5 text-[#B88E4C]" />
-                Tuân Thủ Quy Tắc RAM-Only (Hiến Chương Hard Rule 1.3):
+                Kết quả xác minh danh tính:
               </div>
               <p className="text-[11px] text-[#3A5345]">
-                Access Token phiên làm việc chỉ được lưu giữ trong RAM bộ nhớ phiên:
+                Chưa có phiên đăng nhập hoặc Access Token của LegacyVault. Quyền được cấp sau khi liên kết tài khoản và kiểm tra phân công.
               </p>
               <code className="text-[10px] font-mono bg-white px-2 py-1 rounded block break-all text-[#0B291E] border border-[#CBD5CB]">
-                {authResult.simulatedAccessToken || 'ram_access_token'}
+                {authResult.message}
               </code>
               <span className="text-[10px] text-[#66786E] block pt-0.5">
                 Tuyệt đối không lưu Access Token hoặc Master Key vào localStorage / sessionStorage theo tiêu chuẩn Zero-Knowledge.

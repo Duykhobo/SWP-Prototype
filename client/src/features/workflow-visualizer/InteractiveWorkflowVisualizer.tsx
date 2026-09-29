@@ -443,6 +443,71 @@ const WORKFLOW_STEPS: WorkflowStep[] = [
   },
 ];
 
+// Educational trace only. It never changes the authenticated session or API permissions.
+const AUTH_STEPS: WorkflowStep[] = [
+  {
+    id: 1, stepNum: '01', title: 'Chọn cách xác thực', subtitle: 'Google OIDC hoặc email/mật khẩu (thiết kế mục tiêu)',
+    lane: 'client', laneLabel: 'Client UI', icon: <Key className="w-5 h-5" />,
+    inboundData: { protocol: 'Tương tác trên giao diện', payload: 'Google OIDC | Email/Password | Xem persona demo' },
+    cryptoAction: { title: 'Tách xác thực khỏi quyền trên từng hồ sơ', details: ['Persona demo chỉ thay đổi góc nhìn trong visualizer.', 'Không dùng role do client gửi để cấp quyền API.'] },
+    outboundData: { status: 'Phương thức được chọn', payload: '{ "selectedMethod": "google" }' },
+    storage: { r2: 'Không sử dụng', db: 'Chưa ghi dữ liệu', client: 'Chỉ lưu lựa chọn hiển thị' },
+    exception: { code: 'A1 · Hủy thao tác', trigger: 'Người dùng không chọn phương thức', rollbackTo: 'Bước 01', action: 'Giữ nguyên trạng thái chưa đăng nhập' }, relatedTab: 'oidc',
+  },
+  {
+    id: 2, stepNum: '02', title: 'Xác thực danh tính', subtitle: 'ID Token của Google hoặc mật khẩu qua HTTPS',
+    lane: 'external', laneLabel: 'Google Identity / TLS', icon: <Shield className="w-5 h-5" />,
+    inboundData: { protocol: 'POST /api/v1/auth/google-oidc (prototype)', payload: '{ "idToken": "<Google ID Token>" }' },
+    cryptoAction: { title: 'Google ký ID Token; backend xác minh', details: ['Xác minh chữ ký, issuer, audience, expiry và email_verified.', 'Form mật khẩu là thiết kế mục tiêu; mật khẩu chỉ gửi qua HTTPS, server băm bằng thuật toán phù hợp.'] },
+    outboundData: { status: 'Danh tính đã xác thực hoặc bị từ chối', payload: '{ "googleSub": "<stable subject>", "emailVerified": true }' },
+    storage: { r2: 'Không sử dụng', db: 'Chưa gán quyền hồ sơ', client: 'Không lưu ID Token vào localStorage' },
+    exception: { code: 'A2 · Invalid credentials', trigger: 'Token không hợp lệ hoặc mật khẩu sai', rollbackTo: 'Bước 01', action: 'Từ chối và cho thử lại có giới hạn' }, relatedTab: 'oidc',
+  },
+  {
+    id: 3, stepNum: '03', title: 'Đối chiếu tài khoản', subtitle: 'Liên kết danh tính ngoài với User hiện có',
+    lane: 'server', laneLabel: 'Web API', icon: <Database className="w-5 h-5" />,
+    inboundData: { protocol: 'Tra cứu nội bộ (thiết kế mục tiêu)', payload: 'Provider = Google; subject = <verified sub>' },
+    cryptoAction: { title: 'Định danh dựa trên provider + sub', details: ['Email đã xác minh là thông tin liên hệ, không tự chứng minh person_id của lời mời.', 'Không tự hợp nhất tài khoản chỉ vì trùng email.'] },
+    outboundData: { status: 'Tài khoản khớp hoặc cần đăng ký', payload: '{ "userId": "<existing-or-new>", "identityLinked": true }' },
+    storage: { r2: 'Không sử dụng', db: 'Liên kết duy nhất (provider, sub) với User', client: 'Chờ trạng thái từ server' },
+    exception: { code: 'A3 · Identity conflict', trigger: 'Email hoặc danh tính liên kết mâu thuẫn', rollbackTo: 'Bước 03', action: 'Yêu cầu quy trình xác minh và liên kết riêng' },
+  },
+  {
+    id: 4, stepNum: '04', title: 'Tạo tài khoản JIT', subtitle: 'Tạo User; nhận lời mời là quy trình riêng',
+    lane: 'server', laneLabel: 'Web API', icon: <Database className="w-5 h-5" />,
+    inboundData: { protocol: 'Giao dịch DB (thiết kế mục tiêu)', payload: '{ "provider": "google", "sub": "<verified sub>" }' },
+    cryptoAction: { title: 'Tạo tài khoản idempotent', details: ['Khóa duy nhất (provider, sub), xử lý hai lần đăng nhập đồng thời.', 'Chỉ liên kết expected_person_id sau khi người nhận chứng minh lời mời và hoàn tất đối chiếu danh tính.'] },
+    outboundData: { status: 'Tài khoản được tạo hoặc truy xuất', payload: '{ "userId": "<id>", "invitationStatus": "PENDING" }' },
+    storage: { r2: 'Không sử dụng', db: 'User + ExternalIdentity; lời mời vẫn PENDING', client: 'Không suy ra quyền thụ hưởng từ email' },
+    exception: { code: 'A4 · Invitation mismatch', trigger: 'Không đối chiếu được người được chỉ định', rollbackTo: 'Bước 04', action: 'Giữ lời mời chờ xác minh, không cấp quyền' },
+  },
+  {
+    id: 5, stepNum: '05', title: 'Cấp phiên & kiểm quyền', subtitle: 'Server xác định quyền từ quan hệ thực thể',
+    lane: 'server', laneLabel: 'Web API', icon: <Shield className="w-5 h-5" />,
+    inboundData: { protocol: 'Phiên đăng nhập (thiết kế mục tiêu)', payload: 'User đã xác thực + quan hệ với kho/hồ sơ hiện hành' },
+    cryptoAction: { title: 'Authorization trên mỗi request', details: ['Role toàn cục không thay thế kiểm tra person_id và quan hệ trong hồ sơ.', 'Executor/Verifier cần đủ điều kiện, nhận nhiệm vụ và không xung đột ASSIGN-06.'] },
+    outboundData: { status: 'Phiên và quyền hiệu lực', payload: '{ "session": "<server-issued>", "scopes": ["<derived>"] }' },
+    storage: { r2: 'Không sử dụng', db: 'Audit đăng nhập và phân công', client: 'Không tin X-Active-Role để cấp quyền' },
+    exception: { code: 'A5 · Forbidden', trigger: 'Không có quan hệ hợp lệ với hồ sơ', rollbackTo: 'Bước 05', action: 'Trả 403, không phát quyền tài sản' },
+  },
+  {
+    id: 6, stepNum: '06', title: 'Hiển thị persona', subtitle: 'Dashboard theo quyền server trả về',
+    lane: 'client', laneLabel: 'Client UI', icon: <CheckCircle2 className="w-5 h-5" />,
+    inboundData: { protocol: 'GET /me (thiết kế mục tiêu)', payload: '{ "roles": ["<server-derived>"], "assignments": [] }' },
+    cryptoAction: { title: 'Render góc nhìn phù hợp', details: ['Ẩn/hiện tính năng để hỗ trợ trải nghiệm.', 'Backend vẫn kiểm tra từng thao tác độc lập.'] },
+    outboundData: { status: 'Dashboard phù hợp', payload: 'Owner | Executor | Verifier | Beneficiary' },
+    storage: { r2: 'Không sử dụng', db: 'Không đổi quyền khi chuyển giao diện', client: 'Persona trong visualizer chỉ là mô phỏng' },
+    exception: { code: 'A6 · Role revoked', trigger: 'Phân công bị thu hồi', rollbackTo: 'Bước 05', action: 'Làm mới quyền, chặn thao tác cũ' },
+  },
+];
+
+const DEMO_PERSONAS = [
+  { role: 'OWNER', name: 'Ông Nam' },
+  { role: 'EXECUTOR', name: 'Luật sư Bình' },
+  { role: 'VERIFIER', name: 'Bác sĩ Cường' },
+  { role: 'BENEFICIARY', name: 'Cháu An' },
+] as const;
+
 interface InteractiveWorkflowVisualizerProps {
   onNavigateTab?: (tabId: string) => void;
 }
@@ -454,25 +519,28 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
   const [showExceptions, setShowExceptions] = useState<boolean>(false);
+  const [activeFlow, setActiveFlow] = useState<'auth' | 'setup'>('auth');
+  const [demoPersona, setDemoPersona] = useState<string>('OWNER');
+  const steps = activeFlow === 'auth' ? AUTH_STEPS : WORKFLOW_STEPS;
 
-  const currentStep = WORKFLOW_STEPS[activeStepIndex];
+  const currentStep = steps[activeStepIndex];
 
   // Auto-play timer
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
     if (isPlaying) {
       interval = setInterval(() => {
-        setActiveStepIndex((prev) => (prev + 1) % WORKFLOW_STEPS.length);
+        setActiveStepIndex((prev) => (prev + 1) % steps.length);
       }, 3000 / playbackSpeed);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isPlaying, playbackSpeed]);
+  }, [isPlaying, playbackSpeed, steps.length]);
 
   const handleNext = () => {
     setIsPlaying(false);
-    setActiveStepIndex((prev) => Math.min(prev + 1, WORKFLOW_STEPS.length - 1));
+    setActiveStepIndex((prev) => Math.min(prev + 1, steps.length - 1));
   };
 
   const handlePrev = () => {
@@ -489,15 +557,27 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
     <div className="space-y-6">
       {/* Top Banner & Control Deck */}
       <HeritageCard
-        title="Trình Mô Phỏng Quy Trình Mật Mã & Bàn Giao Di Sản Số"
-        subtitle="Mô phỏng trực quan từng gói tin dữ liệu luân chuyển giữa 5 Swimlanes theo thời gian thực"
+        title="Trình Mô Phỏng Quy Trình LegacyVault"
+        subtitle="Mô phỏng quy trình kỹ thuật; các bước ghi 'thiết kế mục tiêu' chưa phải API đang hoạt động"
         badge={
           <div className="flex items-center gap-2">
             <HeritageBadge variant="gold">Framer Motion Animated</HeritageBadge>
-            <HeritageBadge variant="forest">10 Main Steps · 6 Exceptions</HeritageBadge>
+            <HeritageBadge variant="forest">{steps.length} bước · 4 làn + ngoại lệ</HeritageBadge>
           </div>
         }
       >
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex gap-2" role="group" aria-label="Chọn luồng mô phỏng">
+            {([{ id: 'auth', label: '01 · Xác thực & tài khoản' }, { id: 'setup', label: '02 · Thiết lập & kích hoạt' }] as const).map((flow) => (
+              <button key={flow.id} type="button" aria-pressed={activeFlow === flow.id} onClick={() => { setActiveFlow(flow.id); setActiveStepIndex(0); setIsPlaying(false); }} className={`rounded-lg border px-3 py-2 text-xs font-semibold ${activeFlow === flow.id ? 'bg-[#0B291E] text-white' : 'bg-white text-[#0B291E]'}`}>{flow.label}</button>
+            ))}
+          </div>
+          <label className="text-xs font-semibold text-[#0B291E]">Persona mô phỏng · không đăng nhập
+            <select value={demoPersona} onChange={(event) => setDemoPersona(event.target.value)} className="ml-2 rounded-lg border border-[#DCD9D0] bg-white px-2 py-1.5">
+              {DEMO_PERSONAS.map(({ role, name }) => <option key={role} value={role}>{name} · {role}</option>)}
+            </select>
+          </label>
+        </div>
         {/* Playback Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#EFECE6]/60 rounded-xl border border-[#DCD9D0]">
           <div className="flex items-center gap-2">
@@ -518,7 +598,7 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
             <HeritageButton
               variant="outline"
               onClick={handleNext}
-              disabled={activeStepIndex === WORKFLOW_STEPS.length - 1}
+              disabled={activeStepIndex === steps.length - 1}
               className="px-3 py-1.5 text-xs"
             >
               <span>Bước Kế</span>
@@ -557,14 +637,14 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
               }`}
             >
               <AlertTriangle className={`w-3.5 h-3.5 ${showExceptions ? 'text-amber-600' : 'text-slate-400'}`} />
-              <span>Xem Nhánh Ngoại Lệ (E1-E6)</span>
+              <span>Xem nhánh ngoại lệ</span>
             </button>
           </div>
         </div>
 
         {/* Step Indicator Pills */}
         <div className="mt-4 flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none">
-          {WORKFLOW_STEPS.map((s, idx) => {
+          {steps.map((s, idx) => {
             const isCurrent = idx === activeStepIndex;
             const isDone = idx < activeStepIndex;
 
@@ -597,7 +677,7 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
         <div className="flex items-center justify-between border-b border-[#DCD9D0] pb-3">
           <h3 className="text-sm font-bold text-[#0B291E] uppercase tracking-wider flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-[#B88E4C]" />
-            Bảng Điều Hướng Swimlanes (5 Làn Hoạt Động)
+            Bảng Điều Hướng Swimlanes (4 Làn Hoạt Động)
           </h3>
           <span className="text-xs text-[#66786E] font-medium">
             Đang hiển thị bước: <span className="font-bold text-[#0B291E]">{currentStep.stepNum} · {currentStep.title}</span>
@@ -612,7 +692,6 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
             { id: 'server', label: '3. Máy Chủ .NET 8 (Core Crypto & Business Engine)', icon: '⚙️', color: 'border-blue-400 bg-blue-50/40' },
             { id: 'external', label: '4. Dịch Vụ Ngoại Vi (Cloudflare R2, SePay, MailKit, FPT.AI)', icon: '☁️', color: 'border-cyan-400 bg-cyan-50/40' },
           ].map((lane) => {
-            const stepsInLane = WORKFLOW_STEPS.filter((s) => s.lane === lane.id);
             const isLaneActive = currentStep.lane === lane.id;
 
             return (
@@ -636,7 +715,7 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
 
                 {/* Nodes inside this lane */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-10 gap-2">
-                  {WORKFLOW_STEPS.map((s, idx) => {
+                  {steps.map((s, idx) => {
                     const isStepInLane = s.lane === lane.id;
                     const isSelected = idx === activeStepIndex;
                     const isPassed = idx < activeStepIndex;
@@ -707,7 +786,7 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-amber-950 flex items-center gap-2">
                     <span>🛡️</span>
-                    <span>5. Xử Lý Ngoại Lệ & Tuyến Hồi Quy Khắc Phục (E1 - E6 Corrective Loops)</span>
+                    <span>Nhánh ngoại lệ & cách xử lý</span>
                   </span>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
                     ROLLBACK & REMEDIATION
@@ -767,7 +846,7 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
             </ul>
           </div>
           <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mt-2 block w-fit">
-            Bảo mật Zero-Knowledge
+            {activeFlow === 'auth' ? 'Xác thực & phân quyền' : 'Mô phỏng bảo mật'}
           </span>
         </div>
 

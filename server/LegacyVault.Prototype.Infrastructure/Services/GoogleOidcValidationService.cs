@@ -1,4 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
 using Google.Apis.Auth;
 using LegacyVault.Prototype.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
@@ -22,21 +21,28 @@ public class GoogleOidcValidationService : IOidcValidationService
 
     public async Task<OidcUserInfo> ValidateGoogleIdTokenAsync(string idToken, string? clientId = null, CancellationToken ct = default)
     {
-        string? googleClientId = !string.IsNullOrWhiteSpace(clientId)
-            ? clientId
-            : Environment.GetEnvironmentVariable("GOOGLE_OIDC_CLIENT_ID") 
+        // The audience is a server-side trust setting, never a value chosen by the caller.
+        string? googleClientId = Environment.GetEnvironmentVariable("GOOGLE_OIDC_CLIENT_ID")
             ?? _config["GoogleOidc:ClientId"];
+
+        if (string.IsNullOrWhiteSpace(googleClientId) || googleClientId.Contains("YOUR_"))
+        {
+            _logger.LogError("Google OIDC client ID is not configured.");
+            return new OidcUserInfo { IsValid = false };
+        }
 
         try
         {
-            var settings = new GoogleJsonWebSignature.ValidationSettings();
-            if (!string.IsNullOrWhiteSpace(googleClientId) && !googleClientId.Contains("YOUR_"))
+            var settings = new GoogleJsonWebSignature.ValidationSettings
             {
-                settings.Audience = new[] { googleClientId };
-            }
+                Audience = new[] { googleClientId }
+            };
 
             var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
-            _logger.LogInformation("Google ID Token verified successfully for {Email} (Subject: {Subject})", payload.Email, payload.Subject);
+            if (!payload.EmailVerified || string.IsNullOrWhiteSpace(payload.Subject))
+                return new OidcUserInfo { IsValid = false };
+
+            _logger.LogInformation("Google ID Token verified for subject {Subject}", payload.Subject);
 
             return new OidcUserInfo
             {
@@ -52,43 +58,8 @@ public class GoogleOidcValidationService : IOidcValidationService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning("Real Google validation failed: {Msg}. Attempting fallback JWT inspection for testing.", ex.Message);
-
-            // Cho phép kiểm tra token JWT định dạng thử nghiệm
-            try
-            {
-                var handler = new JwtSecurityTokenHandler();
-                if (handler.CanReadToken(idToken))
-                {
-                    var jwt = handler.ReadJwtToken(idToken);
-                    string email = jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value ?? "demo.user@fpt.edu.vn";
-                    string name = jwt.Claims.FirstOrDefault(c => c.Type == "name")?.Value ?? "Sinh Viên FPT Demo";
-                    string sub = jwt.Subject ?? Guid.NewGuid().ToString();
-
-                    return new OidcUserInfo
-                    {
-                        IsValid = true,
-                        Subject = sub,
-                        Email = email,
-                        Name = name,
-                        Picture = "https://lh3.googleusercontent.com/a/default-user",
-                        Issuer = jwt.Issuer,
-                        Audience = string.Join(",", jwt.Audiences),
-                        ExpiryTime = jwt.ValidTo
-                    };
-                }
-            }
-            catch
-            {
-                // Ignore parse errors
-            }
-
-            return new OidcUserInfo
-            {
-                IsValid = false,
-                Email = "invalid_token@legacyvault.vn",
-                Name = "Invalid Token"
-            };
+            _logger.LogWarning(ex, "Google ID Token validation failed.");
+            return new OidcUserInfo { IsValid = false };
         }
     }
 }

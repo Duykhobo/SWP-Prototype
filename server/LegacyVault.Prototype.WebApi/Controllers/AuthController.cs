@@ -27,12 +27,14 @@ public class AuthController : ControllerBase
 
         var userInfo = await _oidcService.ValidateGoogleIdTokenAsync(request.IdToken, request.ClientId, ct);
 
+        if (!userInfo.IsValid)
+            return Unauthorized(new { success = false, message = "Google ID Token is invalid." });
+
         return Ok(new
         {
-            success = userInfo.IsValid,
+            success = true,
             user = userInfo,
-            simulatedAccessToken = "ram_jwt_access_token_" + Guid.NewGuid().ToString("N"),
-            roles = new[] { "OWNER", "BENEFICIARY" }
+            message = "Identity validated. No application session or role has been issued."
         });
     }
 

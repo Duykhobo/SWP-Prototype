@@ -1,4 +1,15 @@
-/**
+# -*- coding: utf-8 -*-
+"""
+Script to generate the updated InteractiveWorkflowVisualizer.tsx with:
+- Flow 01: Authentication, JIT Auto-Provisioning (Google OIDC), Form Register/Login, and Role Persona Switcher
+- Flow 02: Estate Setup & Envelope Encryption (existing 10 steps, updated to SQL Server 2022)
+- Interactive 1-click Persona Switcher (Owner, Executor, Verifier, Beneficiary, Admin)
+- SQL Server 2022 / T-SQL schema references throughout
+"""
+
+file_path = r"c:\Users\ThanhDuy\Documents\01_Code_Projects\SWP-Prototype\client\src\features\workflow-visualizer\InteractiveWorkflowVisualizer.tsx"
+
+content = '''/**
  * @file InteractiveWorkflowVisualizer.tsx
  * @description Trình mô phỏng trực quan hoạt hình quy trình End-to-End của LegacyVault bằng Framer Motion
  * Hỗ trợ Đa Luồng (Multi-Flow):
@@ -146,12 +157,7 @@ const FLOW_01_STEPS: WorkflowStep[] = [
     icon: <LogIn className="w-5 h-5 text-amber-600" />,
     inboundData: {
       protocol: 'Client UI Selection (Auth Strategy)',
-      payload: `{
-  "selectedProvider": "GOOGLE_OIDC | FORM_PASSWORD | DEMO_ROLE_SWITCHER",
-  "clientNonce": "nonce_7f2b98a1c4",
-  "redirectUri": "http://localhost:5173/auth/callback"
-}`, 
-
+      payload: '{\n  "selectedProvider": "GOOGLE_OIDC | FORM_PASSWORD | DEMO_ROLE_SWITCHER",\n  "clientNonce": "nonce_7f2b98a1c4",\n  "redirectUri": "http://localhost:5173/auth/callback"\n}',
     },
     cryptoAction: {
       title: 'Khởi tạo luồng xác thực OpenID Connect & Form an toàn',
@@ -164,12 +170,7 @@ const FLOW_01_STEPS: WorkflowStep[] = [
     },
     outboundData: {
       status: 'Client Auth Initiated',
-      payload: `{
-  "state": "READY_FOR_CREDENTIAL",
-  "nonceVerified": true,
-  "availableProviders": ["Google", "Credentials", "DemoRoles"]
-}`, 
-
+      payload: '{\n  "state": "READY_FOR_CREDENTIAL",\n  "nonceVerified": true,\n  "availableProviders": ["Google", "Credentials", "DemoRoles"]\n}',
     },
     storage: {
       r2: 'Chưa có hoạt động lưu trữ',
@@ -194,14 +195,7 @@ const FLOW_01_STEPS: WorkflowStep[] = [
     icon: <Key className="w-5 h-5 text-emerald-600" />,
     inboundData: {
       protocol: 'Google GIS Callback / TLS Form Post',
-      payload: 'Header: {"alg": "RS256", "kid": "9f82...", "typ": "JWT"}
-Payload: {
-  "iss": "https://accounts.google.com",
-  "sub": "108273619283746192837",
-  "email": "duyen.beneficiary@gmail.com",
-  "email_verified": true,
-  "name": "Phạm Thị Duyên"
-}',
+      payload: 'Header: {"alg": "RS256", "kid": "9f82...", "typ": "JWT"}\nPayload: {\n  "iss": "https://accounts.google.com",\n  "sub": "108273619283746192837",\n  "email": "duyen.beneficiary@gmail.com",\n  "email_verified": true,\n  "name": "Phạm Thị Duyên"\n}',
     },
     cryptoAction: {
       title: 'Ký số JWT bằng khóa riêng RSA của Google & Băm mật khẩu SEC-02',
@@ -213,12 +207,7 @@ Payload: {
     },
     outboundData: {
       status: 'Credential Signed & Emitted',
-      payload: `{
-  "credentialType": "ID_TOKEN_JWT",
-  "tokenLength": 842,
-  "signatureAlgorithm": "RS256"
-}`, 
-
+      payload: '{\n  "credentialType": "ID_TOKEN_JWT",\n  "tokenLength": 842,\n  "signatureAlgorithm": "RS256"\n}',
     },
     storage: {
       r2: 'Không áp dụng cho phiên xác thực',
@@ -243,11 +232,7 @@ Payload: {
     icon: <Database className="w-5 h-5 text-blue-700" />,
     inboundData: {
       protocol: 'POST /api/v1/auth/google-oidc',
-      payload: `{
-  "idToken": "eyJhbGciOiJSUzI1NiIs...",
-  "clientId": "717961939025-32a9snln6rvn7pu3va9are8dhcabvmr7.apps.googleusercontent.com"
-}`, 
-
+      payload: '{\n  "idToken": "eyJhbGciOiJSUzI1NiIs...",\n  "clientId": "717961939025-32a9snln6rvn7pu3va9are8dhcabvmr7.apps.googleusercontent.com"\n}',
     },
     cryptoAction: {
       title: 'Thẩm định tính toàn vẹn chữ ký số qua Google JWKS',
@@ -259,12 +244,7 @@ Payload: {
     },
     outboundData: {
       status: 'SQL Lookup Completed',
-      payload: 'T-SQL Query:
-SELECT u.UserId, u.PersonId, u.Email, u.Role, p.FullName
-FROM [dbo].[Users] u
-INNER JOIN [dbo].[Persons] p ON u.PersonId = p.PersonId
-WHERE u.Email = @Email AND u.IsDeleted = 0;
-Result: 0 rows found (User chưa từng tạo tài khoản)',
+      payload: 'T-SQL Query:\nSELECT u.UserId, u.PersonId, u.Email, u.Role, p.FullName\nFROM [dbo].[Users] u\nINNER JOIN [dbo].[Persons] p ON u.PersonId = p.PersonId\nWHERE u.Email = @Email AND u.IsDeleted = 0;\nResult: 0 rows found (User chưa từng tạo tài khoản)',
     },
     storage: {
       r2: 'Không ghi nhận',
@@ -289,17 +269,7 @@ Result: 0 rows found (User chưa từng tạo tài khoản)',
     icon: <UserPlus className="w-5 h-5 text-indigo-600" />,
     inboundData: {
       protocol: 'SQL Server 2022 ACID Transaction',
-      payload: 'T-SQL Execution Block:
-BEGIN TRANSACTION;
-DECLARE @NewPersonId UNIQUEIDENTIFIER = NEWID();
-
-INSERT INTO [dbo].[Persons] (PersonId, FullName, Email, CreatedAt)
-VALUES (@NewPersonId, N'Phạm Thị Duyên', 'duyen.beneficiary@gmail.com', GETUTCDATE());
-
-INSERT INTO [dbo].[Users] (UserId, PersonId, Email, IsOidcAccount, Role, CreatedAt)
-VALUES (NEWID(), @NewPersonId, 'duyen.beneficiary@gmail.com', 1, 'BENEFICIARY', GETUTCDATE());
-
-COMMIT TRANSACTION;',
+      payload: 'T-SQL Execution Block:\nBEGIN TRANSACTION;\nDECLARE @NewPersonId UNIQUEIDENTIFIER = NEWID();\n\nINSERT INTO [dbo].[Persons] (PersonId, FullName, Email, CreatedAt)\nVALUES (@NewPersonId, N\'Phạm Thị Duyên\', \'duyen.beneficiary@gmail.com\', GETUTCDATE());\n\nINSERT INTO [dbo].[Users] (UserId, PersonId, Email, IsOidcAccount, Role, CreatedAt)\nVALUES (NEWID(), @NewPersonId, \'duyen.beneficiary@gmail.com\', 1, \'BENEFICIARY\', GETUTCDATE());\n\nCOMMIT TRANSACTION;',
     },
     cryptoAction: {
       title: 'Tự động khớp nối hồ sơ di sản đang chờ nhận (Auto-Claiming)',
@@ -312,13 +282,7 @@ COMMIT TRANSACTION;',
     },
     outboundData: {
       status: 'SQL JIT Provisioning Success',
-      payload: `{
-  "isNewUser": true,
-  "provisioningAction": "JUST_IN_TIME_CREATED",
-  "personId": "44444444-4444-4444-4444-444444444444",
-  "roles": ["BENEFICIARY"]
-}`, 
-
+      payload: '{\n  "isNewUser": true,\n  "provisioningAction": "JUST_IN_TIME_CREATED",\n  "personId": "44444444-4444-4444-4444-444444444444",\n  "roles": ["BENEFICIARY"]\n}',
     },
     storage: {
       r2: 'Không ghi nhận',
@@ -343,16 +307,7 @@ COMMIT TRANSACTION;',
     icon: <Shield className="w-5 h-5 text-emerald-700" />,
     inboundData: {
       protocol: 'Internal JWT Token Factory (.NET 8)',
-      payload: 'Claims nhúng vào JWT:
-{
-  "sub": "user_89afbc12",
-  "person_id": "44444444-4444-4444-4444-444444444444",
-  "email": "duyen.beneficiary@gmail.com",
-  "roles": ["BENEFICIARY"],
-  "threePersonRuleCompliant": true,
-  "iat": 1790615800,
-  "exp": 1790702200
-}',
+      payload: 'Claims nhúng vào JWT:\n{\n  "sub": "user_89afbc12",\n  "person_id": "44444444-4444-4444-4444-444444444444",\n  "email": "duyen.beneficiary@gmail.com",\n  "roles": ["BENEFICIARY"],\n  "threePersonRuleCompliant": true,\n  "iat": 1790615800,\n  "exp": 1790702200\n}',
     },
     cryptoAction: {
       title: 'Ký phát hành phiên làm việc mật mã theo chuẩn Zero-Trust',
@@ -364,21 +319,11 @@ COMMIT TRANSACTION;',
     },
     outboundData: {
       status: 'HTTP 200 Login OK',
-      payload: `{
-  "success": true,
-  "authMethod": "GOOGLE_OIDC_JIT",
-  "accessToken": "jwt_oidc_44444444_a1b2c3...",
-  "persona": {
-    "role": "BENEFICIARY",
-    "name": "Phạm Thị Duyên",
-    "email": "duyen.beneficiary@gmail.com"
-  }
-}`, 
-
+      payload: '{\n  "success": true,\n  "authMethod": "GOOGLE_OIDC_JIT",\n  "accessToken": "jwt_oidc_44444444_a1b2c3...",\n  "persona": {\n    "role": "BENEFICIARY",\n    "name": "Phạm Thị Duyên",\n    "email": "duyen.beneficiary@gmail.com"\n  }\n}',
     },
     storage: {
       r2: 'Không ghi nhận',
-      db: 'SQL Server 2022: INSERT INTO [dbo].[AuditEvents] (Action='AUTH_LOGIN_SUCCESS')',
+      db: 'SQL Server 2022: INSERT INTO [dbo].[AuditEvents] (Action=\'AUTH_LOGIN_SUCCESS\')',
       client: 'Lưu Access Token trong RAM (Memory Context), sẵn sàng gọi API',
     },
     exception: {
@@ -399,12 +344,7 @@ COMMIT TRANSACTION;',
     icon: <UserCheck className="w-5 h-5 text-amber-500" />,
     inboundData: {
       protocol: 'React AuthContext.setSession()',
-      payload: `{
-  "activeRole": "BENEFICIARY",
-  "personId": "44444444-4444-4444-4444-444444444444",
-  "isThreePersonSeparated": true
-}`, 
-
+      payload: '{\n  "activeRole": "BENEFICIARY",\n  "personId": "44444444-4444-4444-4444-444444444444",\n  "isThreePersonSeparated": true\n}',
     },
     cryptoAction: {
       title: 'Thiết lập môi trường làm việc đặc thù theo vai trò',
@@ -417,12 +357,7 @@ COMMIT TRANSACTION;',
     },
     outboundData: {
       status: 'Persona Activated & Ready',
-      payload: `{
-  "dashboard": "BENEFICIARY_VAULT_LIST",
-  "permissions": ["READ_HANDOVER_MANIFEST", "DECIDE_ACCEPT_REJECT"],
-  "threePersonRule": "VERIFIED_COMPLIANT"
-}`, 
-
+      payload: '{\n  "dashboard": "BENEFICIARY_VAULT_LIST",\n  "permissions": ["READ_HANDOVER_MANIFEST", "DECIDE_ACCEPT_REJECT"],\n  "threePersonRule": "VERIFIED_COMPLIANT"\n}',
     },
     storage: {
       r2: 'Không đổi',
@@ -453,13 +388,7 @@ const FLOW_02_STEPS: WorkflowStep[] = [
     icon: <CreditCard className="w-5 h-5 text-amber-600" />,
     inboundData: {
       protocol: 'POST /api/v1/payment/orders',
-      payload: `{
-  "planTier": "LEGACY_XS",
-  "amount": 199000,
-  "personId": "11111111-1111-1111-1111-111111111111",
-  "orderCode": "LV128492"
-}`, 
-
+      payload: '{\n  "planTier": "LEGACY_XS",\n  "amount": 199000,\n  "personId": "11111111-1111-1111-1111-111111111111",\n  "orderCode": "LV128492"\n}',
     },
     cryptoAction: {
       title: 'Xác thực thanh toán ngân hàng tự động',
@@ -471,12 +400,7 @@ const FLOW_02_STEPS: WorkflowStep[] = [
     },
     outboundData: {
       status: 'HTTP 200 Webhook Confirmed',
-      payload: `{
-  "paymentStatus": "PAID",
-  "transactionId": "FT26271982736",
-  "planActive": true
-}`, 
-
+      payload: '{\n  "paymentStatus": "PAID",\n  "transactionId": "FT26271982736",\n  "planActive": true\n}',
     },
     storage: {
       r2: 'Không lưu dữ liệu tài chính trên Object Storage',
@@ -501,8 +425,7 @@ const FLOW_02_STEPS: WorkflowStep[] = [
     icon: <FileCode className="w-5 h-5 text-emerald-600" />,
     inboundData: {
       protocol: 'In-Memory File Buffer (Web Crypto API)',
-      payload: 'File: "Will_and_Estate_Passphrases.pdf"
-MIME: application/pdf | Size: 1.48 MB (1,552,896 bytes)',
+      payload: 'File: "Will_and_Estate_Passphrases.pdf"\nMIME: application/pdf | Size: 1.48 MB (1,552,896 bytes)',
     },
     cryptoAction: {
       title: 'Băm toàn vẹn SHA-256 trong bộ nhớ tạm',
@@ -515,11 +438,7 @@ MIME: application/pdf | Size: 1.48 MB (1,552,896 bytes)',
     },
     outboundData: {
       status: 'Client SHA-256 Calculated',
-      payload: `{
-  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "validation": "PASS"
-}`, 
-
+      payload: '{\n  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",\n  "validation": "PASS"\n}',
     },
     storage: {
       r2: 'Chưa đẩy lên đám mây',
@@ -557,13 +476,7 @@ MIME: application/pdf | Size: 1.48 MB (1,552,896 bytes)',
     },
     outboundData: {
       status: 'HTTP 200 Encrypted OK',
-      payload: `{
-  "assetId": "ast_98afbd90",
-  "storageKey": "vaults/ast_98afbd90.enc",
-  "nonceBase64": "9xF1/2a...",
-  "tagBase64": "vB83c..."
-}`, 
-
+      payload: '{\n  "assetId": "ast_98afbd90",\n  "storageKey": "vaults/ast_98afbd90.enc",\n  "nonceBase64": "9xF1/2a...",\n  "tagBase64": "vB83c..."\n}',
     },
     storage: {
       r2: 'Tạo luồng chuẩn bị đẩy file bản mã .enc',
@@ -588,9 +501,7 @@ MIME: application/pdf | Size: 1.48 MB (1,552,896 bytes)',
     icon: <Cloud className="w-5 h-5 text-cyan-600" />,
     inboundData: {
       protocol: 'AWS S3 SDK: PutObjectCommand',
-      payload: 'Bucket: "legacyvault-prototype-private"
-Key: "vaults/ast_98afbd90.enc"
-Content: [AES-256-GCM Ciphertext Binary]',
+      payload: 'Bucket: "legacyvault-prototype-private"\nKey: "vaults/ast_98afbd90.enc"\nContent: [AES-256-GCM Ciphertext Binary]',
     },
     cryptoAction: {
       title: 'Lưu trữ đám mây chuẩn Zero-Knowledge',
@@ -602,12 +513,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     },
     outboundData: {
       status: 'PutObject S3 200 OK',
-      payload: `{
-  "eTag": "\"9b105d4f7c4db35e0b0f60defb9fb3ab\"",
-  "uploadedBytes": 1552912,
-  "status": "STORED"
-}`, 
-
+      payload: '{\n  "eTag": "\\"9b105d4f7c4db35e0b0f60defb9fb3ab\\"",\n  "uploadedBytes": 1552912,\n  "status": "STORED"\n}',
     },
     storage: {
       r2: 'LƯU TRỮ VĨNH VIỄN tệp mã hóa .enc',
@@ -632,14 +538,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     icon: <Layers className="w-5 h-5 text-emerald-600" />,
     inboundData: {
       protocol: 'POST /api/v1/plans/{id}/consolidate-vaults',
-      payload: `{
-  "designations": [
-    {"assetId": "A", "recipients": ["P1"]},
-    {"assetId": "C", "recipients": ["P1"]},
-    {"assetId": "B", "recipients": ["P1", "P2"]}
-  ]
-}`, 
-
+      payload: '{\n  "designations": [\n    {"assetId": "A", "recipients": ["P1"]},\n    {"assetId": "C", "recipients": ["P1"]},\n    {"assetId": "B", "recipients": ["P1", "P2"]}\n  ]\n}',
     },
     cryptoAction: {
       title: 'Thuật toán tự gom kho theo tập người nhận duy nhất (SETUP-05, AC-01)',
@@ -652,12 +551,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     },
     outboundData: {
       status: 'Vaults Consolidated (AC-01 Validated)',
-      payload: `{
-  "vaultCount": 2,
-  "vault1": {"mode": "SINGLE_RECIPIENT", "assets": ["A", "C"], "recipients": ["P1"]},
-  "vault2": {"mode": "CO_OWNED", "assets": ["B"], "recipients": ["P1", "P2"]}
-}`, 
-
+      payload: '{\n  "vaultCount": 2,\n  "vault1": {"mode": "SINGLE_RECIPIENT", "assets": ["A", "C"], "recipients": ["P1"]},\n  "vault2": {"mode": "CO_OWNED", "assets": ["B"], "recipients": ["P1", "P2"]}\n}',
     },
     storage: {
       r2: 'Không đổi',
@@ -682,11 +576,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     icon: <Users className="w-5 h-5 text-indigo-600" />,
     inboundData: {
       protocol: 'POST /api/v1/plans/{id}/executors/invite',
-      payload: `{
-  "executorEmail": "binh.executor@legacyvault.vn",
-  "verifierEmail": "cuong.verifier@legacyvault.vn"
-}`, 
-
+      payload: '{\n  "executorEmail": "binh.executor@legacyvault.vn",\n  "verifierEmail": "cuong.verifier@legacyvault.vn"\n}',
     },
     cryptoAction: {
       title: 'Kiểm soát xung đột lợi ích theo PersonId (ASSIGN-06)',
@@ -698,16 +588,11 @@ Content: [AES-256-GCM Ciphertext Binary]',
     },
     outboundData: {
       status: 'HTTP 200 Assignment Recorded',
-      payload: `{
-  "isThreePersonSeparated": true,
-  "executorAssigned": true,
-  "auditStatus": "COMPLIANT"
-}`, 
-
+      payload: '{\n  "isThreePersonSeparated": true,\n  "executorAssigned": true,\n  "auditStatus": "COMPLIANT"\n}',
     },
     storage: {
       r2: 'Không đổi',
-      db: "SQL Server 2022: INSERT INTO [dbo].[ExecutorAssignments] (Status='INVITED')",
+      db: 'SQL Server 2022: INSERT INTO [dbo].[ExecutorAssignments] (Status=\'INVITED\')',
       client: 'Hiển thị huy hiệu "Đã phân công nhân sự hợp lệ"',
     },
     exception: {
@@ -728,7 +613,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     icon: <Mail className="w-5 h-5 text-rose-500" />,
     inboundData: {
       protocol: 'SMTP TLS Port 587 (RFC 3207)',
-      payload: `To: binh.executor@legacyvault.vn\nSubject: [LegacyVault] Lời mời làm Người thực thi di sản số`,
+      payload: 'To: binh.executor@legacyvault.vn\nSubject: [LegacyVault] Lời mời làm Người thực thi di sản số',
     },
     cryptoAction: {
       title: 'Bảo vệ đường truyền email xác thực',
@@ -740,11 +625,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     },
     outboundData: {
       status: 'SMTP 250 OK: Message Dispatched',
-      payload: `{
-  "messageId": "msg_9f2bc481@legacyvault.vn",
-  "status": "DELIVERED"
-}`, 
-
+      payload: '{\n  "messageId": "msg_9f2bc481@legacyvault.vn",\n  "status": "DELIVERED"\n}',
     },
     storage: {
       r2: 'Không đổi',
@@ -769,12 +650,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     icon: <Clock className="w-5 h-5 text-rose-600" />,
     inboundData: {
       protocol: 'POST /api/v1/plans/{id}/activate',
-      payload: `{
-  "planId": "plan_98afbd90",
-  "heartbeatIntervalDays": 30,
-  "rescueTimelockDays": 7
-}`, 
-
+      payload: '{\n  "planId": "plan_98afbd90",\n  "heartbeatIntervalDays": 30,\n  "rescueTimelockDays": 7\n}',
     },
     cryptoAction: {
       title: 'Thẩm định đa điều kiện kích hoạt Kế hoạch di sản (SETUP-01)',
@@ -786,16 +662,11 @@ Content: [AES-256-GCM Ciphertext Binary]',
     },
     outboundData: {
       status: 'Plan Activated - DMS LIVE',
-      payload: `{
-  "planStatus": "ACTIVE",
-  "nextHeartbeatDue": "2026-10-28T22:30:00Z",
-  "dmsState": "HEALTHY"
-}`, 
-
+      payload: '{\n  "planStatus": "ACTIVE",\n  "nextHeartbeatDue": "2026-10-28T22:30:00Z",\n  "dmsState": "HEALTHY"\n}',
     },
     storage: {
       r2: 'Bảo lưu file .enc trong trạng thái sẵn sàng bàn giao',
-      db: "SQL Server 2022: UPDATE [dbo].[EstatePlans] SET Status = 'ACTIVE', ActivatedAt = GETUTCDATE()",
+      db: 'SQL Server 2022: UPDATE [dbo].[EstatePlans] SET Status = \'ACTIVE\', ActivatedAt = GETUTCDATE()',
       client: 'Chuyển giao diện sang Bảng điều khiển Giám sát Kế hoạch Hoạt động',
     },
     exception: {
@@ -1406,3 +1277,9 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
     </div>
   );
 };
+'''
+
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(content)
+
+print(f"Successfully written {len(content)} characters to {file_path}")

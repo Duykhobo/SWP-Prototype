@@ -20,6 +20,8 @@ public class SePayPaymentService : IPaymentService
     private readonly string _bankAccount;
     private readonly string _bankCode;
     private readonly string _sepayApiKey;
+    private readonly bool _isProduction;
+    private readonly bool _allowBypassAuthInDev;
     private readonly ILogger<SePayPaymentService> _logger;
 
     public SePayPaymentService(IConfiguration configuration, ILogger<SePayPaymentService> logger)
@@ -27,7 +29,11 @@ public class SePayPaymentService : IPaymentService
         _logger = logger;
         _bankAccount = configuration["SePay:BankAccount"] ?? "0385966666";
         _bankCode = configuration["SePay:BankCode"] ?? "MBBank";
-        _sepayApiKey = configuration["SePay:ApiKey"] ?? "SEPAY_TEST_API_KEY_2026";
+
+        var env = configuration["ASPNETCORE_ENVIRONMENT"] ?? configuration["Environment"] ?? "Development";
+        _isProduction = string.Equals(env, "Production", StringComparison.OrdinalIgnoreCase);
+        _allowBypassAuthInDev = bool.TryParse(configuration["SePay:AllowBypassAuthInDev"], out var bypass) && bypass;
+        _sepayApiKey = configuration["SePay:ApiKey"] ?? (_isProduction ? string.Empty : "SEPAY_TEST_API_KEY_2026");
     }
 
     public Task<PaymentOrder> CreateOrderAsync(SubscriptionTier tier, Guid personId)
@@ -235,15 +241,50 @@ public class SePayPaymentService : IPaymentService
 
     private bool ValidateWebhookAuth(string? authHeader, string? signature)
     {
-        if (!string.IsNullOrEmpty(authHeader))
+        if (string.IsNullOrWhiteSpace(authHeader))
         {
-            // Format: "Apikey <KEY>"
-            var token = authHeader.Replace("Apikey ", "").Trim();
-            if (token == _sepayApiKey || token == "SEPAY_TEST_API_KEY_2026") return true;
+            // Ở môi trường Live / Production, bắt buộc phải có Authorization header hợp lệ.
+            // Ở môi trường Development, chỉ cho phép nếu có cờ cấu hình tường minh SePay:AllowBypassAuthInDev = true.
+            return !_isProduction && _allowBypassAuthInDev;
         }
 
-        // Demo test mode allows empty auth in development/sandbox
-        return true;
+        // Header format chuẩn SePay: "Apikey <API_KEY>"
+        string token = authHeader.StartsWith("Apikey ", StringComparison.OrdinalIgnoreCase)
+            ? authHeader.Substring(7).Trim()
+            : authHeader.Trim();
+
+        if (string.IsNullOrEmpty(token))
+        {
+            return false;
+        }
+
+        // Ở môi trường Live / Production:
+        // 1. Phải có khóa bí mật đã cấu hình (không được rỗng)
+        // 2. Token gửi lên tuyệt đối không được dùng key thử nghiệm "SEPAY_TEST_API_KEY_2026"
+        // 3. Phải khớp chính xác với _sepayApiKey cấu hình an toàn
+        if (_isProduction)
+        {
+            if (string.IsNullOrEmpty(_sepayApiKey) || _sepayApiKey == "SEPAY_TEST_API_KEY_2026")
+            {
+                _logger.LogError("Production SePay API key is unconfigured or using the test key fallback. Webhook rejected.");
+                return false;
+            }
+
+            if (token == "SEPAY_TEST_API_KEY_2026")
+            {
+                _logger.LogWarning("Test API key 'SEPAY_TEST_API_KEY_2026' was rejected in Production environment.");
+                return false;
+            }
+
+            return CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(token),
+                Encoding.UTF8.GetBytes(_sepayApiKey));
+        }
+
+        // Ở môi trường Development / Sandbox:
+        return CryptographicOperations.FixedTimeEquals(
+            Encoding.UTF8.GetBytes(token),
+            Encoding.UTF8.GetBytes(_sepayApiKey));
     }
 
     private static (long amount, int billingDays, int quotaMb, int assetLimit) GetTierDetails(SubscriptionTier tier)

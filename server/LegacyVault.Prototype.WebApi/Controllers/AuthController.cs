@@ -157,6 +157,9 @@ public class AuthController : ControllerBase
 
         var token = "jwt_oidc_" + Guid.NewGuid().ToString("N");
 
+        if (!userInfo.IsValid)
+            return Unauthorized(new { success = false, message = "Google ID Token is invalid." });
+
         return Ok(new
         {
             success = true,

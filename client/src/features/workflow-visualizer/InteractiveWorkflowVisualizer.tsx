@@ -18,24 +18,17 @@ import {
   Shield,
   Key,
   Cloud,
-  CreditCard,
   Mail,
-  Scan,
   Clock,
   CheckCircle2,
   AlertTriangle,
-  ArrowRight,
   FileCode,
-  HardDrive,
   Database,
   ExternalLink,
-  Info,
   Sparkles,
   UserCheck,
   LogIn,
   Users,
-  UserPlus,
-  Lock,
   Layers,
   Check
 } from 'lucide-react';
@@ -79,7 +72,7 @@ interface WorkflowStep {
 }
 
 // 5 Vai diễn chuẩn mẫu phục vụ demo bảo vệ đồ án (ASSIGN-06)
-const DEMO_PERSONAS = [
+export const DEMO_PERSONAS = [
   {
     role: 'OWNER',
     name: 'Nguyễn Văn Nam',
@@ -106,7 +99,7 @@ const DEMO_PERSONAS = [
     title: 'Công Chứng Viên (Verifier)',
     email: 'cuong.verifier@legacyvault.vn',
     personId: '33333333-3333-3333-3333-333333333333',
-    badgeVariant: 'burgundy' as const,
+    badgeVariant: 'danger' as const,
     icon: '📜',
     description: 'Người thẩm định độc lập; phê duyệt chứng tử, không có quyền đọc tài sản rõ.',
   },
@@ -146,12 +139,7 @@ const FLOW_01_STEPS: WorkflowStep[] = [
     icon: <LogIn className="w-5 h-5 text-amber-600" />,
     inboundData: {
       protocol: 'Client UI Selection (Auth Strategy)',
-      payload: `{
-  "selectedProvider": "GOOGLE_OIDC | FORM_PASSWORD | DEMO_ROLE_SWITCHER",
-  "clientNonce": "nonce_7f2b98a1c4",
-  "redirectUri": "http://localhost:5173/auth/callback"
-}`, 
-
+      payload: `{\n  "selectedProvider": "GOOGLE_OIDC | FORM_PASSWORD | DEMO_ROLE_SWITCHER",\n  "clientNonce": "nonce_7f2b98a1c4",\n  "redirectUri": "http://localhost:5173/auth/callback"\n}`,
     },
     cryptoAction: {
       title: 'Khởi tạo luồng xác thực OpenID Connect & Form an toàn',
@@ -164,12 +152,7 @@ const FLOW_01_STEPS: WorkflowStep[] = [
     },
     outboundData: {
       status: 'Client Auth Initiated',
-      payload: `{
-  "state": "READY_FOR_CREDENTIAL",
-  "nonceVerified": true,
-  "availableProviders": ["Google", "Credentials", "DemoRoles"]
-}`, 
-
+      payload: `{\n  "state": "READY_FOR_CREDENTIAL",\n  "nonceVerified": true,\n  "availableProviders": ["Google", "Credentials", "DemoRoles"]\n}`,
     },
     storage: {
       r2: 'Chưa có hoạt động lưu trữ',
@@ -194,14 +177,7 @@ const FLOW_01_STEPS: WorkflowStep[] = [
     icon: <Key className="w-5 h-5 text-emerald-600" />,
     inboundData: {
       protocol: 'Google GIS Callback / TLS Form Post',
-      payload: 'Header: {"alg": "RS256", "kid": "9f82...", "typ": "JWT"}
-Payload: {
-  "iss": "https://accounts.google.com",
-  "sub": "108273619283746192837",
-  "email": "duyen.beneficiary@gmail.com",
-  "email_verified": true,
-  "name": "Phạm Thị Duyên"
-}',
+      payload: `Header: {"alg": "RS256", "kid": "9f82...", "typ": "JWT"}\nPayload: {\n  "iss": "https://accounts.google.com",\n  "sub": "108273619283746192837",\n  "email": "duyen.beneficiary@gmail.com",\n  "email_verified": true,\n  "name": "Phạm Thị Duyên"\n}`,
     },
     cryptoAction: {
       title: 'Ký số JWT bằng khóa riêng RSA của Google & Băm mật khẩu SEC-02',
@@ -213,12 +189,7 @@ Payload: {
     },
     outboundData: {
       status: 'Credential Signed & Emitted',
-      payload: `{
-  "credentialType": "ID_TOKEN_JWT",
-  "tokenLength": 842,
-  "signatureAlgorithm": "RS256"
-}`, 
-
+      payload: `{\n  "credentialType": "ID_TOKEN_JWT",\n  "tokenLength": 842,\n  "signatureAlgorithm": "RS256"\n}`,
     },
     storage: {
       r2: 'Không áp dụng cho phiên xác thực',
@@ -243,11 +214,7 @@ Payload: {
     icon: <Database className="w-5 h-5 text-blue-700" />,
     inboundData: {
       protocol: 'POST /api/v1/auth/google-oidc',
-      payload: `{
-  "idToken": "eyJhbGciOiJSUzI1NiIs...",
-  "clientId": "717961939025-32a9snln6rvn7pu3va9are8dhcabvmr7.apps.googleusercontent.com"
-}`, 
-
+      payload: `{\n  "idToken": "eyJhbGciOiJSUzI1NiIs...",\n  "clientId": "717961939025-32a9snln6rvn7pu3va9are8dhcabvmr7.apps.googleusercontent.com"\n}`,
     },
     cryptoAction: {
       title: 'Thẩm định tính toàn vẹn chữ ký số qua Google JWKS',
@@ -259,12 +226,7 @@ Payload: {
     },
     outboundData: {
       status: 'SQL Lookup Completed',
-      payload: 'T-SQL Query:
-SELECT u.UserId, u.PersonId, u.Email, u.Role, p.FullName
-FROM [dbo].[Users] u
-INNER JOIN [dbo].[Persons] p ON u.PersonId = p.PersonId
-WHERE u.Email = @Email AND u.IsDeleted = 0;
-Result: 0 rows found (User chưa từng tạo tài khoản)',
+      payload: `T-SQL Query:\nSELECT u.UserId, u.PersonId, u.Email, u.Role, p.FullName\nFROM [dbo].[Users] u\nINNER JOIN [dbo].[Persons] p ON u.PersonId = p.PersonId\nWHERE u.Email = @Email AND u.IsDeleted = 0;\nResult: 0 rows found (User chưa từng tạo tài khoản)`,
     },
     storage: {
       r2: 'Không ghi nhận',
@@ -273,63 +235,46 @@ Result: 0 rows found (User chưa từng tạo tài khoản)',
     },
     exception: {
       code: 'E0.3 · Google Signature Mismatch',
-      trigger: 'Khóa công khai Google không khớp với chữ ký trong token',
-      rollbackTo: 'Bước 02 (Từ chối token)',
-      action: 'Trả về HTTP 401 Unauthorized kèm mã lỗi ERR_AUTH_INVALID_TOKEN',
+      trigger: 'Chữ ký số không khớp với bộ khóa công khai của Google JWKS',
+      rollbackTo: 'Bước 01 (Từ chối đăng nhập)',
+      action: 'Báo lỗi ERR_INVALID_OIDC_SIGNATURE và ghi log kiểm toán bảo mật',
     },
     relatedTab: 'oidc',
   },
   {
     id: 4,
     stepNum: '04',
-    title: 'Tự Tạo Tài Khoản JIT (Just-In-Time Provisioning)',
-    subtitle: 'Tự động tạo bản ghi Persons & Users trong CSDL SQL Server 2022',
+    title: 'Tự Động Tạo Tài Khoản (JIT Provisioning) Trong SQL Server',
+    subtitle: 'Khởi tạo bản ghi liên kết [Persons] và [Users] theo giao dịch ACID',
     lane: 'server',
-    laneLabel: 'Máy Chủ (.NET 8 WebApi & SQL Server)',
-    icon: <UserPlus className="w-5 h-5 text-indigo-600" />,
+    laneLabel: 'Máy Chủ (.NET 8 Entity Framework Core 10)',
+    icon: <Sparkles className="w-5 h-5 text-amber-500" />,
     inboundData: {
-      protocol: 'SQL Server 2022 ACID Transaction',
-      payload: 'T-SQL Execution Block:
-BEGIN TRANSACTION;
-DECLARE @NewPersonId UNIQUEIDENTIFIER = NEWID();
-
-INSERT INTO [dbo].[Persons] (PersonId, FullName, Email, CreatedAt)
-VALUES (@NewPersonId, N'Phạm Thị Duyên', 'duyen.beneficiary@gmail.com', GETUTCDATE());
-
-INSERT INTO [dbo].[Users] (UserId, PersonId, Email, IsOidcAccount, Role, CreatedAt)
-VALUES (NEWID(), @NewPersonId, 'duyen.beneficiary@gmail.com', 1, 'BENEFICIARY', GETUTCDATE());
-
-COMMIT TRANSACTION;',
+      protocol: 'Internal DB Transaction (SqlTransaction)',
+      payload: `BEGIN TRANSACTION;\n-- 1. Thêm công dân vào bảng danh tính [Persons]\nINSERT INTO [dbo].[Persons] (PersonId, FullName, Email, CreatedAt)\nVALUES (NEWID(), N'Phạm Thị Duyên', 'duyen.beneficiary@gmail.com', GETUTCDATE());\n\n-- 2. Thêm tài khoản đăng nhập vào bảng [Users]\nINSERT INTO [dbo].[Users] (UserId, PersonId, Email, Role, AuthProvider, ProviderSubjectId, IsActive, CreatedAt)\nVALUES (NEWID(), @NewPersonId, 'duyen.beneficiary@gmail.com', 'BENEFICIARY', 'GOOGLE', '108273619283746192837', 1, GETUTCDATE());\nCOMMIT TRANSACTION;`,
     },
     cryptoAction: {
-      title: 'Tự động khớp nối hồ sơ di sản đang chờ nhận (Auto-Claiming)',
+      title: 'Tự động cấp phát tài khoản Just-In-Time (JIT) bảo đảm toàn vẹn tham chiếu',
       details: [
-        'Hệ thống tự động sinh PersonId duy nhất (UUID v4) trong bảng Persons',
-        'Tạo tài khoản đăng nhập User tương ứng liên kết với PersonId',
-        'Tự động quét bảng [DesignationVersionRecipients] theo email để kích hoạt quyền nhận di sản đang chờ',
-        'Người dùng không cần điền form đăng ký phức tạp mà vẫn được thừa hưởng đúng hồ sơ',
+        'Mô hình chuẩn hóa tách rời: PersonId đại diện cho con người thực tế, UserId đại diện cho phiên đăng nhập',
+        'Tự động phân vai trò mặc định (BENEFICIARY / OWNER) dựa trên ngữ cảnh lời mời di sản',
+        'Đảm bảo tuyệt đối không trùng lặp PersonId giữa các vai trò đối nghịch (ASSIGN-06)',
       ],
     },
     outboundData: {
-      status: 'SQL JIT Provisioning Success',
-      payload: `{
-  "isNewUser": true,
-  "provisioningAction": "JUST_IN_TIME_CREATED",
-  "personId": "44444444-4444-4444-4444-444444444444",
-  "roles": ["BENEFICIARY"]
-}`, 
-
+      status: 'User & Person Provisioned',
+      payload: `{\n  "personId": "44444444-4444-4444-4444-444444444444",\n  "userId": "user_89afbc12",\n  "isNewUser": true,\n  "role": "BENEFICIARY",\n  "databaseEngine": "Microsoft SQL Server 2022"\n}`,
     },
     storage: {
-      r2: 'Không ghi nhận',
-      db: 'SQL Server 2022: Ghi thành công 2 bản ghi vào [dbo].[Persons] và [dbo].[Users]',
-      client: 'Nhận thông báo tài khoản mới được tự động liên kết',
+      r2: 'Không đổi',
+      db: 'SQL Server 2022: Ghi nhận 2 bản ghi mới trong [dbo].[Persons] và [dbo].[Users]',
+      client: 'Nhận tín hiệu hoàn tất onboarding',
     },
     exception: {
-      code: 'E0.4 · Duplicate Email Conflict',
-      trigger: 'Email đã tồn tại nhưng dưới hình thức đăng nhập khác (Form vs Google)',
-      rollbackTo: 'Gợi ý liên kết tài khoản',
-      action: 'Yêu cầu người dùng xác nhận liên kết tài khoản Google với tài khoản mật khẩu hiện có',
+      code: 'E0.4 · Duplicate Email / Concurrent Registration',
+      trigger: 'Hai yêu cầu tạo tài khoản cùng email xảy ra đồng thời',
+      rollbackTo: 'Thực thi ROLLBACK TRANSACTION',
+      action: 'Chỉ giữ bản ghi đầu tiên, yêu cầu thứ 2 chuyển sang trạng thái User hiện hữu',
     },
     relatedTab: 'oidc',
   },
@@ -343,16 +288,7 @@ COMMIT TRANSACTION;',
     icon: <Shield className="w-5 h-5 text-emerald-700" />,
     inboundData: {
       protocol: 'Internal JWT Token Factory (.NET 8)',
-      payload: 'Claims nhúng vào JWT:
-{
-  "sub": "user_89afbc12",
-  "person_id": "44444444-4444-4444-4444-444444444444",
-  "email": "duyen.beneficiary@gmail.com",
-  "roles": ["BENEFICIARY"],
-  "threePersonRuleCompliant": true,
-  "iat": 1790615800,
-  "exp": 1790702200
-}',
+      payload: `Claims nhúng vào JWT:\n{\n  "sub": "user_89afbc12",\n  "person_id": "44444444-4444-4444-4444-444444444444",\n  "email": "duyen.beneficiary@gmail.com",\n  "roles": ["BENEFICIARY"],\n  "threePersonRuleCompliant": true,\n  "iat": 1790615800,\n  "exp": 1790702200\n}`,
     },
     cryptoAction: {
       title: 'Ký phát hành phiên làm việc mật mã theo chuẩn Zero-Trust',
@@ -364,145 +300,113 @@ COMMIT TRANSACTION;',
     },
     outboundData: {
       status: 'HTTP 200 Login OK',
-      payload: `{
-  "success": true,
-  "authMethod": "GOOGLE_OIDC_JIT",
-  "accessToken": "jwt_oidc_44444444_a1b2c3...",
-  "persona": {
-    "role": "BENEFICIARY",
-    "name": "Phạm Thị Duyên",
-    "email": "duyen.beneficiary@gmail.com"
-  }
-}`, 
-
+      payload: `{\n  "success": true,\n  "authMethod": "GOOGLE_OIDC_JIT",\n  "accessToken": "jwt_oidc_44444444_a1b2c3...",\n  "persona": {\n    "role": "BENEFICIARY",\n    "name": "Phạm Thị Duyên",\n    "email": "duyen.beneficiary@gmail.com"\n  }\n}`,
     },
     storage: {
       r2: 'Không ghi nhận',
-      db: 'SQL Server 2022: INSERT INTO [dbo].[AuditEvents] (Action='AUTH_LOGIN_SUCCESS')',
+      db: "SQL Server 2022: INSERT INTO [dbo].[AuditEvents] (Action='AUTH_LOGIN_SUCCESS')",
       client: 'Lưu Access Token trong RAM (Memory Context), sẵn sàng gọi API',
     },
     exception: {
       code: 'E0.5 · Token Signing Key Error',
-      trigger: 'Lỗi cấu hình JWT Secret Key tại appsettings.json của máy chủ',
-      rollbackTo: 'Báo lỗi hệ thống 500',
-      action: 'Ghi log lỗi máy chủ, từ chối cấp token và thông báo quản trị viên cấu hình lại',
+      trigger: 'Mất khóa bí mật JWT_SECRET trong cấu hình máy chủ',
+      rollbackTo: 'Bước 03 (Máy chủ báo lỗi cấu hình nội bộ)',
+      action: 'Trả về HTTP 500, cảnh báo quản trị viên hệ thống',
     },
     relatedTab: 'oidc',
   },
   {
     id: 6,
     stepNum: '06',
-    title: 'Kích Hoạt Ngữ Cảnh Persona & Kiểm Tra Tam Quyền Phân Lập',
-    subtitle: 'Client React cập nhật Context; bảo đảm tuyệt đối Quy tắc 3 người độc lập (ASSIGN-06)',
+    title: 'Phân Vai & Tải Giao Diện Theo Đúng Quyền Hạn',
+    subtitle: 'React 19 Context cập nhật Dashboard theo vai trò (Owner / Beneficiary / Executor / Verifier)',
     lane: 'client',
-    laneLabel: 'Client (React 19 Dashboard Context)',
-    icon: <UserCheck className="w-5 h-5 text-amber-500" />,
+    laneLabel: 'Trình Duyệt Client (React 19 Frontend)',
+    icon: <UserCheck className="w-5 h-5 text-indigo-600" />,
     inboundData: {
-      protocol: 'React AuthContext.setSession()',
-      payload: `{
-  "activeRole": "BENEFICIARY",
-  "personId": "44444444-4444-4444-4444-444444444444",
-  "isThreePersonSeparated": true
-}`, 
-
+      protocol: 'GET /api/v1/auth/me (Authorization: Bearer jwt...)',
+      payload: `{\n  "activeRole": "BENEFICIARY",\n  "accessibleVaults": ["vault_b48f9021"],\n  "permissions": ["VIEW_RELEASED_ASSETS", "CONFIRM_RECEIPT", "VOTE_CO_OWNED_VAULT"]\n}`,
     },
     cryptoAction: {
-      title: 'Thiết lập môi trường làm việc đặc thù theo vai trò',
+      title: 'Thiết lập tường lửa phân quyền Client-Side RBAC',
       details: [
-        'Quy tắc 3 người độc lập (ASSIGN-06): Đảm bảo Owner != Executor != Verifier',
-        'Giao diện tự động mở đúng Dashboard: Beneficiary xem danh sách kho nhận bàn giao',
-        'Tuyệt đối không lưu Access Token vào LocalStorage công khai để chống tấn công XSS',
-        'Hệ thống sẵn sàng chuyển tiếp sang Luồng 02 (Lập di sản & Mã hóa phong bì) nếu là Chủ kho',
+        'Khởi tạo AuthContext an toàn, tự động ẩn các tính năng không thuộc vai trò',
+        'Người thụ hưởng (Beneficiary): Chỉ thấy tài sản được bàn giao, không thể sửa kế hoạch',
+        'Người thực thi (Executor): Được giao diện nộp đơn chứng tử & giải mã',
+        'Chủ tài sản (Owner): Toàn quyền thiết lập kế hoạch và gán người nhận',
       ],
     },
     outboundData: {
-      status: 'Persona Activated & Ready',
-      payload: `{
-  "dashboard": "BENEFICIARY_VAULT_LIST",
-  "permissions": ["READ_HANDOVER_MANIFEST", "DECIDE_ACCEPT_REJECT"],
-  "threePersonRule": "VERIFIED_COMPLIANT"
-}`, 
-
+      status: 'App Loaded & Synchronized',
+      payload: `{\n  "clientState": "AUTHENTICATED",\n  "dashboardLayout": "BENEFICIARY_VIEW",\n  "roleSwitcherReady": true\n}`,
     },
     storage: {
       r2: 'Không đổi',
-      db: 'SQL Server 2022: Lưu session token hash (nếu dùng cơ chế Refresh Token)',
-      client: 'Lưu trữ session an toàn trong React State Context',
+      db: 'SQL Server 2022: Đồng bộ phiên làm việc',
+      client: 'Cập nhật React State & kích hoạt quyền truy cập tương ứng',
     },
     exception: {
-      code: 'E0.6 · Role Conflict (ASSIGN-06 Violation)',
-      trigger: 'Phát hiện cùng 1 PersonId đồng thời là Owner và Executor trong cùng hồ sơ',
-      rollbackTo: 'Khóa tính năng phân công',
-      action: 'Hệ thống chặn hành động phân công, yêu cầu chọn cá nhân độc lập khác',
+      code: 'E0.6 · Role Tampering Detected',
+      trigger: 'Client cố tình sửa role trong bộ nhớ RAM trình duyệt',
+      rollbackTo: 'Máy chủ tự động chặn với HTTP 403 Forbidden',
+      action: 'Backend luôn thẩm định chữ ký JWT trên mỗi API, không tin cậy Client',
     },
     relatedTab: 'oidc',
   },
 ];
 
 // ==========================================
-// LUỒNG 02: THIẾT LẬP & MÃ HÓA KHO DI SẢN (EXISTING)
+// LUỒNG 02: THIẾT LẬP, MÃ HÓA & KÍCH HOẠT KHO
 // ==========================================
 const FLOW_02_STEPS: WorkflowStep[] = [
   {
     id: 1,
     stepNum: '01',
-    title: 'Chọn Gói & Thanh Toán VietQR',
-    subtitle: 'Khởi tạo đơn hàng qua cổng SePay NAPAS247',
+    title: 'Khởi Tạo Kế Hoạch & Niêm Phong Gói Cước',
+    subtitle: 'Chủ tài sản chọn gói cước và hoàn tất thanh toán SePay QR',
     lane: 'owner',
     laneLabel: 'Chủ Tài Sản (Owner)',
-    icon: <CreditCard className="w-5 h-5 text-amber-600" />,
+    icon: <Shield className="w-5 h-5 text-amber-600" />,
     inboundData: {
-      protocol: 'POST /api/v1/payment/orders',
-      payload: `{
-  "planTier": "LEGACY_XS",
-  "amount": 199000,
-  "personId": "11111111-1111-1111-1111-111111111111",
-  "orderCode": "LV128492"
-}`, 
-
+      protocol: 'POST /api/v1/plans (Bearer JWT)',
+      payload: `{\n  "ownerId": "11111111-1111-1111-1111-111111111111",\n  "tier": "STANDARD_ESTATE",\n  "priceVnd": 499000,\n  "maxAssets": 20\n}`,
     },
     cryptoAction: {
-      title: 'Xác thực thanh toán ngân hàng tự động',
+      title: 'Niêm phong đơn hàng thanh toán & sinh mã QR SePay',
       details: [
-        'Client render mã VietQR chuẩn NAPAS247 kèm mã đơn hàng duy nhất',
-        'Cổng thanh toán SePay lắng nghe biến động số dư tài khoản ngân hàng',
-        'Webhook gửi HTTP POST có chữ ký bí mật về máy chủ .NET 8',
+        'Tạo mã thanh toán duy nhất SePay với nội dung LV_ORDER_98AF',
+        'Khai báo Master Config cho kho tài sản trong CSDL SQL Server 2022',
+        'Kích hoạt trạng thái chờ xác nhận chuyển khoản ngân hàng',
       ],
     },
     outboundData: {
-      status: 'HTTP 200 Webhook Confirmed',
-      payload: `{
-  "paymentStatus": "PAID",
-  "transactionId": "FT26271982736",
-  "planActive": true
-}`, 
-
+      status: 'HTTP 201 Created (Pending Payment)',
+      payload: `{\n  "orderId": "ord_98afbd90",\n  "qrUrl": "https://qr.sepay.vn/img?acc=1028...&amount=499000&des=LV_ORDER_98AF",\n  "status": "WAITING_FOR_PAYMENT"\n}`,
     },
     storage: {
-      r2: 'Không lưu dữ liệu tài chính trên Object Storage',
-      db: 'SQL Server 2022: Lưu transaction_id, order_code, trạng thái PAID vào bảng [dbo].[PaymentOrders]',
-      client: 'Cập nhật Context sang trạng thái gói trả phí',
+      r2: 'Chưa có hoạt động lưu trữ',
+      db: 'SQL Server 2022: INSERT INTO [dbo].[PaymentOrders] (Status=\'PENDING\')',
+      client: 'Hiển thị mã QR động để chủ tài sản quét mã thanh toán',
     },
     exception: {
-      code: 'E1 · Unpaid Order',
-      trigger: 'Người dùng đóng modal hoặc đơn hàng quá hạn 15 phút chưa nhận được tiền',
-      rollbackTo: 'Bước 01 (Giữ nguyên trang chọn gói)',
-      action: 'Tự động mở lại modal VietQR hoặc gia hạn thanh toán an toàn',
+      code: 'E1 · Payment Timeout (PAY-02)',
+      trigger: 'Hết 15 phút chưa nhận được webhook giao dịch từ SePay',
+      rollbackTo: 'Bước 01 (Hủy đơn hàng quá hạn)',
+      action: 'Cập nhật đơn hàng thành EXPIRED, giải phóng tài nguyên kế hoạch',
     },
     relatedTab: 'sepay',
   },
   {
     id: 2,
     stepNum: '02',
-    title: 'Băm Checksum SHA-256 Trong RAM',
+    title: 'Tiền Xử Lý & Tính Checksum Tệp Tin Tại Client',
     subtitle: 'Kiểm tra tệp tin di chúc/khóa private <= 20MB tại trình duyệt',
     lane: 'client',
     laneLabel: 'Client (React 19 Sandbox)',
     icon: <FileCode className="w-5 h-5 text-emerald-600" />,
     inboundData: {
       protocol: 'In-Memory File Buffer (Web Crypto API)',
-      payload: 'File: "Will_and_Estate_Passphrases.pdf"
-MIME: application/pdf | Size: 1.48 MB (1,552,896 bytes)',
+      payload: `File: "Will_and_Estate_Passphrases.pdf"\nMIME: application/pdf | Size: 1.48 MB (1,552,896 bytes)`,
     },
     cryptoAction: {
       title: 'Băm toàn vẹn SHA-256 trong bộ nhớ tạm',
@@ -515,11 +419,7 @@ MIME: application/pdf | Size: 1.48 MB (1,552,896 bytes)',
     },
     outboundData: {
       status: 'Client SHA-256 Calculated',
-      payload: `{
-  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "validation": "PASS"
-}`, 
-
+      payload: `{\n  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",\n  "validation": "PASS"\n}`,
     },
     storage: {
       r2: 'Chưa đẩy lên đám mây',
@@ -557,13 +457,7 @@ MIME: application/pdf | Size: 1.48 MB (1,552,896 bytes)',
     },
     outboundData: {
       status: 'HTTP 200 Encrypted OK',
-      payload: `{
-  "assetId": "ast_98afbd90",
-  "storageKey": "vaults/ast_98afbd90.enc",
-  "nonceBase64": "9xF1/2a...",
-  "tagBase64": "vB83c..."
-}`, 
-
+      payload: `{\n  "assetId": "ast_98afbd90",\n  "storageKey": "vaults/ast_98afbd90.enc",\n  "nonceBase64": "9xF1/2a...",\n  "tagBase64": "vB83c..."\n}`,
     },
     storage: {
       r2: 'Tạo luồng chuẩn bị đẩy file bản mã .enc',
@@ -588,9 +482,7 @@ MIME: application/pdf | Size: 1.48 MB (1,552,896 bytes)',
     icon: <Cloud className="w-5 h-5 text-cyan-600" />,
     inboundData: {
       protocol: 'AWS S3 SDK: PutObjectCommand',
-      payload: 'Bucket: "legacyvault-prototype-private"
-Key: "vaults/ast_98afbd90.enc"
-Content: [AES-256-GCM Ciphertext Binary]',
+      payload: `Bucket: "legacyvault-prototype-private"\nKey: "vaults/ast_98afbd90.enc"\nContent: [AES-256-GCM Ciphertext Binary]`,
     },
     cryptoAction: {
       title: 'Lưu trữ đám mây chuẩn Zero-Knowledge',
@@ -602,12 +494,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     },
     outboundData: {
       status: 'PutObject S3 200 OK',
-      payload: `{
-  "eTag": "\"9b105d4f7c4db35e0b0f60defb9fb3ab\"",
-  "uploadedBytes": 1552912,
-  "status": "STORED"
-}`, 
-
+      payload: `{\n  "eTag": "\\"9b105d4f7c4db35e0b0f60defb9fb3ab\\"",\n  "uploadedBytes": 1552912,\n  "status": "STORED"\n}`,
     },
     storage: {
       r2: 'LƯU TRỮ VĨNH VIỄN tệp mã hóa .enc',
@@ -618,28 +505,21 @@ Content: [AES-256-GCM Ciphertext Binary]',
       code: 'E3.1 · Cloudflare R2 Put Error',
       trigger: 'Mất kết nối mạng S3 hoặc Access Key R2 hết hạn',
       rollbackTo: 'Bước 03 (Thử lại lệnh PutObject 3 lần)',
-      action: 'Retry tự động với exponential backoff, nếu thất bại hủy giao dịch',
+      action: 'Nếu thất bại sau 3 lần retry, đánh dấu tài sản FAILED_UPLOAD',
     },
     relatedTab: 'r2',
   },
   {
     id: 5,
     stepNum: '05',
-    title: 'Tự Động Gom Kho Bàn Giao (AC-01)',
-    subtitle: 'Chuẩn hóa tập PersonId và gom nhóm kho bàn giao duy nhất',
+    title: 'Gom Kho Tự Động Theo Người Thụ Hưởng (SETUP-05, AC-01)',
+    subtitle: 'Áp dụng thuật toán gom nhóm tài sản theo tập người nhận duy nhất',
     lane: 'server',
     laneLabel: 'Máy Chủ (.NET 8 Rules Engine)',
     icon: <Layers className="w-5 h-5 text-emerald-600" />,
     inboundData: {
       protocol: 'POST /api/v1/plans/{id}/consolidate-vaults',
-      payload: `{
-  "designations": [
-    {"assetId": "A", "recipients": ["P1"]},
-    {"assetId": "C", "recipients": ["P1"]},
-    {"assetId": "B", "recipients": ["P1", "P2"]}
-  ]
-}`, 
-
+      payload: `{\n  "designations": [\n    {"assetId": "A", "recipients": ["P1"]},\n    {"assetId": "C", "recipients": ["P1"]},\n    {"assetId": "B", "recipients": ["P1", "P2"]}\n  ]\n}`,
     },
     cryptoAction: {
       title: 'Thuật toán tự gom kho theo tập người nhận duy nhất (SETUP-05, AC-01)',
@@ -652,12 +532,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     },
     outboundData: {
       status: 'Vaults Consolidated (AC-01 Validated)',
-      payload: `{
-  "vaultCount": 2,
-  "vault1": {"mode": "SINGLE_RECIPIENT", "assets": ["A", "C"], "recipients": ["P1"]},
-  "vault2": {"mode": "CO_OWNED", "assets": ["B"], "recipients": ["P1", "P2"]}
-}`, 
-
+      payload: `{\n  "vaultCount": 2,\n  "vault1": {"mode": "SINGLE_RECIPIENT", "assets": ["A", "C"], "recipients": ["P1"]},\n  "vault2": {"mode": "CO_OWNED", "assets": ["B"], "recipients": ["P1", "P2"]}\n}`,
     },
     storage: {
       r2: 'Không đổi',
@@ -682,11 +557,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     icon: <Users className="w-5 h-5 text-indigo-600" />,
     inboundData: {
       protocol: 'POST /api/v1/plans/{id}/executors/invite',
-      payload: `{
-  "executorEmail": "binh.executor@legacyvault.vn",
-  "verifierEmail": "cuong.verifier@legacyvault.vn"
-}`, 
-
+      payload: `{\n  "executorEmail": "binh.executor@legacyvault.vn",\n  "verifierEmail": "cuong.verifier@legacyvault.vn"\n}`,
     },
     cryptoAction: {
       title: 'Kiểm soát xung đột lợi ích theo PersonId (ASSIGN-06)',
@@ -698,12 +569,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     },
     outboundData: {
       status: 'HTTP 200 Assignment Recorded',
-      payload: `{
-  "isThreePersonSeparated": true,
-  "executorAssigned": true,
-  "auditStatus": "COMPLIANT"
-}`, 
-
+      payload: `{\n  "isThreePersonSeparated": true,\n  "executorAssigned": true,\n  "auditStatus": "COMPLIANT"\n}`,
     },
     storage: {
       r2: 'Không đổi',
@@ -740,11 +606,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     },
     outboundData: {
       status: 'SMTP 250 OK: Message Dispatched',
-      payload: `{
-  "messageId": "msg_9f2bc481@legacyvault.vn",
-  "status": "DELIVERED"
-}`, 
-
+      payload: `{\n  "messageId": "msg_9f2bc481@legacyvault.vn",\n  "status": "DELIVERED"\n}`,
     },
     storage: {
       r2: 'Không đổi',
@@ -769,12 +631,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     icon: <Clock className="w-5 h-5 text-rose-600" />,
     inboundData: {
       protocol: 'POST /api/v1/plans/{id}/activate',
-      payload: `{
-  "planId": "plan_98afbd90",
-  "heartbeatIntervalDays": 30,
-  "rescueTimelockDays": 7
-}`, 
-
+      payload: `{\n  "planId": "plan_98afbd90",\n  "heartbeatIntervalDays": 30,\n  "rescueTimelockDays": 7\n}`,
     },
     cryptoAction: {
       title: 'Thẩm định đa điều kiện kích hoạt Kế hoạch di sản (SETUP-01)',
@@ -786,12 +643,7 @@ Content: [AES-256-GCM Ciphertext Binary]',
     },
     outboundData: {
       status: 'Plan Activated - DMS LIVE',
-      payload: `{
-  "planStatus": "ACTIVE",
-  "nextHeartbeatDue": "2026-10-28T22:30:00Z",
-  "dmsState": "HEALTHY"
-}`, 
-
+      payload: `{\n  "planStatus": "ACTIVE",\n  "nextHeartbeatDue": "2026-10-28T22:30:00Z",\n  "dmsState": "HEALTHY"\n}`,
     },
     storage: {
       r2: 'Bảo lưu file .enc trong trạng thái sẵn sàng bàn giao',
@@ -837,7 +689,7 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
   };
 
   // 1-Click Persona Switcher
-  const handleSelectPersona = async (persona: typeof DEMO_PERSONAS[0]) => {
+  const handleSelectPersona = async (persona: (typeof DEMO_PERSONAS)[0]) => {
     setIsSwitchingPersona(true);
     setPersonaMessage(null);
     setSelectedPersona(persona);
@@ -1015,7 +867,12 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
               <span>{isPlaying ? 'Tạm Dừng' : 'Tự Động Chạy'}</span>
             </HeritageButton>
 
-            <HeritageButton variant="outline" onClick={handlePrev} disabled={activeStepIndex === 0} className="px-3 py-1.5 text-xs">
+            <HeritageButton
+              variant="outline"
+              onClick={handlePrev}
+              disabled={activeStepIndex === 0}
+              className="px-3 py-1.5 text-xs"
+            >
               <ChevronLeft className="w-4 h-4" />
               <span>Bước Trước</span>
             </HeritageButton>

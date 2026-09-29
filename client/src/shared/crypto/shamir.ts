@@ -26,16 +26,16 @@ const LOG = new Uint8Array(256);
   LOG[0] = 0;
 })();
 
-function gfAdd(a: number, b: number): number {
+export function gfAdd(a: number, b: number): number {
   return a ^ b;
 }
 
-function gfMul(a: number, b: number): number {
+export function gfMul(a: number, b: number): number {
   if (a === 0 || b === 0) return 0;
   return EXP[LOG[a] + LOG[b]];
 }
 
-function gfDiv(a: number, b: number): number {
+export function gfDiv(a: number, b: number): number {
   if (b === 0) throw new Error("Division by zero in GF(256)");
   if (a === 0) return 0;
   return EXP[(LOG[a] - LOG[b] + 255) % 255];
@@ -124,3 +124,82 @@ export function combineShares(shares: Share[]): string {
   const decoder = new TextDecoder();
   return decoder.decode(recoveredBytes);
 }
+
+export interface LagrangeTraceRow {
+  index: number;
+  expectedChar: string;
+  expectedByte: number;
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  term1: number;
+  term2: number;
+  reconstructedByte: number;
+  reconstructedChar: string;
+  isMatch: boolean;
+}
+
+export interface LagrangeTrace {
+  x1: number;
+  x2: number;
+  l1: number; // trọng số Mảnh 1 trong GF(256)
+  l2: number; // trọng số Mảnh 2 trong GF(256)
+  denominator: number;
+  rows: LagrangeTraceRow[];
+}
+
+/**
+ * Trích xuất từng bước tính toán nội suy Lagrange chi tiết phục vụ hiển thị Client UI
+ */
+export function getLagrangeTrace(shareA: Share, shareB: Share, originalSecret?: string): LagrangeTrace {
+  const x1 = shareA.x;
+  const x2 = shareB.x;
+  const denom = gfAdd(x1, x2);
+  const l1 = gfDiv(x2, denom);
+  const l2 = gfDiv(x1, denom);
+
+  const byteLen = Math.min(shareA.dataHex.length, shareB.dataHex.length) / 2;
+  const sampleLimit = Math.min(byteLen, 5); // Hiển thị 5 bytes đầu
+  const encoder = new TextEncoder();
+  const origBytes = originalSecret ? encoder.encode(originalSecret) : null;
+
+  const rows: LagrangeTraceRow[] = [];
+  for (let i = 0; i < sampleLimit; i++) {
+    const y1 = parseInt(shareA.dataHex.slice(i * 2, i * 2 + 2), 16);
+    const y2 = parseInt(shareB.dataHex.slice(i * 2, i * 2 + 2), 16);
+    const term1 = gfMul(y1, l1);
+    const term2 = gfMul(y2, l2);
+    const recByte = gfAdd(term1, term2);
+    const recChar = recByte >= 32 && recByte <= 126 ? String.fromCharCode(recByte) : `\\x${recByte.toString(16).padStart(2, '0')}`;
+    const expByte = origBytes && i < origBytes.length ? origBytes[i] : recByte;
+    const expChar = origBytes && i < origBytes.length
+      ? (expByte >= 32 && expByte <= 126 ? String.fromCharCode(expByte) : `\\x${expByte.toString(16).padStart(2, '0')}`)
+      : recChar;
+
+    rows.push({
+      index: i,
+      expectedChar: expChar,
+      expectedByte: expByte,
+      x1,
+      y1,
+      x2,
+      y2,
+      term1,
+      term2,
+      reconstructedByte: recByte,
+      reconstructedChar: recChar,
+      isMatch: recByte === expByte,
+    });
+  }
+
+  return {
+    x1,
+    x2,
+    l1,
+    l2,
+    denominator: denom,
+    rows,
+  };
+}
+

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { splitSecret, combineShares } from '../shamir';
+import { splitSecret, combineShares, getLagrangeTrace } from '../shamir';
 
 describe('Shamir Secret Sharing (SSS) GF(256) Unit Tests', () => {
   it('should split secret into 3 shares with threshold 2', () => {
@@ -34,4 +34,20 @@ describe('Shamir Secret Sharing (SSS) GF(256) Unit Tests', () => {
 
     expect(() => combineShares([shares[0]])).toThrowError();
   });
+
+  it('should compute exact Lagrange weights and match rows in getLagrangeTrace', () => {
+    const secret = 'Vault2026';
+    const shares = splitSecret(secret, 3, 2);
+
+    // Test with Share 1 and Share 2
+    const trace = getLagrangeTrace(shares[0], shares[1], secret);
+    expect(trace.x1).toBe(1);
+    expect(trace.x2).toBe(2);
+    expect(trace.denominator).toBe(3); // 1 ^ 2 = 3
+    expect(trace.l1).toBe(245); // 2 / 3 in GF(256) (245 * 3 = 2)
+    expect(trace.l2).toBe(244); // 1 / 3 in GF(256) (244 * 3 = 1)
+    expect(trace.rows.length).toBeGreaterThan(0);
+    expect(trace.rows.every((r) => r.isMatch)).toBe(true);
+  });
 });
+

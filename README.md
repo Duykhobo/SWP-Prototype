@@ -48,12 +48,16 @@ SWP-Prototype/
 │   ├── LegacyVault.Prototype.Domain/
 │   ├── LegacyVault.Prototype.Infrastructure/
 │   └── LegacyVault.Prototype.WebApi/    # Controllers, Middlewares, Program.cs
-├── docs/                                # Tài liệu kỹ thuật, pháp lý & sơ đồ kiến trúc
-│   ├── FLOW_02_SYSTEM_MERGED.xml        # Sơ đồ Swimlane Draw.io chuẩn hóa (FE+BE = System)
-│   ├── MAIN_FLOWS_DETAILED_SPECIFICATION.md # Đặc tả chi tiết 8 luồng nghiệp vụ
-│   ├── LEGAL_FRAMEWORK_AND_CIVIL_COMPLIANCE.md # Căn cứ pháp luật Việt Nam
-│   └── ai_knowledge_base/               # 1.259 Điều luật trích xuất cho AI RAG
-└── run_prototype.bat                    # Script 1-click khởi động toàn bộ hệ thống
+├── docs/                                # Thư viện tài liệu kỹ thuật chuẩn hóa
+│   ├── 01_requirements/                # Yêu cầu phần mềm (SRS v3.11.0) & Căn cứ pháp lý
+│   ├── 02_architecture/                # Kiến trúc hệ thống, Mật mã phong bì & CSDL ERD
+│   ├── 03_api_and_integration/         # Hợp đồng API Contract & Hướng dẫn tích hợp
+│   ├── 04_business_flows/              # Đặc tả 5 luồng nghiệp vụ & Sơ đồ Swimlane XML
+│   ├── 05_design_ui/                   # Design System & UI Kit HTML
+│   ├── 06_diagrams_interactive/        # Sơ đồ tương tác độc lập (Archify)
+│   ├── ai_knowledge_base/              # 1.259 Điều luật trích xuất cho AI RAG
+│   └── README.md                       # Bản đồ điều hướng trung tâm tài liệu
+└── run_prototype.bat                   # Script 1-click khởi động toàn bộ hệ thống
 ```
 
 ---

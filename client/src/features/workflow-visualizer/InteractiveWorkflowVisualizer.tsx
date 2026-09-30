@@ -30,7 +30,9 @@ import {
   LogIn,
   Users,
   Layers,
-  Check
+  Check,
+  Unlock,
+  FileCheck
 } from 'lucide-react';
 import { HeritageCard } from '@/shared/ui/HeritageCard';
 import { HeritageButton } from '@/shared/ui/HeritageButton';
@@ -424,7 +426,7 @@ const FLOW_02_STEPS: WorkflowStep[] = [
     icon: <FileCode className="w-5 h-5 text-emerald-600" />,
     inboundData: {
       protocol: 'In-Memory File Buffer (Web Crypto API)',
-      payload: `File: "Will_and_Estate_Passphrases.pdf"\nMIME: application/pdf | Size: 1.48 MB (1,552,896 bytes)`,
+      payload: `File: "di_chuc_gia_dinh_2026.pdf"\nMIME: application/pdf | Size: 14.8 MiB (15,518,920 bytes)`,
     },
     cryptoAction: {
       title: 'Băm toàn vẹn SHA-256 trong bộ nhớ tạm',
@@ -437,7 +439,7 @@ const FLOW_02_STEPS: WorkflowStep[] = [
     },
     outboundData: {
       status: 'Client SHA-256 Calculated',
-      payload: `{\n  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",\n  "validation": "PASS"\n}`,
+      payload: `{\n  "fileName": "di_chuc_gia_dinh_2026.pdf",\n  "sizeBytes": 15518920,\n  "sha256": "8f4b23a9c7d1e5f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5",\n  "validation": "PASS"\n}`,
     },
     storage: {
       r2: 'Chưa đẩy lên đám mây',
@@ -455,7 +457,7 @@ const FLOW_02_STEPS: WorkflowStep[] = [
   {
     id: 3,
     stepNum: '03',
-    plainMechanism: 'Mã hóa phong bì (Envelope Encryption): Máy chủ sinh ngẫu nhiên khóa DEK 256-bit để mã hóa file bằng AES-256-GCM. Sau đó, DEK được niêm phong bằng Master Key (KEK) và bản rõ bị xóa khỏi RAM ngay.',
+    plainMechanism: 'Mã hóa phong bì lai (Hybrid Envelope Encryption): Máy chủ sinh ngẫu nhiên khóa DEK 256-bit để mã hóa file bằng AES-256-GCM. Sau đó, DEK được niêm phong bằng Master Key KEK (hoặc phân mảnh Shamir) tạo thành gói Wrapped DEK, xóa sạch bản rõ và khóa trần khỏi RAM ngay lập tức.',
     dataFlowPath: 'Trình Duyệt ➔ Backend Engine (AES-256-GCM) ➔ Tạo Ciphertext + Gói Wrapped DEK',
     title: 'Mã Hóa Phong Bì AES-256-GCM',
     subtitle: 'Sinh khóa DEK ngẫu nhiên và mã hóa xác thực toàn vẹn',
@@ -463,26 +465,35 @@ const FLOW_02_STEPS: WorkflowStep[] = [
     laneLabel: 'Máy Chủ (.NET 8 Engine)',
     icon: <Shield className="w-5 h-5 text-emerald-700" />,
     inboundData: {
-      protocol: 'POST /api/v1/storage/upload-envelope',
-      payload: 'Multipart: [File Stream] + Header: [X-Client-Checksum-Sha256]',
+      protocol: 'POST /api/v1/storage/upload-envelope (TLS 1.3)',
+      payload: `Headers:
+  Authorization: Bearer eyJhbGciOi...[JWT Token]
+  X-Client-Checksum-Sha256: 8f4b23a9c7d1e5f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5
+  Content-Type: multipart/form-data; boundary=----WebKitBoundary
+Multipart Body:
+  file: [Binary Stream: di_chuc_gia_dinh_2026.pdf, 14.8 MiB]
+  estatePlanId: "plan_98afbd90-1111-2222-3333-444455556666"
+  vaultId: "pv_11111111-2222-3333-4444-555566667777"
+  clientSha256: "8f4b23a9c7d1e5f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5"`,
     },
     cryptoAction: {
-      title: 'Mã hóa đối xứng AES-256-GCM + Khóa bọc KEK',
+      title: 'Mã hóa phong bì đối xứng AES-256-GCM + Khóa bọc KEK',
       details: [
-        'Sinh ngẫu nhiên khóa dữ liệu DEK 256-bit qua RandomNumberGenerator',
-        'Mã hóa toàn bộ nội dung file bằng AES-GCM với Nonce 96-bit và Tag 128-bit',
-        'DEK được bao bọc an toàn bằng Master KEK (hoặc phân mảnh Shamir)',
-        'Bản rõ tệp tin bị hủy ngay lập tức khỏi RAM máy chủ sau khi mã hóa xong',
+        'Sinh ngẫu nhiên khóa dữ liệu DEK 256-bit (32 bytes) qua RandomNumberGenerator CSPRNG',
+        'Khởi tạo Nonce (IV) ngẫu nhiên 96-bit (12 bytes) chống tấn công phát lại (Replay Attacks)',
+        'Mã hóa luồng dữ liệu file bằng AES-256-GCM, sinh đồng thời Authentication Tag 128-bit (16 bytes)',
+        'Bọc DEK bằng Master KEK qua AES-GCM tạo WrappedDataKey: [12B Nonce] + [16B Tag] + [32B Cipher DEK]',
+        'Zero-Memory: Hủy lập tức bản rõ tệp tin và DEK trần khỏi RAM máy chủ qua CryptographicOperations.ZeroMemory()',
       ],
     },
     outboundData: {
-      status: 'HTTP 200 Encrypted OK',
-      payload: `{\n  "assetId": "ast_98afbd90",\n  "storageKey": "vaults/ast_98afbd90.enc",\n  "nonceBase64": "9xF1/2a...",\n  "tagBase64": "vB83c..."\n}`,
+      status: 'HTTP 200 OK · Envelope Encrypted & Verified',
+      payload: `{\n  "success": true,\n  "assetId": "98afbd90-502a-4315-a459-bc39d73507d4",\n  "versionId": "ver_01k9d7a2-1111-2222-3333-444455556666",\n  "storageKey": "vaults/pv_11111111/assets/ast_98afbd90.enc",\n  "encryption": {\n    "algorithm": "AES-256-GCM",\n    "nonceHex": "9xF12aB3cD4e5f60",\n    "authTagHex": "vB83c7DeF9a0B1c2d3E4f5",\n    "wrappedDataKeyBase64": "TL01k9Xz9xF12aB3vB83c7DeF9a0B1c23d4e8a91bc7f02e5a6b7c8d9e0f1a2b3"\n  },\n  "integrity": {\n    "checksumSha256": "8f4b23a9c7d1e5f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5",\n    "checksumMatched": true,\n    "sizeBytes": 15518920\n  },\n  "zeroKnowledgeStatus": "ENFORCED",\n  "serverKeyRetention": "NONE (Plaintext DEK Wiped via ZeroMemory)"\n}`,
     },
     storage: {
-      r2: 'Tạo luồng chuẩn bị đẩy file bản mã .enc',
-      db: 'SQL Server 2022: Lưu Nonce, Auth Tag, Checksum SHA-256 vào bảng [dbo].[ContentVersions]',
-      client: 'Nhận xác nhận mã hóa an toàn',
+      r2: 'Tạo luồng đẩy tệp mã hóa .enc:\nr2://legacyvault-private/vaults/pv_11111111/assets/ast_98afbd90.enc\n(Dung lượng: 14.8 MiB • 15,518,920 Bytes, Egress 0 USD)',
+      db: `INSERT INTO [dbo].[ContentVersions] (\n  VersionId, AssetId, Nonce, AuthTag,\n  WrappedKeyBase64, ChecksumSha256, SizeBytes, StorageUri\n) VALUES (\n  'ver_01k9d7a2-1111-2222-3333-444455556666', '98afbd90-502a-4315-a459-bc39d73507d4',\n  0x9xF12aB3cD4e5f60, 0xvB83c7DeF9a0B1c2d3E4f5, 'TL01k9Xz9xF12aB3vB83c7DeF9a0B1c23d4e8a91bc7f02e5a6b7c8d9e0f1a2b3',\n  '8f4b23a9c7d1e5f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5', 15518920, 'r2://legacyvault-private/vaults/pv_11111111/assets/ast_98afbd90.enc'\n);`,
+      client: 'Nhận xác nhận mã hóa: Checksum SHA-256 Server tính toán khớp 100% với Client.',
     },
     exception: {
       code: 'E3 · Cryptographic Failure',
@@ -504,7 +515,7 @@ const FLOW_02_STEPS: WorkflowStep[] = [
     icon: <Cloud className="w-5 h-5 text-cyan-600" />,
     inboundData: {
       protocol: 'AWS S3 SDK: PutObjectCommand',
-      payload: `Bucket: "legacyvault-prototype-private"\nKey: "vaults/ast_98afbd90.enc"\nContent: [AES-256-GCM Ciphertext Binary]`,
+      payload: `Bucket: "legacyvault-private"\nKey: "vaults/pv_11111111/assets/ast_98afbd90.enc"\nContent: [AES-256-GCM Ciphertext Binary Stream: 15,518,920 Bytes]`,
     },
     cryptoAction: {
       title: 'Lưu trữ đám mây chuẩn Zero-Knowledge',
@@ -516,11 +527,11 @@ const FLOW_02_STEPS: WorkflowStep[] = [
     },
     outboundData: {
       status: 'PutObject S3 200 OK',
-      payload: `{\n  "eTag": "\\"9b105d4f7c4db35e0b0f60defb9fb3ab\\"",\n  "uploadedBytes": 1552912,\n  "status": "STORED"\n}`,
+      payload: `{\n  "eTag": "\\"9b105d4f7c4db35e0b0f60defb9fb3ab\\"",\n  "uploadedBytes": 15518920,\n  "storageUri": "r2://legacyvault-private/vaults/pv_11111111/assets/ast_98afbd90.enc",\n  "status": "STORED_R2_PRIVATE"\n}`,
     },
     storage: {
-      r2: 'LƯU TRỮ VĨNH VIỄN tệp mã hóa .enc',
-      db: 'SQL Server 2022: Cập nhật StorageUri = "r2://legacyvault-prototype-private/vaults/..." trong [dbo].[ContentVersions]',
+      r2: 'LƯU TRỮ VĨNH VIỄN tệp mã hóa .enc tại vaults/pv_11111111/assets/ast_98afbd90.enc',
+      db: 'SQL Server 2022: Cập nhật StorageUri = "r2://legacyvault-private/vaults/pv_11111111/assets/ast_98afbd90.enc" trong [dbo].[ContentVersions]',
       client: 'Nhận xác nhận mã hóa và lưu trữ thành công',
     },
     exception: {
@@ -690,6 +701,194 @@ const FLOW_02_STEPS: WorkflowStep[] = [
   },
 ];
 
+// ==========================================
+// LUỒNG 03: PHỤC HỒI KHÓA SHAMIR & MỞ KÉT DI SẢN
+// ==========================================
+const FLOW_03_STEPS: WorkflowStep[] = [
+  {
+    id: 1,
+    stepNum: '01',
+    plainMechanism: 'BƯỚC 1 - Ghép Khóa: Khi sự kiện mở két được kích hoạt (DMS quá hạn & Verifier phê duyệt), hệ thống lấy Mảnh 1 (Server) kết hợp cùng Mảnh 2 (Passphrase của Người dùng) hoặc Mảnh 3 (Người thụ hưởng/Tòa án). Áp dụng công thức nội suy đa thức Lagrange trên trường Galois GF(256) để tái lập Master Key KEK 256-bit trong RAM an toàn.',
+    dataFlowPath: 'Người Nhận / Server ➔ Nạp 2/3 Mảnh Shamir ➔ Tính toán Lagrange trên GF(256) ➔ Thu được Master Key KEK',
+    title: 'BƯỚC 1: Ghép Khóa Shamir (Lagrange Interpolation)',
+    subtitle: 'Nội suy đa thức Lagrange tái tạo Master Key KEK từ 2/3 mảnh phân tán',
+    lane: 'server',
+    laneLabel: 'Máy Chủ (.NET 8 Crypto Engine)',
+    icon: <Key className="w-5 h-5 text-amber-600" />,
+    inboundData: {
+      protocol: 'POST /api/v1/handover/reconstruct-master-key (TLS 1.3)',
+      payload: `Headers:
+  Authorization: Bearer eyJhbGci...[Beneficiary JWT]
+  X-Vault-Claim-Id: claim_77af0012
+Payload:
+  shares: [
+    {"x": 1, "shareHex": "a1b2c3d4e5f6...[32B Server Share]"},
+    {"x": 2, "shareHex": "f0e1d2c3b4a5...[32B User Share]"}
+  ]`,
+    },
+    cryptoAction: {
+      title: 'Nội suy đa thức Lagrange tái lập khóa bí mật P(0) trên GF(256)',
+      details: [
+        'Xác thực ngưỡng an toàn k=2 mảnh hợp lệ trên tổng số n=3 mảnh phân tán',
+        'Tính hệ số cơ sở Lagrange: L₁(0) = (-x₂)/(x₁ - x₂) và L₂(0) = (-x₁)/(x₂ - x₁) theo bảng nhân/nghịch đảo GF(256)',
+        'Tính tổng bí mật: P(0) = [y₁ · L₁(0)] ⊕ [y₂ · L₂(0)] độc lập song song trên từng byte của 32 bytes',
+        'Tái lập chính xác 100% Master Key KEK 256-bit nguyên bản trong vùng nhớ RAM cô lập',
+        'Tuân thủ Zero-Disk: Tuyệt đối không ghi Master Key ra ổ cứng, log hay CSDL (Ephemeral RAM-only)',
+      ],
+    },
+    outboundData: {
+      status: 'HTTP 200 Lagrange Interpolation Success',
+      payload: `{\n  "success": true,\n  "thresholdMet": true,\n  "sharesCombined": 2,\n  "masterKeyLengthBits": 256,\n  "memoryBuffer": "SECURED_EPHEMERAL_RAM",\n  "keyFingerprintSha256": "4b92afc781d0...[Verified]"\n}`,
+    },
+    storage: {
+      r2: 'Không đổi (Blob .enc lưu an toàn trên R2)',
+      db: "SQL Server 2022: Ghi vết [dbo].[AuditLogs] (Event='SHAMIR_COMBINE_SUCCESS', Actor='Beneficiary')",
+      client: 'Giao diện hiển thị: Khóa chủ KEK đã được giải mã thành công trong bộ nhớ tạm.',
+    },
+    exception: {
+      code: 'E_SHAMIR_INSUFFICIENT_SHARES',
+      trigger: 'Chỉ cung cấp 1 mảnh duy nhất (k=1 < 2) hoặc mảnh bị hỏng dữ liệu bit',
+      rollbackTo: 'Bước 01 (Yêu cầu nạp lại mảnh hoặc Passphrase dự phòng)',
+      action: 'Toán học Galois đảm bảo kẻ tấn công nhận chính xác 0-bit thông tin về Master Key',
+    },
+    relatedTab: 'shamir',
+  },
+  {
+    id: 2,
+    stepNum: '02',
+    plainMechanism: 'BƯỚC 2 - Mở Gói DEK: Master Key KEK vừa giải mã trong RAM được dùng để mở bọc gói WrappedDataKey (lấy từ cột [WrappedKeyBase64] trong bảng [ContentVersions]). Hệ thống tách Nonce 96-bit, Auth Tag 128-bit và Ciphertext để giải mã, lấy ra chìa DEK 256-bit trần của từng tài sản.',
+    dataFlowPath: 'CSDL SQL Server [ContentVersions] ➔ Nạp gói Wrapped DEK ➔ Giải bọc AES-GCM với KEK ➔ Thu được DEK trần',
+    title: 'BƯỚC 2: Mở Gói Khóa DEK (Unwrap Key Envelope)',
+    subtitle: 'Dùng Master KEK giải mã gói niêm phong để trích xuất chìa khóa dữ liệu DEK',
+    lane: 'server',
+    laneLabel: 'Máy Chủ (.NET 8 Engine)',
+    icon: <Unlock className="w-5 h-5 text-indigo-600" />,
+    inboundData: {
+      protocol: 'INTERNAL / CryptographicOperations.UnwrapKey()',
+      payload: `MasterKey: [32-byte KEK in Ephemeral RAM]
+WrappedKey (60 bytes from [dbo].[ContentVersions]):
+  - Nonce (IV): 0x9xF1/2aB3cD4e5f6 [12 bytes]
+  - Auth Tag: 0xvB83c7DeF9a0B1c2d3E4f5== [16 bytes]
+  - Encrypted DEK: 0x3d4e8a... [32 bytes]`,
+    },
+    cryptoAction: {
+      title: 'Bóc tách phong bì mật mã và kiểm tra tính toàn vẹn 128-bit của gói khóa',
+      details: [
+        'Trích xuất 12B Nonce, 16B Auth Tag và 32B Ciphertext từ gói WrappedDataKey',
+        'Khởi tạo AesGcm(MasterKey) và thực thi hàm Decrypt(nonce, ciphertext, tag, plaintextDEK)',
+        'Kiểm tra tính hợp lệ của Auth Tag: Nếu sai khác dù chỉ 1 bit, ném ngoại lệ CryptographicException lập tức',
+        'Thu được khóa dữ liệu đối xứng DEK 256-bit (32 bytes) nguyên bản dùng để giải mã file',
+        'Xóa ngay Master Key khỏi RAM nếu không còn tệp nào khác trong phiên mở két',
+      ],
+    },
+    outboundData: {
+      status: 'Key Unwrapped OK · Tag Verified 128-bit',
+      payload: `{\n  "unwrapped": true,\n  "assetId": "ast_98afbd90",\n  "dekKeyLength": 32,\n  "algorithm": "AES-256-GCM",\n  "authTagMatched": true,\n  "dekReadyForCiphertext": true\n}`,
+    },
+    storage: {
+      r2: 'Không đổi (Chuẩn bị kéo Ciphertext ở Bước 03)',
+      db: 'SQL Server 2022: Đọc [dbo].[ContentVersions] lấy StorageUri, Nonce, AuthTag, Checksum',
+      client: 'Sẵn sàng nhận DEK phiên làm việc an toàn hoặc luồng stream giải mã',
+    },
+    exception: {
+      code: 'E_DEK_UNWRAP_TAG_MISMATCH',
+      trigger: 'Gói Wrapped DEK bị sửa đổi trái phép trên CSDL hoặc Master Key giải ra bị sai',
+      rollbackTo: 'Bước 01 (Kiểm tra lại tính hợp lệ của các mảnh khóa Shamir đầu vào)',
+      action: 'Hủy lập tức khóa DEK hỏng, ghi log cảnh báo tấn công giả mạo vào Audit Trail',
+    },
+    relatedTab: 'envelope',
+  },
+  {
+    id: 3,
+    stepNum: '03',
+    plainMechanism: 'BƯỚC 3 - Tải Tệp R2: Trình duyệt của Người thụ hưởng phát lệnh S3 GetObjectCommand để tải khối byte bản mã (.enc) từ Cloudflare R2 Private Bucket về máy tính qua kết nối TLS 1.3 bảo mật. Toàn bộ quá trình tải về được hưởng chính sách 0 USD phí băng thông (Free Egress).',
+    dataFlowPath: 'Cloudflare R2 Private Bucket ➔ Dòng byte Ciphertext (.enc) ➔ Kéo về RAM Client qua TLS 1.3',
+    title: 'BƯỚC 3: Tải Tệp Bản Mã Từ Cloudflare R2',
+    subtitle: 'Kéo khối byte bản mã (.enc) an toàn với chi phí Egress $0',
+    lane: 'external',
+    laneLabel: 'Dịch Vụ Ngoại Vi (Cloudflare R2)',
+    icon: <Cloud className="w-5 h-5 text-cyan-600" />,
+    inboundData: {
+      protocol: 'AWS S3 SDK: GetObjectCommand (TLS 1.3)',
+      payload: `Bucket: "legacyvault-prototype-private"
+Key: "vaults/pv_11111111/assets/ast_98afbd90/v1.enc"
+Range: bytes=0-15518919 (Full Payload Stream)
+Headers:
+  Authorization: AWS4-HMAC-SHA256 Credential=...`,
+    },
+    cryptoAction: {
+      title: 'Truy xuất tệp mã hóa tuân thủ nguyên tắc Zero-Knowledge',
+      details: [
+        'Cloudflare R2 tiếp nhận yêu cầu có chữ ký xác thực IAM S3 V4',
+        'Truy xuất đối tượng Blob bản mã nhị phân .enc được lưu trữ bất biến',
+        'Đường truyền tải về được bảo vệ bằng TLS 1.3 (RFC 8446) chống nghe lén thông tin',
+        'Cloudflare R2 hoàn toàn KHÔNG biết nội dung bản rõ tệp, KHÔNG giữ bất kỳ khóa nào',
+        'Hưởng trọn chính sách 0đ phí Egress, hỗ trợ tải tài sản dung lượng lớn không phát sinh chi phí',
+      ],
+    },
+    outboundData: {
+      status: 'S3 200 OK · Blob Stream Received',
+      payload: `{\n  "contentLength": 15518920,\n  "contentType": "application/octet-stream",\n  "eTag": "\\"9b105d4f7c4db35e0b0f60defb9fb3ab\\"",\n  "downloadSpeedMs": 142,\n  "bytesTransferred": "14.8 MiB"\n}`,
+    },
+    storage: {
+      r2: 'Cloudflare R2: Đọc luồng đối tượng v1.enc và truyền tải xuống Client',
+      db: "SQL Server 2022: UPDATE [dbo].[ContentDeliveries] SET DownloadStatus='STREAMING'",
+      client: 'Trình duyệt tiếp nhận ArrayBuffer bản mã 14.8 MiB vào bộ nhớ đệm tạm',
+    },
+    exception: {
+      code: 'E_R2_STREAM_TIMEOUT',
+      trigger: 'Đứt kết nối mạng giữa chừng khi đang truyền dòng byte lớn từ Cloudflare R2',
+      rollbackTo: 'Bước 03 (Tự động kích hoạt cơ chế Resume / Range Request từ byte đứt gãy)',
+      action: 'Thử lại tối đa 3 lần qua HTTP Range header, bảo toàn tính toàn vẹn gói tin',
+    },
+    relatedTab: 'r2',
+  },
+  {
+    id: 4,
+    stepNum: '04',
+    plainMechanism: 'BƯỚC 4 - Giải Mã & Đối Soát: Trình duyệt kết hợp chìa DEK (từ Bước 2) và Nonce 96-bit để giải mã khối byte Ciphertext bằng AES-256-GCM. Sau đó tiến hành đối soát 2 lớp: Thẩm tra Auth Tag 128-bit và đối chiếu mã băm SHA-256 với giá trị gốc trong CSDL, phục hồi 100% file gốc di chúc cho Người nhận.',
+    dataFlowPath: 'Khối byte Ciphertext + DEK trần + Nonce ➔ AES-GCM Decrypt ➔ Khớp Tag & SHA-256 ➔ Phục hồi tệp gốc',
+    title: 'BƯỚC 4: Giải Mã & Đối Soát Toàn Vẹn Tệp',
+    subtitle: 'Giải mã AES-256-GCM, thẩm tra Auth Tag 128-bit và đối chiếu SHA-256',
+    lane: 'client',
+    laneLabel: 'Trình Duyệt Client (Web Crypto API)',
+    icon: <FileCheck className="w-5 h-5 text-emerald-600" />,
+    inboundData: {
+      protocol: 'Web Crypto API: window.crypto.subtle.decrypt()',
+      payload: `Algorithm: { name: "AES-GCM", iv: Uint8Array(12), tagLength: 128 }
+Key: CryptoKey (AES-256 Raw from DEK)
+Data: ArrayBuffer [Ciphertext + 16B Auth Tag from R2]
+ExpectedChecksum: "8f4b23a9c7d1e5f8b2c4e6a0d3f7..."`,
+    },
+    cryptoAction: {
+      title: 'Xác thực tính toàn vẹn 2 lớp và giải mã khôi phục tệp bản rõ',
+      details: [
+        'Chạy thuật toán AES-256-GCM Decrypt với khóa dữ liệu DEK và Nonce tương ứng',
+        'Kiểm tra Authentication Tag 128-bit: Bảo đảm tệp không bị suy hao hoặc chỉnh sửa 1 bit nào trên R2',
+        'Tính toán lại mã băm SHA-256 của file bản rõ sau khi giải mã: Hash = SHA256(Plaintext)',
+        'Đối soát chéo: So sánh Hash tính được với giá trị ChecksumSha256 lưu trong bảng [ContentVersions]',
+        'Khớp 100%: Xuất file gốc (PDF di chúc, ảnh, video) ra Blob URL an toàn cho Người thụ hưởng',
+      ],
+    },
+    outboundData: {
+      status: 'HTTP 200 File Restored · Integrity 100% Verified',
+      payload: `{\n  "restorationStatus": "SUCCESS_VERIFIED",\n  "fileName": "di_chuc_gia_dinh.pdf",\n  "mimeType": "application/pdf",\n  "fileSizeBytes": 15518920,\n  "authTagVerified": true,\n  "checksumSha256Matches": true,\n  "computedHash": "8f4b23a9c7d1e5f8b2c4e6a0d3f7...",\n  "securityAudit": "NO_TAMPERING_DETECTED",\n  "accessReady": true\n}`,
+    },
+    storage: {
+      r2: 'Không đổi',
+      db: "SQL Server 2022: INSERT INTO [dbo].[AuditLogs] (Event='FILE_DECRYPTED_SUCCESS', AssetId='ast_98afbd90')",
+      client: 'Trình duyệt mở cửa sổ xem trước hoặc tải về tệp di chúc gốc di_chuc_gia_dinh.pdf',
+    },
+    exception: {
+      code: 'E_INTEGRITY_CHECKSUM_MISMATCH',
+      trigger: 'Auth Tag không khớp hoặc SHA-256 Checksum sau giải mã khác với bản ghi gốc',
+      rollbackTo: 'Bước 03 (Tải lại tệp bản mã hoặc kích hoạt khóa phục hồi thảm họa)',
+      action: 'Chặn người dùng mở tệp bị lỗi, hiển thị cảnh báo dữ liệu không toàn vẹn (Tamper Alert)',
+    },
+    relatedTab: 'envelope',
+  },
+];
+
 interface InteractiveWorkflowVisualizerProps {
   onNavigateTab?: (tabId: string) => void;
 }
@@ -697,7 +896,7 @@ interface InteractiveWorkflowVisualizerProps {
 export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualizerProps> = ({
   onNavigateTab,
 }) => {
-  const [activeFlowId, setActiveFlowId] = useState<'flow1' | 'flow2'>('flow1');
+  const [activeFlowId, setActiveFlowId] = useState<'flow1' | 'flow2' | 'flow3'>('flow1');
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
@@ -709,11 +908,16 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
   const [isSwitchingPersona, setIsSwitchingPersona] = useState<boolean>(false);
   const [personaMessage, setPersonaMessage] = useState<string | null>(null);
 
-  const currentSteps = activeFlowId === 'flow1' ? FLOW_01_STEPS : FLOW_02_STEPS;
+  const currentSteps =
+    activeFlowId === 'flow1'
+      ? FLOW_01_STEPS
+      : activeFlowId === 'flow2'
+      ? FLOW_02_STEPS
+      : FLOW_03_STEPS;
   const currentStep = currentSteps[activeStepIndex] || currentSteps[0];
 
   // Đổi luồng: reset step về 0
-  const handleSwitchFlow = (flowId: 'flow1' | 'flow2') => {
+  const handleSwitchFlow = (flowId: 'flow1' | 'flow2' | 'flow3') => {
     setIsPlaying(false);
     setActiveFlowId(flowId);
     setActiveStepIndex(0);
@@ -814,12 +1018,27 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
                 8 Bước
               </span>
             </button>
+
+            <button
+              onClick={() => handleSwitchFlow('flow3')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                activeFlowId === 'flow3'
+                  ? 'bg-[#0B291E] text-[#E0C068] shadow-md border border-[#B88E4C]'
+                  : 'bg-white text-[#44554C] hover:bg-stone-50 border border-[#DCD9D0]'
+              }`}
+            >
+              <Key className="w-4 h-4" />
+              <span>Luồng 03: Phục Hồi Khóa Shamir & Mở Két Di Sản</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-900 font-mono">
+                4 Bước
+              </span>
+            </button>
           </div>
 
           <div className="text-[11px] text-[#66786E] font-medium italic">
-            {activeFlowId === 'flow1'
-              ? 'Xác thực Google OIDC JIT, Form mật khẩu & 1-Click Role Switcher'
-              : 'Quy trình mật mã AES-256-GCM, Gom kho bàn giao AC-01 & Kích hoạt DMS'}
+            {activeFlowId === 'flow1' && 'Xác thực Google OIDC JIT, Form mật khẩu & 1-Click Role Switcher'}
+            {activeFlowId === 'flow2' && 'Quy trình mật mã AES-256-GCM, Gom kho bàn giao AC-01 & Kích hoạt DMS'}
+            {activeFlowId === 'flow3' && 'Quy trình 4 bước: Ghép Khóa (Lagrange) ➔ Mở Gói DEK ➔ Tải Tệp R2 ➔ Giải Mã AES-GCM'}
           </div>
         </div>
 
@@ -1080,7 +1299,9 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
               <p className="text-[11px] text-[#66786E]">
                 {activeFlowId === 'flow1'
                   ? 'Luồng 01: Onboarding, Xác thực Google OIDC JIT, Form thường và Phân quyền SQL Server 2022'
-                  : 'Luồng 02: Mã hóa phong bì, Tự gom kho AC-01, Lưu trữ Cloudflare R2 và Kích hoạt DMS'}
+                  : activeFlowId === 'flow2'
+                  ? 'Luồng 02: Mã hóa phong bì, Tự gom kho AC-01, Lưu trữ Cloudflare R2 và Kích hoạt DMS'
+                  : 'Luồng 03: Phục hồi khóa Shamir SSS (2/3), mở bọc Wrapped DEK và giải mã tệp bản mã R2'}
               </p>
             </div>
           </div>
@@ -1274,7 +1495,13 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
               <h3 className="font-bold text-base text-[#0B291E] flex items-center gap-2">
                 <Layers className="w-5 h-5 text-[#B88E4C]" />
                 <span>
-                  Bản Đồ Kiến Trúc Quy Trình Toàn Cảnh: {activeFlowId === 'flow1' ? 'Luồng 01 (Xác Thực & JIT)' : 'Luồng 02 (Thiết Lập, Mã Hóa & Kích Hoạt)'}
+                  Bản Đồ Kiến Trúc Quy Trình Toàn Cảnh: {
+                    activeFlowId === 'flow1'
+                      ? 'Luồng 01 (Xác Thực & JIT)'
+                      : activeFlowId === 'flow2'
+                      ? 'Luồng 02 (Thiết Lập, Mã Hóa & Kích Hoạt)'
+                      : 'Luồng 03 (Phục Hồi Khóa Shamir & Mở Két)'
+                  }
                 </span>
               </h3>
               <p className="text-xs text-[#66786E]">
@@ -1448,10 +1675,22 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
 
           {/* Quy Trình Giải Mã Thực Tế */}
           <div className="p-4 bg-[#FAF9F5] border border-[#B88E4C]/40 rounded-xl space-y-2">
-            <h4 className="font-bold text-xs text-[#0B291E] flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#B88E4C]" />
-              <span>Quy Trình 4 Bước Phục Hồi & Giải Mã Tệp Di Sản Khi Mở Két:</span>
-            </h4>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h4 className="font-bold text-xs text-[#0B291E] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#B88E4C]" />
+                <span>Quy Trình 4 Bước Phục Hồi & Giải Mã Tệp Di Sản Khi Mở Két:</span>
+              </h4>
+              <button
+                onClick={() => {
+                  handleSwitchFlow('flow3');
+                  setViewMode('simulation');
+                }}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#0B291E] text-[#E0C068] text-xs font-semibold hover:bg-[#12382B] transition-all cursor-pointer shadow-xs"
+              >
+                <span>Chạy Mô Phỏng Luồng 03 Ngay</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
               <div className="p-2.5 bg-white border rounded-lg">
                 <span className="font-bold text-amber-800 block text-[11px]">BƯỚC 1: Ghép Khóa</span>
@@ -1487,7 +1726,7 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
             <p className="text-[11px] font-mono text-[#66786E] mb-2 truncate">
               {currentStep.inboundData.protocol}
             </p>
-            <pre className="p-2.5 rounded bg-[#14241C] text-emerald-400 font-mono text-[10px] overflow-x-auto max-h-36 leading-relaxed">
+            <pre className="p-2.5 rounded bg-[#14241C] text-emerald-400 font-mono text-[10px] overflow-x-auto max-h-44 leading-relaxed">
               {currentStep.inboundData.payload}
             </pre>
           </div>
@@ -1531,7 +1770,7 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
                   <Cloud className="w-3.5 h-3.5 text-cyan-700" />
                   <span>Cloudflare R2 Blob:</span>
                 </p>
-                <p className="text-cyan-900 text-[10px]">{currentStep.storage.r2}</p>
+                <p className="text-cyan-900 text-[10px] font-mono whitespace-pre-line leading-relaxed">{currentStep.storage.r2}</p>
               </div>
 
               <div className="p-2 rounded bg-indigo-50 border border-indigo-200">
@@ -1539,7 +1778,7 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
                   <Database className="w-3.5 h-3.5 text-indigo-700" />
                   <span>CSDL SQL Server 2022:</span>
                 </p>
-                <p className="text-indigo-900 text-[10px]">{currentStep.storage.db}</p>
+                <p className="text-indigo-900 text-[10px] font-mono whitespace-pre-line leading-relaxed">{currentStep.storage.db}</p>
               </div>
             </div>
           </div>
@@ -1556,7 +1795,7 @@ export const InteractiveWorkflowVisualizer: React.FC<InteractiveWorkflowVisualiz
               <span>4. PHẢN HỒI & TRẢI NGHIỆM</span>
             </div>
             <p className="text-xs font-bold text-purple-900 mb-1">{currentStep.outboundData.status}</p>
-            <pre className="p-2.5 rounded bg-[#14241C] text-emerald-400 font-mono text-[10px] overflow-x-auto max-h-24 leading-relaxed mb-3">
+            <pre className="p-2.5 rounded bg-[#14241C] text-emerald-400 font-mono text-[10px] overflow-x-auto max-h-44 leading-relaxed mb-3">
               {currentStep.outboundData.payload}
             </pre>
           </div>

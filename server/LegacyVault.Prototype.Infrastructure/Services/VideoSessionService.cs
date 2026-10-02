@@ -15,12 +15,26 @@ public class VideoSessionService : IVideoSessionService
     private readonly ConcurrentDictionary<Guid, VideoSession> _sessions = new();
     private readonly ConcurrentDictionary<Guid, CaseRescueHold> _holds = new();
     private readonly ConcurrentDictionary<Guid, Guid> _caseActiveHoldMap = new(); // CaseId -> HoldId
-    private readonly ConcurrentDictionary<Guid, AccessGrant> _grants = new(); // CaseId -> AccessGrant
+
+    // Cấu trúc dữ liệu theo đúng SRS v3.11.0:
+    // Quyết định: (BundleId, RecipientId) -> RecipientHandoverDecision
+    private readonly ConcurrentDictionary<(Guid BundleId, Guid RecipientId), RecipientHandoverDecision> _decisions = new();
+    // Xác nhận của Executor: (BundleId, RecipientId) -> ExecutorRecipientAuthorization
+    private readonly ConcurrentDictionary<(Guid BundleId, Guid RecipientId), ExecutorRecipientAuthorization> _executorAuthorizations = new();
+    // Quyền truy cập Grant: (BundleId, RecipientId) -> AccessGrant
+    private readonly ConcurrentDictionary<(Guid BundleId, Guid RecipientId), AccessGrant> _grants = new();
+    private readonly ConcurrentDictionary<Guid, AccessGrant> _grantsById = new();
+    private readonly ConcurrentDictionary<string, AccessGrant> _grantsByDownloadToken = new();
     private readonly ConcurrentDictionary<Guid, EstateCommitment> _commitments = new(); // CommitmentId -> EstateCommitment
     private readonly ConcurrentDictionary<string, GuestHandoverSession> _guestSessions = new(); // GuestToken -> GuestHandoverSession
     private readonly ConcurrentDictionary<Guid, HandoverReceipt> _receipts = new(); // ReceiptId -> HandoverReceipt
-    private readonly ConcurrentDictionary<Guid, HandoverReceipt> _caseReceipts = new(); // CaseId -> HandoverReceipt
-    private readonly ConcurrentDictionary<Guid, bool> _executorAuthorizations = new(); // CaseId -> isAuthorized
+    // Biên nhận: (GrantId, RecipientId) -> HandoverReceipt
+    private readonly ConcurrentDictionary<(Guid GrantId, Guid RecipientId), HandoverReceipt> _receiptsByGrantAndRecipient = new();
+    // Cấu hình kho di sản: BundleId -> HandoverVaultConfig
+    private readonly ConcurrentDictionary<Guid, HandoverVaultConfig> _vaultConfigs = new();
+    // Bằng chứng tải file thực tế từ server: (GrantId, AssetId) -> DownloadedAt
+    private readonly ConcurrentDictionary<(Guid GrantId, Guid AssetId), DateTime> _verifiedAssetDownloads = new();
+
     private readonly HashSet<string> _processedWebhookEvents = new();
     private readonly object _lockObj = new();
 
@@ -399,11 +413,11 @@ public class VideoSessionService : IVideoSessionService
             _caseActiveHoldMap[caseId] = hold.Id;
 
             // Nếu Case này đã được cấp Access Grant trước đó, đình chỉ ngay lập tức để chặn tải dữ liệu tiếp theo
-            if (_grants.TryGetValue(caseId, out var existingGrant) && existingGrant.Status == AccessGrantStatus.ACTIVE)
+            foreach (var grant in _grants.Values.Where(g => g.CaseId == caseId && g.Status == AccessGrantStatus.ACTIVE))
             {
-                existingGrant.Status = AccessGrantStatus.SUSPENDED_RESCUE_HOLD;
-                _logger.LogWarning("ACCESS GRANT SUSPENDED: Grant {GrantId} của Case {CaseId} đã bị đình chỉ do Rescue Hold kích hoạt.",
-                    existingGrant.Id, caseId);
+                grant.Status = AccessGrantStatus.SUSPENDED_RESCUE_HOLD;
+                _logger.LogWarning("ACCESS GRANT SUSPENDED: Grant {GrantId} (Recipient {RecipientId}) của Case {CaseId} đã bị đình chỉ do Rescue Hold kích hoạt.",
+                    grant.Id, grant.RecipientId, caseId);
             }
 
             // 5. Tự động tạo phiên gọi Video OWNER_RESCUE khẩn cấp
@@ -468,6 +482,14 @@ public class VideoSessionService : IVideoSessionService
 
             _caseActiveHoldMap.TryRemove(caseId, out _);
 
+            if (decision == RescueDecisionType.REJECTED_FRAUD)
+            {
+                foreach (var g in _grants.Values.Where(g => g.CaseId == caseId && g.Status == AccessGrantStatus.SUSPENDED_RESCUE_HOLD))
+                {
+                    g.Status = AccessGrantStatus.ACTIVE;
+                }
+            }
+
             _logger.LogInformation("Phán quyết cứu hộ cho Case {CaseId}: {Decision}. HoldId: {HoldId}, Verifier: {VerifierId}",
                 caseId, decision, hold.Id, verifierId);
 
@@ -484,16 +506,79 @@ public class VideoSessionService : IVideoSessionService
     }
 
     // ==========================================
-    // IN-CALL ESTATE HANDOVER CEREMONY
+    // IN-CALL ESTATE HANDOVER CEREMONY (SRS v3.11.0 CO-OWNERSHIP)
     // ==========================================
+
+    private HandoverVaultConfig GetOrCreateVaultConfig(Guid bundleOrCaseOrSessionId, Guid? sessionCaseId = null, Guid? subjectUserId = null)
+    {
+        Guid caseId;
+        Guid bundleId;
+
+        var session = _sessions.Values.FirstOrDefault(s => s.Id == bundleOrCaseOrSessionId || s.CaseId == bundleOrCaseOrSessionId);
+        if (session != null)
+        {
+            caseId = session.CaseId;
+            bundleId = session.CaseId;
+        }
+        else
+        {
+            caseId = sessionCaseId ?? bundleOrCaseOrSessionId;
+            bundleId = bundleOrCaseOrSessionId;
+        }
+
+        return _vaultConfigs.GetOrAdd(bundleId, id =>
+        {
+            var designated = new HashSet<Guid>();
+            if (subjectUserId.HasValue && subjectUserId.Value != Guid.Empty)
+            {
+                designated.Add(subjectUserId.Value);
+            }
+            else
+            {
+                designated.Add(Guid.Parse("11111111-1111-1111-1111-111111111111"));
+            }
+
+            return new HandoverVaultConfig
+            {
+                BundleId = id,
+                CaseId = caseId,
+                BundleName = "Kho di sản chung K",
+                RecipientMode = RecipientMode.SINGLE_RECIPIENT,
+                DesignatedRecipientIds = designated,
+                Status = HandoverStatus.PENDING_RESPONSE,
+                CreatedAt = DateTime.UtcNow,
+                ResponseDeadlineUtc = DateTime.UtcNow.AddDays(7),
+                Assets = GetDefaultHandoverAssets(caseId)
+            };
+        });
+    }
+
+    public Task<HandoverVaultConfig> ConfigureVaultAsync(Guid bundleOrCaseId, RecipientMode mode, IEnumerable<Guid> designatedRecipientIds)
+    {
+        lock (_lockObj)
+        {
+            var vault = GetOrCreateVaultConfig(bundleOrCaseId);
+            vault.RecipientMode = mode;
+            vault.DesignatedRecipientIds = new HashSet<Guid>(designatedRecipientIds);
+            vault.Status = HandoverStatus.PENDING_RESPONSE;
+            vault.ResponseDeadlineUtc = DateTime.UtcNow.AddDays(7);
+            vault.FreezeStartedAt = null;
+            vault.ReconsiderationExpiresAt = null;
+            return Task.FromResult(vault);
+        }
+    }
 
     public Task<HandoverEligibilityDto> GetHandoverEligibilityAsync(Guid caseOrSessionId, Guid currentUserId)
     {
         lock (_lockObj)
         {
-            // Xác định Session & CaseId tương ứng
             var session = _sessions.Values.FirstOrDefault(s => s.Id == caseOrSessionId || s.CaseId == caseOrSessionId);
             var caseId = session?.CaseId ?? caseOrSessionId;
+            var vault = GetOrCreateVaultConfig(caseId, caseId, session?.SubjectUserId ?? currentUserId);
+
+            var recipientId = currentUserId != Guid.Empty
+                ? currentUserId
+                : (session?.SubjectUserId != null && session.SubjectUserId != Guid.Empty ? session.SubjectUserId : vault.DesignatedRecipientIds.FirstOrDefault());
 
             // 1. Kiểm tra Active Rescue Hold
             CaseRescueHold? hold = null;
@@ -506,18 +591,92 @@ public class VideoSessionService : IVideoSessionService
             var timeLock = _timeLockRescueService.GetStatus(caseId);
             bool isTimeLocked = timeLock.IsLocked && timeLock.RemainingSeconds > 0;
 
-            // 3. Kiểm tra kết quả thẩm định Verifier / Người thực thi
-            bool isExecutorAuthorized = _executorAuthorizations.TryGetValue(caseId, out var isAuth) && isAuth;
+            // 3. Kiểm tra Executor Authorization cho đúng (BundleId, RecipientId)
+            bool isExecutorAuthorized = _executorAuthorizations.TryGetValue((vault.BundleId, recipientId), out var execAuth) && execAuth.IsAuthorized;
             bool isVerifierApproved = (session != null && session.VerificationOutcome == VerificationOutcome.PASS) || isExecutorAuthorized;
 
-            // 4. Kiểm tra xem đã nhận trước đó chưa (Idempotency)
-            AccessGrant? grant = null;
-            bool isAlreadyAccepted = _grants.TryGetValue(caseId, out grant) &&
-                                     grant.Status == AccessGrantStatus.ACTIVE;
+            // 4. Kiểm tra Decision của Recipient
+            _decisions.TryGetValue((vault.BundleId, recipientId), out var recipientDecision);
+            bool isAlreadyAccepted = recipientDecision?.Decision == BeneficiaryDecisionType.ACCEPTED;
 
-            // Kiểm tra biên nhận hoàn tất nếu có
-            _caseReceipts.TryGetValue(caseId, out var receipt);
-            bool isFinalized = receipt != null;
+            // 5. Kiểm tra Grant của Recipient
+            _grants.TryGetValue((vault.BundleId, recipientId), out var grant);
+            bool hasActiveGrant = grant != null && grant.Status == AccessGrantStatus.ACTIVE;
+
+            // 6. Kiểm tra Biên nhận của Recipient
+            HandoverReceipt? receipt = null;
+            if (grant != null)
+            {
+                _receiptsByGrantAndRecipient.TryGetValue((grant.Id, recipientId), out receipt);
+            }
+            if (receipt == null)
+            {
+                receipt = _receipts.Values.FirstOrDefault(r => r.BundleId == vault.BundleId && r.BeneficiaryId == recipientId);
+            }
+            bool isFinalized = receipt != null || (grant != null && grant.Status == AccessGrantStatus.FINALIZED);
+
+            // 7. Đồng thuận nhóm đồng sở hữu theo SRS v3.11.0
+            if (vault.ResponseDeadlineUtc.HasValue && DateTime.UtcNow > vault.ResponseDeadlineUtc.Value && vault.Status == HandoverStatus.PENDING_RESPONSE)
+            {
+                vault.Status = HandoverStatus.FROZEN_RECONSIDERATION;
+                vault.FreezeStartedAt ??= DateTime.UtcNow;
+                vault.ReconsiderationExpiresAt ??= DateTime.UtcNow.AddYears(2);
+            }
+
+            if (vault.Status == HandoverStatus.FROZEN_RECONSIDERATION && vault.ReconsiderationExpiresAt.HasValue && DateTime.UtcNow > vault.ReconsiderationExpiresAt.Value)
+            {
+                vault.Status = HandoverStatus.CANCELLED_WITHOUT_DELIVERY;
+            }
+
+            var coBeneficiariesList = new List<CoBeneficiaryDecisionDto>();
+            int acceptedCount = 0;
+            bool anyRejected = false;
+
+            foreach (var benId in vault.DesignatedRecipientIds)
+            {
+                _decisions.TryGetValue((vault.BundleId, benId), out var dec);
+                _executorAuthorizations.TryGetValue((vault.BundleId, benId), out var auth);
+
+                var isFin = (grant != null && _receiptsByGrantAndRecipient.ContainsKey((grant.Id, benId))) ||
+                            _receipts.Values.Any(rc => rc.BundleId == vault.BundleId && rc.BeneficiaryId == benId);
+
+                var decType = dec?.Decision ?? BeneficiaryDecisionType.PENDING;
+                if (decType == BeneficiaryDecisionType.ACCEPTED) acceptedCount++;
+                if (decType == BeneficiaryDecisionType.REJECTED) anyRejected = true;
+
+                coBeneficiariesList.Add(new CoBeneficiaryDecisionDto
+                {
+                    RecipientId = benId,
+                    RecipientName = benId == recipientId ? "Bạn (Người thụ hưởng)" : $"Đồng thừa kế ({benId.ToString()[..6]})",
+                    Role = benId == (session?.SubjectUserId ?? Guid.Empty) ? "PRIMARY_BENEFICIARY" : "CO_BENEFICIARY",
+                    Decision = decType,
+                    DecidedAt = dec?.DecidedAt,
+                    IsExecutorAuthorized = auth != null && auth.IsAuthorized,
+                    ExecutorAuthorizedAt = auth?.AuthorizedAt,
+                    HasFinalized = isFin
+                });
+            }
+
+            bool isAllConsented = vault.RecipientMode == RecipientMode.SINGLE_RECIPIENT
+                ? isAlreadyAccepted
+                : (vault.DesignatedRecipientIds.Count > 0 && acceptedCount == vault.DesignatedRecipientIds.Count && !anyRejected);
+
+            bool isFrozen = vault.Status == HandoverStatus.FROZEN_RECONSIDERATION;
+            bool isCancelledWithoutDelivery = vault.Status == HandoverStatus.CANCELLED_WITHOUT_DELIVERY;
+
+            var coOwnershipStatusDto = new CoOwnershipVaultStatusDto
+            {
+                BundleId = vault.BundleId,
+                RecipientMode = vault.RecipientMode,
+                HandoverStatus = vault.Status,
+                TotalRequiredBeneficiaries = vault.DesignatedRecipientIds.Count,
+                AcceptedBeneficiariesCount = acceptedCount,
+                IsAllConsented = isAllConsented,
+                IsFrozen = isFrozen,
+                FreezeStartedAt = vault.FreezeStartedAt,
+                ReconsiderationExpiresAt = vault.ReconsiderationExpiresAt,
+                CoBeneficiaries = coBeneficiariesList
+            };
 
             var blockReasons = new List<string>();
 
@@ -528,9 +687,9 @@ public class VideoSessionService : IVideoSessionService
 
             if (!isVerifierApproved && !isExecutorAuthorized)
             {
-                blockReasons.Add(session == null 
-                    ? "Chưa khởi tạo phiên làm việc trực tiếp." 
-                    : "Người thực thi chưa xác nhận nhân thân & cho phép nhận di sản.");
+                blockReasons.Add(session == null
+                    ? "Chưa khởi tạo phiên làm việc trực tiếp."
+                    : "Người thực thi chưa xác nhận nhân thân cho bạn đối với kho di sản này.");
             }
 
             if (isTimeLocked)
@@ -543,17 +702,33 @@ public class VideoSessionService : IVideoSessionService
                 blockReasons.Add("Hồ sơ đã bị hủy vĩnh viễn do Chủ kho được xác nhận còn sống.");
             }
 
-            // Đủ điều kiện khi: Đã được Executor/Verifier cho phép, không có Rescue Hold, time-lock đã mở, Case hợp lệ
-            bool canAccept = (isVerifierApproved || isExecutorAuthorized) && !isRescueHeld && !isTimeLocked && timeLock.Status != CaseStatus.CANCELLED_ALIVE;
+            if (isFrozen)
+            {
+                blockReasons.Add($"Kho di sản đang bị đóng băng do chưa đạt đồng thuận của nhóm đồng sở hữu (Thời hạn suy nghĩ lại đến {vault.ReconsiderationExpiresAt:dd/MM/yyyy}).");
+            }
 
-            var assets = GetDefaultHandoverAssets(caseId);
+            if (isCancelledWithoutDelivery)
+            {
+                blockReasons.Add("Quyền nhận kho di sản này đã bị hủy bỏ vĩnh viễn do hết thời hạn 2 năm mà không đạt đủ đồng thuận.");
+            }
+
+            bool canAccept = (isVerifierApproved || isExecutorAuthorized)
+                && !isRescueHeld
+                && !isTimeLocked
+                && timeLock.Status != CaseStatus.CANCELLED_ALIVE
+                && !isCancelledWithoutDelivery
+                && (!isAlreadyAccepted || isFrozen);
+
+            bool canDownload = hasActiveGrant && !isRescueHeld && !isTimeLocked;
 
             return Task.FromResult(new HandoverEligibilityDto
             {
                 CaseId = caseId,
+                BundleId = vault.BundleId,
                 SessionId = session?.Id ?? Guid.Empty,
-                RecipientId = session?.SubjectUserId ?? currentUserId,
+                RecipientId = recipientId,
                 CanAccept = canAccept,
+                CanDownload = canDownload,
                 BlockReasons = blockReasons,
                 IsVerifierApproved = isVerifierApproved,
                 IsExecutorAuthorized = isExecutorAuthorized,
@@ -572,6 +747,8 @@ public class VideoSessionService : IVideoSessionService
                     ReceiptId = receipt.ReceiptId,
                     ReceiptNumber = receipt.ReceiptNumber,
                     CaseId = receipt.CaseId,
+                    BundleId = receipt.BundleId,
+                    GrantId = receipt.GrantId,
                     SessionId = receipt.SessionId,
                     BeneficiaryId = receipt.BeneficiaryId,
                     BeneficiaryName = receipt.BeneficiaryName,
@@ -581,17 +758,18 @@ public class VideoSessionService : IVideoSessionService
                     LegalDeclaration = receipt.LegalDeclaration,
                     DigitalSignatureAudit = receipt.DigitalSignatureAudit
                 } : null,
-                Assets = assets,
+                Assets = vault.Assets,
                 RegisteredDossier = new RegisteredBeneficiaryDossierDto
                 {
-                    BeneficiaryId = session?.SubjectUserId ?? currentUserId,
-                    FullName = "Nguyễn Văn Người Nhận (Đã đăng ký trước)",
+                    BeneficiaryId = recipientId,
+                    FullName = $"Người nhận ({recipientId.ToString()[..6]})",
                     NationalIdMasked = "07909500**** (Khớp trên CSDL)",
                     RegisteredEmail = "nguoinhan.di-san@legacyvault.vn",
-                    DesignatedRole = "Người thụ hưởng chính (Chỉ định bởi Owner)",
+                    DesignatedRole = vault.RecipientMode == RecipientMode.CO_OWNED ? "Đồng sở hữu (Co-Beneficiary)" : "Người thụ hưởng chính",
                     IsStrictlyBoundToPlan = true,
-                    BindingNotice = "Ràng buộc chặt với Hồ sơ di sản ban đầu. Không cho phép thay đổi trong cuộc gọi."
-                }
+                    BindingNotice = "Ràng buộc chặt với Hồ sơ di sản ban đầu theo SRS v3.11.0. Không thể thay đổi trong cuộc gọi."
+                },
+                CoOwnershipStatus = coOwnershipStatusDto
             });
         }
     }
@@ -602,11 +780,19 @@ public class VideoSessionService : IVideoSessionService
         {
             var session = _sessions.Values.FirstOrDefault(s => s.Id == caseOrSessionId || s.CaseId == caseOrSessionId);
             var caseId = session?.CaseId ?? caseOrSessionId;
+            var vault = GetOrCreateVaultConfig(caseId, caseId, session?.SubjectUserId ?? currentUserId);
 
-            // 1. Kiểm tra tuyệt đối: Rescue Hold có đang active? (Zero-Trust)
-            CaseRescueHold? hold = null;
+            var recipientId = request.RecipientId
+                ?? (currentUserId != Guid.Empty ? currentUserId : (session?.SubjectUserId ?? vault.DesignatedRecipientIds.FirstOrDefault()));
+
+            if (!string.IsNullOrEmpty(request.GuestToken) && _guestSessions.TryGetValue(request.GuestToken, out var guestSession))
+            {
+                recipientId = guestSession.BeneficiaryId;
+            }
+
+            // 1. Kiểm tra tuyệt đối Rescue Hold
             if (_caseActiveHoldMap.TryGetValue(caseId, out var holdId) &&
-                _holds.TryGetValue(holdId, out hold) &&
+                _holds.TryGetValue(holdId, out var hold) &&
                 hold.IsActive)
             {
                 _logger.LogWarning("Từ chối nhận di sản: Case {CaseId} đang có Rescue Hold kích hoạt bởi Owner.", caseId);
@@ -617,37 +803,36 @@ public class VideoSessionService : IVideoSessionService
                 });
             }
 
-            // 2. Ràng buộc người nhận từ trước (Strict Beneficiary Binding - Chống chiếm tài khoản / đổi người)
-            if (session != null && session.SubjectUserId != Guid.Empty && session.SubjectUserId != currentUserId)
+            // 2. Strict Beneficiary Binding
+            if (vault.DesignatedRecipientIds.Count > 0 && !vault.DesignatedRecipientIds.Contains(recipientId))
             {
-                _logger.LogWarning("Từ chối nhận di sản: Người gọi {CurrentUserId} không khớp với người thụ hưởng được chỉ định {ExpectedId}.",
-                    currentUserId, session.SubjectUserId);
+                _logger.LogWarning("Từ chối nhận di sản: Người gọi {RecipientId} không thuộc danh sách người thụ hưởng được chỉ định.", recipientId);
                 return Task.FromResult(new AcceptHandoverResponse
                 {
                     Success = false,
-                    Message = "Tài khoản thực hiện không khớp với Người nhận được Chủ kho chỉ định trước trong hồ sơ di sản."
+                    Message = "Tài khoản thực hiện không thuộc danh sách Người nhận được Chủ kho chỉ định trước trong hồ sơ di sản."
                 });
             }
 
-            // 3. Kiểm tra phê duyệt của Người thực thi (Executor) hoặc Verifier
-            bool isExecutorAuthorized = _executorAuthorizations.TryGetValue(caseId, out var isAuth) && isAuth;
+            // 3. Executor Authorization check cho đúng recipientId và đúng Kho
+            bool isExecutorAuthorized = _executorAuthorizations.TryGetValue((vault.BundleId, recipientId), out var execAuth) && execAuth.IsAuthorized;
             bool isApproved = (session != null && session.VerificationOutcome == VerificationOutcome.PASS) || isExecutorAuthorized;
 
             if (!isApproved)
             {
                 var outcomeStr = session?.VerificationOutcome.ToString() ?? "CHƯA_TỒN_TẠI";
-                _logger.LogWarning("Từ chối nhận di sản: Case {CaseId} chưa được Người thực thi / Verifier xác nhận đạt. Outcome: {Outcome}",
-                    caseId, outcomeStr);
+                _logger.LogWarning("Từ chối nhận di sản: Recipient {RecipientId} trên Kho {BundleId} chưa được Người thực thi xác nhận đạt. Outcome: {Outcome}",
+                    recipientId, vault.BundleId, outcomeStr);
                 return Task.FromResult(new AcceptHandoverResponse
                 {
                     Success = false,
                     Message = session?.VerificationOutcome == VerificationOutcome.INCONCLUSIVE
                         ? "Nghi ngờ bất thường hoặc chưa đủ căn cứ (INCONCLUSIVE). Chưa thể cấp khóa giải mã, yêu cầu chuyển hội đồng phúc tra."
-                        : "Người thực thi chưa bấm 'Xác nhận người nhận & cho phép nhận di sản' trong phiên làm việc."
+                        : "Người thực thi chưa bấm 'Xác nhận người nhận & cho phép nhận di sản' cho bạn trên kho này."
                 });
             }
 
-            // 4. Kiểm tra xác thực bổ sung yếu tố thứ 2 (Passkey / FIDO2 / Independent Credential)
+            // 4. Passkey / Second Factor check
             if (string.IsNullOrWhiteSpace(request.SecondFactorProof))
             {
                 return Task.FromResult(new AcceptHandoverResponse
@@ -657,11 +842,10 @@ public class VideoSessionService : IVideoSessionService
                 });
             }
 
-            // 5. Kiểm tra Time-Lock
+            // 5. Time-Lock check
             var timeLock = _timeLockRescueService.GetStatus(caseId);
             if (timeLock.IsLocked && timeLock.RemainingSeconds > 0)
             {
-                _logger.LogWarning("Từ chối nhận di sản: Time-Lock cho Case {CaseId} còn {Sec} giây.", caseId, timeLock.RemainingSeconds);
                 return Task.FromResult(new AcceptHandoverResponse
                 {
                     Success = false,
@@ -678,74 +862,157 @@ public class VideoSessionService : IVideoSessionService
                 });
             }
 
-            // 4. Chống bấm lặp (Idempotency): Nếu đã có AccessGrant ACTIVE cho recipient này
-            var assets = GetDefaultHandoverAssets(caseId);
-            var keyMaterial = GenerateMockDecryptionKeyMaterial();
-
-            if (_grants.TryGetValue(caseId, out var existingGrant) && existingGrant.Status == AccessGrantStatus.ACTIVE)
+            // 6. Kiểm tra hạn 2 năm suy nghĩ lại
+            if (vault.Status == HandoverStatus.CANCELLED_WITHOUT_DELIVERY ||
+                (vault.Status == HandoverStatus.FROZEN_RECONSIDERATION && vault.ReconsiderationExpiresAt.HasValue && DateTime.UtcNow > vault.ReconsiderationExpiresAt.Value))
             {
-                _logger.LogInformation("Người nhận gọi lại bàn giao cho Case {CaseId}. Trả về AccessGrant hiện có {GrantId}.",
-                    caseId, existingGrant.Id);
+                vault.Status = HandoverStatus.CANCELLED_WITHOUT_DELIVERY;
+                return Task.FromResult(new AcceptHandoverResponse
+                {
+                    Success = false,
+                    Message = "Thời hạn suy nghĩ lại (2 năm) đã kết thúc mà không đạt đủ đồng thuận. Quyền nhận kho di sản này đã bị hủy bỏ vĩnh viễn."
+                });
+            }
+
+            // XỬ LÝ TỪ CHỐI NHẬN (REJECT) -> Chuyển sang FROZEN_RECONSIDERATION ngay lập tức theo SRS AC-10
+            if (request.IsReject)
+            {
+                _decisions[(vault.BundleId, recipientId)] = new RecipientHandoverDecision
+                {
+                    BundleId = vault.BundleId,
+                    RecipientId = recipientId,
+                    Decision = BeneficiaryDecisionType.REJECTED,
+                    DecidedAt = DateTime.UtcNow,
+                    RejectionReason = request.RejectionReason,
+                    LegalAcknowledgment = false,
+                    SecondFactorProof = request.SecondFactorProof,
+                    ClientIpAddress = request.ClientIpAddress,
+                    UserAgent = request.UserAgent
+                };
+
+                vault.Status = HandoverStatus.FROZEN_RECONSIDERATION;
+                vault.FreezeStartedAt ??= DateTime.UtcNow;
+                vault.ReconsiderationExpiresAt ??= DateTime.UtcNow.AddYears(2);
+
+                _logger.LogWarning("ĐỒNG SỞ HỮU TỪ CHỐI: Người nhận {RecipientId} từ chối kho {BundleId}. Kho bị đóng băng suy nghĩ lại 2 năm.",
+                    recipientId, vault.BundleId);
 
                 return Task.FromResult(new AcceptHandoverResponse
                 {
                     Success = true,
-                    Message = "Bạn đã hoàn tất tiếp nhận di sản trước đó. Quyền truy cập vẫn còn hiệu lực.",
-                    CommitmentId = existingGrant.CommitmentId,
-                    GrantId = existingGrant.Id,
-                    GrantStatus = existingGrant.Status,
-                    IssuedAt = existingGrant.IssuedAt,
-                    ExpiresAt = existingGrant.ExpiresAt,
-                    DownloadToken = existingGrant.DownloadToken,
-                    Assets = assets,
-                    DecryptionKeyMaterial = keyMaterial
+                    Message = "Bạn đã từ chối nhận kho di sản này. Theo đặc tả SRS, toàn bộ kho di sản được chuyển sang trạng thái ĐÓNG BĂNG SUY NGHĨ LẠI (2 năm). Chưa ai được phép truy cập.",
+                    IsConsensusComplete = false,
+                    VaultHandoverStatus = vault.Status
                 });
             }
 
-            // 5. Ghi nhận Commitment pháp lý và tạo Grant mới trong cùng Lock/Transaction
+            // XỬ LÝ ĐỒNG Ý NHẬN (ACCEPT)
+            _decisions[(vault.BundleId, recipientId)] = new RecipientHandoverDecision
+            {
+                BundleId = vault.BundleId,
+                RecipientId = recipientId,
+                Decision = BeneficiaryDecisionType.ACCEPTED,
+                DecidedAt = DateTime.UtcNow,
+                LegalAcknowledgment = request.LegalAcknowledgment,
+                SecondFactorProof = request.SecondFactorProof,
+                ClientIpAddress = request.ClientIpAddress,
+                UserAgent = request.UserAgent
+            };
+
+            // Kiểm tra đồng thuận nhóm đồng sở hữu theo SRS
+            bool isAllConsented = true;
+            if (vault.RecipientMode == RecipientMode.CO_OWNED)
+            {
+                foreach (var benId in vault.DesignatedRecipientIds)
+                {
+                    bool benAccepted = _decisions.TryGetValue((vault.BundleId, benId), out var d) && d.Decision == BeneficiaryDecisionType.ACCEPTED;
+                    bool benAuthorized = _executorAuthorizations.TryGetValue((vault.BundleId, benId), out var a) && a.IsAuthorized;
+
+                    if (!benAccepted || !benAuthorized)
+                    {
+                        isAllConsented = false;
+                        break;
+                    }
+                }
+            }
+
+            // TÌNH HUỐNG 1: Chưa đủ tất cả đồng sở hữu đồng ý -> Lưu quyết định của B, CHƯA CẤP GRANT CHO AI
+            if (!isAllConsented)
+            {
+                _logger.LogInformation("GHI NHẬN ĐỒNG Ý: Người nhận {RecipientId} đã đồng ý nhận kho {BundleId}. Chờ các đồng sở hữu còn lại.",
+                    recipientId, vault.BundleId);
+
+                return Task.FromResult(new AcceptHandoverResponse
+                {
+                    Success = true,
+                    Message = "Đã lưu quyết định đồng ý của bạn. Theo đặc tả SRS, kho chung chỉ được mở khóa khi TẤT CẢ người đồng sở hữu hoàn tất xác minh và đồng thuận nhận.",
+                    IsConsensusComplete = false,
+                    VaultHandoverStatus = vault.Status,
+                    Assets = vault.Assets
+                });
+            }
+
+            // TÌNH HUỐNG 2 / 4: Đã đủ 100% người đồng sở hữu xác minh & đồng ý nhận!
+            // -> Cam kết bàn giao một lần; cấp Grant riêng cho từng người cùng manifest
+            vault.Status = HandoverStatus.HANDOVER_COMMITTED;
+            vault.FreezeStartedAt = null;
+            vault.ReconsiderationExpiresAt = null;
+
             var commitment = new EstateCommitment
             {
                 Id = Guid.NewGuid(),
                 CaseId = caseId,
-                SessionId = session.Id,
-                RecipientId = currentUserId,
+                BundleId = vault.BundleId,
+                SessionId = session?.Id ?? Guid.Empty,
+                RecipientId = recipientId,
                 CommittedAt = DateTime.UtcNow,
-                LegalAcknowledgment = request.LegalAcknowledgment
-                    ? "Đương sự cam kết đã đối chiếu nhân thân, xác nhận tiếp nhận gói di sản và chịu trách nhiệm pháp lý theo quy định."
-                    : "Đương sự tiếp nhận di sản.",
-                ClientIpAddress = request.ClientIpAddress,
-                UserAgent = request.UserAgent
+                LegalAcknowledgment = "Cam kết bàn giao di sản cho nhóm đồng sở hữu đạt đồng thuận 100%."
             };
             _commitments[commitment.Id] = commitment;
 
-            var grant = new AccessGrant
+            // Cấp Grant riêng cho tất cả người thụ hưởng trong nhóm (Atomic Group Delivery)
+            foreach (var benId in vault.DesignatedRecipientIds)
             {
-                Id = Guid.NewGuid(),
-                CaseId = caseId,
-                RecipientId = currentUserId,
-                CommitmentId = commitment.Id,
-                Status = AccessGrantStatus.ACTIVE,
-                IssuedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddHours(168), // Hiệu lực 7 ngày
-                DownloadToken = Guid.NewGuid().ToString("N")
-            };
-            _grants[caseId] = grant;
+                _grants.GetOrAdd((vault.BundleId, benId), key =>
+                {
+                    var g = new AccessGrant
+                    {
+                        Id = Guid.NewGuid(),
+                        BundleId = vault.BundleId,
+                        CaseId = caseId,
+                        RecipientId = key.RecipientId,
+                        CommitmentId = commitment.Id,
+                        Status = AccessGrantStatus.ACTIVE,
+                        IssuedAt = DateTime.UtcNow,
+                        ExpiresAt = DateTime.UtcNow.AddHours(168), // 7 ngày
+                        DownloadToken = Guid.NewGuid().ToString("N")
+                    };
+                    _grantsById[g.Id] = g;
+                    _grantsByDownloadToken[g.DownloadToken] = g;
+                    return g;
+                });
+            }
 
-            _logger.LogInformation("BÀN GIAO THÀNH CÔNG: Đã tạo Commitment {CommitmentId} và cấp AccessGrant {GrantId} cho Recipient {RecipientId} trên Case {CaseId}.",
-                commitment.Id, grant.Id, currentUserId, caseId);
+            var myGrant = _grants[(vault.BundleId, recipientId)];
+            var keyMaterial = GenerateMockDecryptionKeyMaterial();
+
+            _logger.LogInformation("BÀN GIAO THÀNH CÔNG: Kho {BundleId} đã đủ đồng thuận 100%. Đã cấp AccessGrant {GrantId} cho Recipient {RecipientId}.",
+                vault.BundleId, myGrant.Id, recipientId);
 
             return Task.FromResult(new AcceptHandoverResponse
             {
                 Success = true,
-                Message = "Xác nhận nhận di sản thành công! Vật liệu giải mã và danh sách tệp đã được cấp quyền.",
+                Message = "Tất cả người đồng sở hữu đã xác minh và đồng ý nhận! Kho di sản đã được mở khóa và cấp quyền giải mã tải xuống.",
                 CommitmentId = commitment.Id,
-                GrantId = grant.Id,
-                GrantStatus = grant.Status,
-                IssuedAt = grant.IssuedAt,
-                ExpiresAt = grant.ExpiresAt,
-                DownloadToken = grant.DownloadToken,
-                Assets = assets,
-                DecryptionKeyMaterial = keyMaterial
+                GrantId = myGrant.Id,
+                GrantStatus = myGrant.Status,
+                IssuedAt = myGrant.IssuedAt,
+                ExpiresAt = myGrant.ExpiresAt,
+                DownloadToken = myGrant.DownloadToken,
+                Assets = vault.Assets,
+                DecryptionKeyMaterial = keyMaterial,
+                IsConsensusComplete = true,
+                VaultHandoverStatus = vault.Status
             });
         }
     }
@@ -756,6 +1023,11 @@ public class VideoSessionService : IVideoSessionService
         {
             var session = _sessions.Values.FirstOrDefault(s => s.Id == caseOrSessionId || s.CaseId == caseOrSessionId);
             var caseId = session?.CaseId ?? caseOrSessionId;
+            var vault = GetOrCreateVaultConfig(caseId, caseId, session?.SubjectUserId ?? currentUserId);
+
+            var recipientId = currentUserId != Guid.Empty
+                ? currentUserId
+                : (session?.SubjectUserId ?? vault.DesignatedRecipientIds.FirstOrDefault());
 
             // Chặn tuyệt đối nếu có Rescue Hold
             if (_caseActiveHoldMap.TryGetValue(caseId, out var holdId) &&
@@ -765,9 +1037,9 @@ public class VideoSessionService : IVideoSessionService
                 throw new InvalidOperationException("Hồ sơ đang tạm giữ bởi Chủ kho. Không thể cấp phát vật liệu giải mã.");
             }
 
-            if (!_grants.TryGetValue(caseId, out var grant))
+            if (!_grants.TryGetValue((vault.BundleId, recipientId), out var grant))
             {
-                throw new KeyNotFoundException("Chưa tìm thấy AccessGrant cho hồ sơ này. Vui lòng bấm 'Chấp nhận nhận di sản' trước.");
+                throw new KeyNotFoundException("Chưa tìm thấy AccessGrant cho bạn trên kho di sản này. Cần đủ đồng thuận của tất cả đồng sở hữu trước khi mở khóa.");
             }
 
             if (grant.Status == AccessGrantStatus.SUSPENDED_RESCUE_HOLD)
@@ -840,6 +1112,12 @@ public class VideoSessionService : IVideoSessionService
         {
             var session = _sessions.Values.FirstOrDefault(s => s.Id == caseOrSessionId || s.CaseId == caseOrSessionId);
             var caseId = session?.CaseId ?? caseOrSessionId;
+            var vault = GetOrCreateVaultConfig(caseId, caseId, session?.SubjectUserId);
+
+            // Xác định recipientId được Executor duyệt
+            var recipientId = request.RecipientId 
+                ?? session?.SubjectUserId 
+                ?? vault.DesignatedRecipientIds.FirstOrDefault();
 
             // Chặn tuyệt đối nếu có Rescue Hold
             CaseRescueHold? hold = null;
@@ -850,63 +1128,120 @@ public class VideoSessionService : IVideoSessionService
                 throw new InvalidOperationException("Hồ sơ đang tạm giữ bởi Chủ kho (Rescue Hold). Không thể cấp quyền bàn giao.");
             }
 
-            // Ghi nhận ủy quyền của Người thực thi (Executor)
-            _executorAuthorizations[caseId] = true;
+            // Ghi nhận ủy quyền của Người thực thi cho đúng (BundleId, RecipientId)
+            _executorAuthorizations[(vault.BundleId, recipientId)] = new ExecutorRecipientAuthorization
+            {
+                BundleId = vault.BundleId,
+                RecipientId = recipientId,
+                ExecutorId = executorId,
+                AuthorizedAt = DateTime.UtcNow,
+                Notes = request.ExecutorNotes ?? "Người thực thi đối chiếu nhân thân hợp lệ.",
+                FaceMatched = request.FaceMatched,
+                NationalIdMatched = request.NationalIdMatched,
+                InteractiveChallengePassed = request.InteractiveChallengePassed
+            };
 
-            // Nếu có session tương ứng, cập nhật Outcome = PASS để đồng bộ
-            if (session != null)
+            // Nếu có session tương ứng với recipient này, cập nhật Outcome = PASS
+            if (session != null && (session.SubjectUserId == recipientId || session.SubjectUserId == Guid.Empty))
             {
                 session.VerificationOutcome = VerificationOutcome.PASS;
                 session.EvaluatedAt = DateTime.UtcNow;
                 session.VerifierNotes = request.ExecutorNotes ?? "Người thực thi đối chiếu hợp lệ và cho phép nhận di sản.";
-                _timeLockRescueService.ApproveCaseForDelivery(caseId);
+                // CHÚ Ý BẢO MẬT: KHÔNG gọi _timeLockRescueService.ApproveCaseForDelivery(caseId)!
+                // Việc Executor xác minh nhân thân không được phép xóa bỏ hoặc rút ngắn thời gian Time-Lock!
             }
 
             // Cập nhật các guest session liên quan
-            foreach (var gs in _guestSessions.Values.Where(g => g.CaseId == caseId))
+            foreach (var gs in _guestSessions.Values.Where(g => g.CaseId == caseId && g.BeneficiaryId == recipientId))
             {
                 gs.IsExecutorAuthorized = true;
                 gs.ExecutorAuthorizedAt = DateTime.UtcNow;
             }
 
-            _logger.LogInformation("Người thực thi {ExecutorId} đã bấm 'Xác nhận người nhận & cho phép nhận di sản' cho Case {CaseId}.",
-                executorId, caseId);
+            _logger.LogInformation("Người thực thi {ExecutorId} đã xác nhận nhân thân cho Recipient {RecipientId} trên Kho {BundleId}.",
+                executorId, recipientId, vault.BundleId);
 
             return Task.FromResult(new AuthorizeRecipientResponse
             {
                 Success = true,
-                Message = "Đã xác nhận nhân thân người nhận. Người thụ hưởng hiện có thể bấm 'Chấp nhận & tải di sản'.",
+                Message = $"Đã xác nhận nhân thân người nhận {recipientId}. Quyết định của người nhận hiện có thể được ghi nhận.",
                 AuthorizedAt = DateTime.UtcNow,
-                ExecutorId = executorId
+                ExecutorId = executorId,
+                RecipientId = recipientId,
+                BundleId = vault.BundleId
             });
         }
     }
 
-    public async Task<FinalizeHandoverResponse> FinalizeHandoverSessionAsync(
+    public Task<FinalizeHandoverResponse> FinalizeHandoverSessionAsync(
         Guid caseOrSessionId, 
         Guid beneficiaryId, 
         FinalizeHandoverRequest request)
     {
-        VideoSession? sessionToClose = null;
+        bool shouldCloseRoom = false;
+        string? roomToClose = null;
 
         lock (_lockObj)
         {
             var session = _sessions.Values.FirstOrDefault(s => s.Id == caseOrSessionId || s.CaseId == caseOrSessionId);
             var caseId = session?.CaseId ?? caseOrSessionId;
-            sessionToClose = session;
+            var vault = GetOrCreateVaultConfig(caseId, caseId, session?.SubjectUserId ?? beneficiaryId);
 
-            // 1. Chống xử lý lặp (Idempotency)
-            if (_caseReceipts.TryGetValue(caseId, out var existingReceipt))
+            var recipientId = request.RecipientId 
+                ?? (beneficiaryId != Guid.Empty ? beneficiaryId : (session?.SubjectUserId ?? vault.DesignatedRecipientIds.FirstOrDefault()));
+
+            if (!string.IsNullOrEmpty(request.GuestToken) && _guestSessions.TryGetValue(request.GuestToken, out var guestSession))
             {
-                return new FinalizeHandoverResponse
+                recipientId = guestSession.BeneficiaryId;
+            }
+
+            // 1. Kiểm tra các file bắt buộc đã được tải/xử lý
+            var mandatoryAssets = vault.Assets.Where(a => a.IsMandatory).ToList();
+            var missingAssets = mandatoryAssets.Where(m => !request.DownloadedAssetIds.Contains(m.AssetId)).ToList();
+            if (missingAssets.Any())
+            {
+                throw new InvalidOperationException(
+                    $"Chưa hoàn tất xử lý đủ các tệp di sản bắt buộc (Còn thiếu {missingAssets.Count} tệp). Vui lòng tải toàn bộ tệp trước khi kết thúc.");
+            }
+
+            // 2. Tìm hoặc kích hoạt Grant của recipient này
+            if (!_grants.TryGetValue((vault.BundleId, recipientId), out var grant))
+            {
+                grant = new AccessGrant
+                {
+                    Id = Guid.NewGuid(),
+                    BundleId = vault.BundleId,
+                    CaseId = caseId,
+                    RecipientId = recipientId,
+                    Status = AccessGrantStatus.FINALIZED,
+                    IssuedAt = DateTime.UtcNow,
+                    ExpiresAt = DateTime.UtcNow.AddHours(168),
+                    DownloadToken = Guid.NewGuid().ToString("N")
+                };
+                _grants[(vault.BundleId, recipientId)] = grant;
+                _grantsById[grant.Id] = grant;
+                _grantsByDownloadToken[grant.DownloadToken] = grant;
+            }
+
+            foreach (var assetId in request.DownloadedAssetIds)
+            {
+                _verifiedAssetDownloads.TryAdd((grant.Id, assetId), DateTime.UtcNow);
+            }
+
+            // 3. Chống xử lý lặp (Idempotency)
+            if (_receiptsByGrantAndRecipient.TryGetValue((grant.Id, recipientId), out var existingReceipt))
+            {
+                return Task.FromResult(new FinalizeHandoverResponse
                 {
                     Success = true,
-                    Message = "Phiên bàn giao đã được xác nhận hoàn tất trước đó.",
+                    Message = "Phiên bàn giao của bạn đã được xác nhận hoàn tất trước đó.",
                     Receipt = new HandoverReceiptDto
                     {
                         ReceiptId = existingReceipt.ReceiptId,
                         ReceiptNumber = existingReceipt.ReceiptNumber,
                         CaseId = existingReceipt.CaseId,
+                        BundleId = existingReceipt.BundleId,
+                        GrantId = existingReceipt.GrantId,
                         SessionId = existingReceipt.SessionId,
                         BeneficiaryId = existingReceipt.BeneficiaryId,
                         BeneficiaryName = existingReceipt.BeneficiaryName,
@@ -916,29 +1251,24 @@ public class VideoSessionService : IVideoSessionService
                         LegalDeclaration = existingReceipt.LegalDeclaration,
                         DigitalSignatureAudit = existingReceipt.DigitalSignatureAudit
                     },
-                    IsRoomClosed = true,
-                    IsGuestSessionRevoked = true
-                };
+                    IsRoomClosed = false,
+                    IsGuestSessionRevoked = true,
+                    IsRecipientGrantFinalized = true,
+                    AreOtherBeneficiariesStillActive = true
+                });
             }
 
-            // 2. Kiểm tra các file bắt buộc đã được tải/xử lý thành công chưa
-            var mandatoryAssets = GetDefaultHandoverAssets(caseId).Where(a => a.IsMandatory).ToList();
-            var missingAssets = mandatoryAssets.Where(m => !request.DownloadedAssetIds.Contains(m.AssetId)).ToList();
-            if (missingAssets.Any())
-            {
-                throw new InvalidOperationException(
-                    $"Chưa hoàn tất xử lý đủ các tệp di sản bắt buộc (Còn thiếu {missingAssets.Count} tệp). Vui lòng tải toàn bộ tệp trước khi kết thúc.");
-            }
-
-            // 3. Tạo Biên nhận điện tử (Handover Receipt)
+            // 4. Tạo Biên nhận điện tử (Handover Receipt) cho người này
             var receipt = new HandoverReceipt
             {
                 ReceiptId = Guid.NewGuid(),
                 ReceiptNumber = $"RCP-LV-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}",
                 CaseId = caseId,
+                BundleId = vault.BundleId,
+                GrantId = grant.Id,
                 SessionId = session?.Id ?? Guid.Empty,
-                BeneficiaryId = beneficiaryId,
-                BeneficiaryName = "Nguyễn Văn Người Nhận (Chỉ định bởi Owner)",
+                BeneficiaryId = recipientId,
+                BeneficiaryName = $"Người Nhận ({recipientId.ToString()[..6]})",
                 ExecutorId = session?.AssignedVerifierId ?? Guid.Empty,
                 ReceivedAt = DateTime.UtcNow,
                 DownloadedAssetIds = request.DownloadedAssetIds,
@@ -948,29 +1278,51 @@ public class VideoSessionService : IVideoSessionService
             };
 
             _receipts[receipt.ReceiptId] = receipt;
-            _caseReceipts[caseId] = receipt;
+            _receiptsByGrantAndRecipient[(grant.Id, recipientId)] = receipt;
 
-            // 4. Thu hồi phiên khách & đóng quyền cấp khóa mới
-            if (!string.IsNullOrEmpty(request.GuestToken) && _guestSessions.TryGetValue(request.GuestToken, out var guestSession))
+            // 5. Đóng quyền của riêng recipient này (Grant -> FINALIZED)
+            grant.Status = AccessGrantStatus.FINALIZED;
+
+            // 6. Thu hồi phiên khách của riêng recipient này
+            if (!string.IsNullOrEmpty(request.GuestToken) && _guestSessions.TryGetValue(request.GuestToken, out var gs))
             {
-                guestSession.Status = GuestSessionStatus.COMPLETED;
-                guestSession.IsFinalized = true;
-                guestSession.FinalizedAt = DateTime.UtcNow;
-                guestSession.ReceiptId = receipt.ReceiptId;
+                gs.Status = GuestSessionStatus.COMPLETED;
+                gs.IsFinalized = true;
+                gs.FinalizedAt = DateTime.UtcNow;
+                gs.ReceiptId = receipt.ReceiptId;
             }
 
-            _logger.LogInformation("BÀN GIAO HOÀN TẤT: Beneficiary {BeneficiaryId} đã ký xác nhận nhận đủ di sản trên Case {CaseId}. Receipt: {ReceiptNumber}",
-                beneficiaryId, caseId, receipt.ReceiptNumber);
+            // 7. Kiểm tra các đồng sở hữu khác có còn đang hoạt động không
+            var otherCoRecipients = vault.DesignatedRecipientIds.Where(id => id != recipientId).ToList();
+            bool areOtherBeneficiariesStillActive = otherCoRecipients.Any(otherId =>
+                !_receiptsByGrantAndRecipient.ContainsKey((grant.Id, otherId)) &&
+                _grants.TryGetValue((vault.BundleId, otherId), out var otherG) &&
+                otherG.Status == AccessGrantStatus.ACTIVE);
 
-            return new FinalizeHandoverResponse
+            // B tải xong và hoàn tất chỉ đóng phiên của B, không đóng quyền hoặc phiên của C!
+            // Nếu không còn đồng thừa kế nào khác đang active (hoặc là phiên 1-1 đơn lẻ), tiến hành dọn dẹp phòng
+            if (!areOtherBeneficiariesStillActive && session != null)
+            {
+                session.Status = VideoSessionStatus.COMPLETED;
+                session.EndedAt = DateTime.UtcNow;
+                shouldCloseRoom = true;
+                roomToClose = session.ProviderRoomId;
+            }
+
+            _logger.LogInformation("BÀN GIAO HOÀN TẤT CHO B: Beneficiary {BeneficiaryId} đã ký nhận kho {BundleId}. Grant đóng: FINALIZED. Đồng thừa kế khác còn hoạt động: {OthersActive}",
+                recipientId, vault.BundleId, areOtherBeneficiariesStillActive);
+
+            var response = new FinalizeHandoverResponse
             {
                 Success = true,
-                Message = "Xác nhận hoàn tất thành công! Biên nhận điện tử đã được phát hành và lưu trữ vĩnh viễn.",
+                Message = "Xác nhận hoàn tất thành công! Biên nhận điện tử của bạn đã được phát hành và lưu trữ vĩnh viễn.",
                 Receipt = new HandoverReceiptDto
                 {
                     ReceiptId = receipt.ReceiptId,
                     ReceiptNumber = receipt.ReceiptNumber,
                     CaseId = receipt.CaseId,
+                    BundleId = receipt.BundleId,
+                    GrantId = receipt.GrantId,
                     SessionId = receipt.SessionId,
                     BeneficiaryId = receipt.BeneficiaryId,
                     BeneficiaryName = receipt.BeneficiaryName,
@@ -980,9 +1332,51 @@ public class VideoSessionService : IVideoSessionService
                     LegalDeclaration = receipt.LegalDeclaration,
                     DigitalSignatureAudit = receipt.DigitalSignatureAudit
                 },
-                IsRoomClosed = true,
-                IsGuestSessionRevoked = true
+                IsRoomClosed = shouldCloseRoom,
+                IsGuestSessionRevoked = true,
+                IsRecipientGrantFinalized = true,
+                AreOtherBeneficiariesStillActive = areOtherBeneficiariesStillActive
             };
+
+            // Gọi LiveKit xóa phòng nếu tất cả các bên đã hoàn tất
+            if (shouldCloseRoom && !string.IsNullOrEmpty(roomToClose))
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _liveKitService.DeleteRoomAsync(roomToClose);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Không thể xóa phòng LiveKit {RoomName}", roomToClose);
+                    }
+                });
+            }
+
+            return Task.FromResult(response);
+        }
+    }
+
+    public Task<bool> RecordAssetDownloadAsync(string downloadToken, Guid assetId)
+    {
+        lock (_lockObj)
+        {
+            if (string.IsNullOrWhiteSpace(downloadToken))
+                return Task.FromResult(false);
+
+            if (_grantsByDownloadToken.TryGetValue(downloadToken, out var grant))
+            {
+                if (grant.Status == AccessGrantStatus.ACTIVE && DateTime.UtcNow <= grant.ExpiresAt)
+                {
+                    _verifiedAssetDownloads[(grant.Id, assetId)] = DateTime.UtcNow;
+                    _logger.LogInformation("ĐÃ XÁC THỰC TẢI TÀI SẢN: Asset {AssetId} cho Grant {GrantId} (Recipient {RecipientId}).",
+                        assetId, grant.Id, grant.RecipientId);
+                    return Task.FromResult(true);
+                }
+            }
+
+            return Task.FromResult(false);
         }
     }
 
@@ -994,10 +1388,18 @@ public class VideoSessionService : IVideoSessionService
             if (existing != null)
                 return Task.FromResult(existing);
 
+            var vault = GetOrCreateVaultConfig(caseId, caseId, beneficiaryId);
+            vault.DesignatedRecipientIds.Add(beneficiaryId);
+            if (vault.DesignatedRecipientIds.Count > 1)
+            {
+                vault.RecipientMode = RecipientMode.CO_OWNED;
+            }
+
             var guestSession = new GuestHandoverSession
             {
                 GuestToken = $"gst_{Guid.NewGuid():N}",
                 CaseId = caseId,
+                BundleId = vault.BundleId,
                 SessionId = sessionId,
                 BeneficiaryId = beneficiaryId,
                 ExecutorId = executorId,

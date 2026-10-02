@@ -105,10 +105,19 @@ public enum ParticipantRoleInCall
     OBSERVER
 }
 
+public enum BeneficiaryDecisionType
+{
+    PENDING,
+    ACCEPTED,
+    REJECTED
+}
+
 public enum AccessGrantStatus
 {
     ACTIVE,
     SUSPENDED_RESCUE_HOLD,
     REVOKED,
-    EXPIRED
+    EXPIRED,
+    FINALIZED
 }
+

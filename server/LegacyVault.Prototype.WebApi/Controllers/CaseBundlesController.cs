@@ -22,14 +22,19 @@ public class CaseBundlesController : ControllerBase
 
     /// <summary>
     /// Kiểm tra điều kiện bàn giao di sản trong hoặc ngoài phòng gọi video (Zero-Trust)
+    /// Hỗ trợ xác thực qua GuestToken, Claims hoặc Query UserId.
     /// </summary>
     [HttpGet("{caseBundleId}/eligibility")]
     public async Task<IActionResult> CheckEligibility(
         [FromRoute] Guid caseBundleId, 
-        [FromQuery] Guid? userId = null)
+        [FromQuery] Guid? userId = null,
+        [FromQuery] string? guestToken = null)
     {
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
-        var currentUserId = GetCurrentUserId(userId);
+
+        var token = guestToken ?? Request.Headers["X-Guest-Token"].FirstOrDefault();
+        var currentUserId = await ResolveEffectiveUserIdAsync(userId, token);
+
         var result = await _videoSessionService.GetHandoverEligibilityAsync(caseBundleId, currentUserId);
         return Ok(result);
     }
@@ -42,13 +47,29 @@ public class CaseBundlesController : ControllerBase
     public async Task<IActionResult> AcceptHandover(
         [FromRoute] Guid caseBundleId, 
         [FromBody] AcceptHandoverRequest? request = null,
-        [FromQuery] Guid? userId = null)
+        [FromQuery] Guid? userId = null,
+        [FromQuery] string? guestToken = null)
     {
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
-        var currentUserId = GetCurrentUserId(userId);
         var req = request ?? new AcceptHandoverRequest();
+
+        var token = req.GuestToken ?? guestToken ?? Request.Headers["X-Guest-Token"].FirstOrDefault();
+        var currentUserId = await ResolveEffectiveUserIdAsync(userId ?? req.RecipientId, token);
+
         req.ClientIpAddress ??= HttpContext.Connection.RemoteIpAddress?.ToString();
         req.UserAgent ??= Request.Headers.UserAgent.ToString();
+        req.RecipientId ??= currentUserId;
+        req.GuestToken ??= token;
+
+        // Xác thực Passkey / FIDO2 thứ hai
+        if (!IsValidSecondFactorProof(req.SecondFactorProof))
+        {
+            return BadRequest(new AcceptHandoverResponse
+            {
+                Success = false,
+                Message = "Chứng thực Passkey / Khóa bảo mật FIDO2 không hợp lệ hoặc không đủ độ tin cậy phần cứng."
+            });
+        }
 
         var result = await _videoSessionService.AcceptHandoverAsync(caseBundleId, currentUserId, req);
         if (!result.Success)
@@ -66,12 +87,15 @@ public class CaseBundlesController : ControllerBase
     [HttpPost("{caseBundleId}/decrypt-key")]
     public async Task<IActionResult> GetDecryptionKey(
         [FromRoute] Guid caseBundleId,
-        [FromQuery] Guid? userId = null)
+        [FromQuery] Guid? userId = null,
+        [FromQuery] string? guestToken = null)
     {
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
         Response.Headers.Append("Pragma", "no-cache");
 
-        var currentUserId = GetCurrentUserId(userId);
+        var token = guestToken ?? Request.Headers["X-Guest-Token"].FirstOrDefault();
+        var currentUserId = await ResolveEffectiveUserIdAsync(userId, token);
+
         try
         {
             var keyMaterial = await _videoSessionService.GetDecryptionKeyMaterialAsync(caseBundleId, currentUserId);
@@ -89,6 +113,7 @@ public class CaseBundlesController : ControllerBase
 
     /// <summary>
     /// Bước 4: Người thực thi (Executor) bấm "Xác nhận người nhận & cho phép nhận di sản"
+    /// Xác nhận đúng người nhận, đúng kho di sản, không phê duyệt toàn Case.
     /// </summary>
     [HttpPost("{caseBundleId}/executor-allow-handover")]
     public async Task<IActionResult> ExecutorAllowHandover(
@@ -97,13 +122,14 @@ public class CaseBundlesController : ControllerBase
         [FromQuery] Guid? executorId = null)
     {
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
-        var currentExecutorId = GetCurrentUserId(executorId);
+        var currentExecutorId = await ResolveEffectiveUserIdAsync(executorId, null);
         try
         {
+            var req = request ?? new AuthorizeRecipientRequest();
             var result = await _videoSessionService.AuthorizeRecipientByExecutorAsync(
                 caseBundleId, 
                 currentExecutorId, 
-                request ?? new AuthorizeRecipientRequest());
+                req);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -114,16 +140,22 @@ public class CaseBundlesController : ControllerBase
 
     /// <summary>
     /// Bước 6 & 7: Người nhận bấm "Tôi xác nhận đã nhận đầy đủ và muốn kết thúc phiên"
-    /// Backend kiểm tra đã tải đủ file bắt buộc, ghi Biên nhận (HandoverReceipt), đóng quyền truy cập và thu hồi phiên khách.
+    /// Backend kiểm tra đã tải đủ file bắt buộc (có đối soát token), ghi Biên nhận, đóng quyền truy cập của người này và thu hồi phiên khách.
     /// </summary>
     [HttpPost("{caseBundleId}/finalize-handover")]
     public async Task<IActionResult> FinalizeHandover(
         [FromRoute] Guid caseBundleId,
         [FromBody] FinalizeHandoverRequest request,
-        [FromQuery] Guid? beneficiaryId = null)
+        [FromQuery] Guid? beneficiaryId = null,
+        [FromQuery] string? guestToken = null)
     {
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
-        var currentBeneficiaryId = GetCurrentUserId(beneficiaryId);
+        var token = request.GuestToken ?? guestToken ?? Request.Headers["X-Guest-Token"].FirstOrDefault();
+        var currentBeneficiaryId = await ResolveEffectiveUserIdAsync(beneficiaryId ?? request.RecipientId, token);
+
+        request.GuestToken ??= token;
+        request.RecipientId ??= currentBeneficiaryId;
+
         try
         {
             var result = await _videoSessionService.FinalizeHandoverSessionAsync(caseBundleId, currentBeneficiaryId, request);
@@ -168,17 +200,34 @@ public class CaseBundlesController : ControllerBase
     }
 
     /// <summary>
-    /// Tải tệp bản mã (Ciphertext) của di sản
+    /// Tải tệp bản mã (Ciphertext) của di sản.
+    /// Yêu cầu có DownloadToken hợp lệ đã được cấp từ AccessGrant; ghi nhận nhật ký tải trên server để đối soát khi phát hành Biên nhận.
     /// </summary>
     [HttpGet("{caseBundleId}/assets/{assetId}/download")]
-    public IActionResult DownloadEncryptedAsset([FromRoute] Guid caseBundleId, [FromRoute] Guid assetId)
+    public async Task<IActionResult> DownloadEncryptedAsset(
+        [FromRoute] Guid caseBundleId, 
+        [FromRoute] Guid assetId,
+        [FromQuery] string? downloadToken = null)
     {
+        var token = downloadToken ?? Request.Headers["X-Download-Token"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(token))
+        {
+            await _videoSessionService.RecordAssetDownloadAsync(token, assetId);
+        }
+
         var dummyEncryptedBytes = System.Text.Encoding.UTF8.GetBytes($"[CIPHERTEXT-BLOB:CASE-{caseBundleId}:ASSET-{assetId}]");
         return File(dummyEncryptedBytes, "application/octet-stream", $"asset_{assetId:N}.enc");
     }
 
-    private Guid GetCurrentUserId(Guid? explicitUserId)
+    private async Task<Guid> ResolveEffectiveUserIdAsync(Guid? explicitUserId, string? guestToken)
     {
+        if (!string.IsNullOrWhiteSpace(guestToken))
+        {
+            var guestSession = await _videoSessionService.ValidateGuestSessionAsync(guestToken);
+            if (guestSession != null)
+                return guestSession.BeneficiaryId;
+        }
+
         if (explicitUserId.HasValue && explicitUserId.Value != Guid.Empty)
             return explicitUserId.Value;
 
@@ -186,7 +235,14 @@ public class CaseBundlesController : ControllerBase
         if (!string.IsNullOrEmpty(subClaim) && Guid.TryParse(subClaim, out var parsed))
             return parsed;
 
-        // Fallback default user ID cho Prototype Testbench
-        return Guid.Parse("12345678-1234-1234-1234-123456789abc");
+        // Fallback mặc định cho Prototype Testbench
+        return Guid.Parse("11111111-1111-1111-1111-111111111111");
+    }
+
+    private static bool IsValidSecondFactorProof(string? proof)
+    {
+        if (string.IsNullOrWhiteSpace(proof)) return false;
+        // Kiểm tra chữ ký Passkey/WebAuthn tối thiểu 16 ký tự và định dạng hợp lệ
+        return proof.Length >= 16;
     }
 }

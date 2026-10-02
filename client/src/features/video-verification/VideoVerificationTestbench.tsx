@@ -282,13 +282,43 @@ export const VideoVerificationTestbench: React.FC = () => {
       setIsAcceptingHandover(true);
       const res = await axios.post(`${API_BASE}/api/video-sessions/${sessionId}/accept-handover`, {
         legalAcknowledgment: true,
+        isReject: false,
+        secondFactorType: "PASSKEY_FIDO2",
+        secondFactorProof: "webauthn-hardware-signature-verified-ok",
+      });
+      setAcceptResponse(res.data);
+      if (res.data.isConsensusComplete) {
+        alert("Tất cả người đồng thụ hưởng đã đồng thuận! Đã mở quyền tải di sản (Grant cá nhân cấp phát thành công).");
+      } else {
+        alert("Đã ghi nhận quyết định của bạn: ĐỒNG Ý NHẬN.\nHiện đang chờ các người đồng thụ hưởng khác xác nhận để cấp Grant đồng thời theo đúng SRS v3.11.0.");
+      }
+      await fetchHandoverEligibility();
+    } catch (err: any) {
+      alert("Không thể nhận di sản: " + (err.response?.data?.message || err.message));
+    } finally {
+      setIsAcceptingHandover(false);
+    }
+  };
+
+  // Người nhận từ chối nhận di sản chung (Kích hoạt đóng băng 2 năm theo SRS v3.11.0)
+  const handleRejectHandover = async () => {
+    if (!sessionId) return;
+    const reason = window.prompt("Vui lòng nhập lý do từ chối nhận kho di sản chung:");
+    if (!reason) return;
+    try {
+      setIsAcceptingHandover(true);
+      const res = await axios.post(`${API_BASE}/api/video-sessions/${sessionId}/accept-handover`, {
+        legalAcknowledgment: false,
+        isReject: true,
+        rejectionReason: reason,
         secondFactorType: "PASSKEY_FIDO2",
         secondFactorProof: "webauthn-hardware-signature-verified-ok",
       });
       setAcceptResponse(res.data);
       await fetchHandoverEligibility();
+      alert("Đã ghi nhận quyết định từ chối. Kho di sản chung đã chuyển sang trạng thái ĐÓNG BĂNG SUY NGHĨ LẠI (2 năm) theo SRS v3.11.0.");
     } catch (err: any) {
-      alert("Không thể nhận di sản: " + (err.response?.data?.message || err.message));
+      alert("Lỗi khi gửi quyết định: " + (err.response?.data?.message || err.message));
     } finally {
       setIsAcceptingHandover(false);
     }
@@ -1043,6 +1073,74 @@ export const VideoVerificationTestbench: React.FC = () => {
                   </div>
                 )}
 
+                {/* Thẻ Trạng Thái Đồng Sở Hữu Nhóm (SRS v3.11.0 Co-ownership) */}
+                {handoverEligibility?.coOwnershipStatus && (
+                  <div className="p-3.5 bg-[#FBF9F4] border-2 border-[#D8C7A5] rounded-xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#0B291E] flex items-center gap-1.5">
+                        <Users className="w-4 h-4 text-[#B88E4C]" />
+                        Đồng Sở Hữu Nhóm: {handoverEligibility.coOwnershipStatus.mode === "CO_OWNERSHIP" ? "Kho dùng chung" : "Đơn lẻ"}
+                      </span>
+                      {handoverEligibility.coOwnershipStatus.vaultStatus === "CONSENSUS_REACHED" ? (
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Check className="w-3 h-3" /> Đã Đủ Đồng Thuận ({handoverEligibility.coOwnershipStatus.acceptedCount}/{handoverEligibility.coOwnershipStatus.totalBeneficiariesCount})
+                        </span>
+                      ) : handoverEligibility.coOwnershipStatus.vaultStatus === "FROZEN_RECONSIDERATION" ? (
+                        <span className="text-[10px] font-bold text-red-800 bg-red-100 border border-red-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" /> Tạm Đóng Băng (Suy nghĩ lại 2 năm)
+                        </span>
+                      ) : handoverEligibility.coOwnershipStatus.vaultStatus === "CANCELLED_WITHOUT_DELIVERY" ? (
+                        <span className="text-[10px] font-bold text-gray-700 bg-gray-200 border border-gray-400 px-2 py-0.5 rounded-full">
+                          Đã Hủy Bàn Giao
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> Chờ Đồng Thuận ({handoverEligibility.coOwnershipStatus.acceptedCount}/{handoverEligibility.coOwnershipStatus.totalBeneficiariesCount})
+                        </span>
+                      )}
+                    </div>
+
+                    {handoverEligibility.coOwnershipStatus.vaultStatus === "FROZEN_RECONSIDERATION" && (
+                      <div className="p-2.5 bg-red-50 border border-red-200 rounded-lg text-[11px] text-red-700 space-y-1">
+                        <div className="flex items-center gap-1.5 font-bold">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                          <span>Kho đang tạm đóng băng theo quy định SRS:</span>
+                        </div>
+                        <p className="text-[10px]">
+                          {handoverEligibility.coOwnershipStatus.rejectionReason || "Có người từ chối nhận hoặc hết 7 ngày chưa đủ đồng thuận. Thời hạn suy nghĩ lại: 2 năm."}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Chi tiết từng người thụ hưởng trong nhóm */}
+                    {handoverEligibility.coOwnershipStatus.decisions && handoverEligibility.coOwnershipStatus.decisions.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-[10px] font-bold text-[#66786E] uppercase block">Tiến độ phản hồi từng thành viên:</span>
+                        <div className="space-y-1">
+                          {handoverEligibility.coOwnershipStatus.decisions.map((d: any, idx: number) => (
+                            <div key={idx} className="flex items-center justify-between text-[11px] p-2 bg-white border border-[#E8E4DA] rounded-lg">
+                              <span className="font-mono text-[#0B291E]">Người nhận #{d.recipientId.substring(0, 8)}...</span>
+                              {d.decision === "ACCEPTED" ? (
+                                <span className="text-emerald-700 font-bold flex items-center gap-1 text-[10px]">
+                                  <Check className="w-3 h-3" /> Đã đồng ý nhận
+                                </span>
+                              ) : d.decision === "REJECTED" ? (
+                                <span className="text-red-600 font-bold flex items-center gap-1 text-[10px]">
+                                  <AlertTriangle className="w-3 h-3" /> Đã từ chối nhận
+                                </span>
+                              ) : (
+                                <span className="text-amber-600 font-semibold text-[10px]">
+                                  Chờ quyết định
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Emergency Hold Banner nếu có */}
                 {handoverEligibility?.isRescueHeld && (
                   <div className="p-3.5 bg-red-50 border-2 border-red-300 rounded-xl space-y-1.5">
@@ -1200,8 +1298,8 @@ export const VideoVerificationTestbench: React.FC = () => {
                   </div>
                 )}
 
-                {/* 2. GIAO DIỆN NGƯỜI THỤ HƯỞNG (BENEFICIARY_GUEST / OWNER): BƯỚC 5 & 6 */}
-                {(userRole === "BENEFICIARY_GUEST" || userRole === "OWNER") && (
+                {/* 2. GIAO DIỆN NGƯỜI THỤ HƯỞNG (BENEFICIARY_GUEST / OWNER / CO_BENEFICIARY): BƯỚC 5 & 6 */}
+                {(userRole === "BENEFICIARY_GUEST" || userRole === "OWNER" || userRole === "CO_BENEFICIARY") && (
                   <div className="space-y-3.5 pt-1 border-t border-[#EFECE6]">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[#0B291E] flex items-center gap-1.5">
@@ -1276,9 +1374,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Bước 5: NÚT CHẤP NHẬN & TẢI DI SẢN (KHI CHƯA TIẾP NHẬN) */}
-                    {!acceptResponse && (
-                      <div className="pt-2">
+                    {/* Bước 5: NÚT CHẤP NHẬN HOẶC TỪ CHỐI NHẬN DI SẢN (KHI CHƯA TIẾP NHẬN HOẶC ĐANG CHỜ) */}
+                    {(!acceptResponse || acceptResponse?.isConsensusComplete === false) && (
+                      <div className="pt-2 space-y-2">
                         {!(handoverEligibility?.isExecutorAuthorized || verifierSavedPass) ? (
                           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 text-center space-y-1">
                             <p className="font-semibold">Vui lòng tương tác trực tiếp với Người thực thi qua video bên trái.</p>
@@ -1287,29 +1385,63 @@ export const VideoVerificationTestbench: React.FC = () => {
                             </p>
                           </div>
                         ) : (
-                          <button
-                            onClick={handleAcceptHandover}
-                            disabled={
-                              !handoverEligibility?.canAccept &&
-                              !(
-                                handoverEligibility?.isExecutorAuthorized &&
-                                !handoverEligibility?.isRescueHeld &&
-                                !handoverEligibility?.isTimeLocked
-                              )
-                            }
-                            className="w-full py-3 bg-[#0B291E] hover:bg-[#14241C] text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                          >
-                            <Sparkles className="w-4 h-4 text-[#B88E4C]" />
-                            <span>
-                              {isAcceptingHandover ? "Đang xác thực & Mở quyền truy cập..." : "Chấp nhận & tải di sản"}
-                            </span>
-                          </button>
+                          <div className="space-y-2">
+                            <button
+                              onClick={handleAcceptHandover}
+                              disabled={
+                                isAcceptingHandover ||
+                                (!handoverEligibility?.canAccept &&
+                                !(
+                                  handoverEligibility?.isExecutorAuthorized &&
+                                  !handoverEligibility?.isRescueHeld &&
+                                  !handoverEligibility?.isTimeLocked
+                                ))
+                              }
+                              className="w-full py-3 bg-[#0B291E] hover:bg-[#14241C] text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              <Sparkles className="w-4 h-4 text-[#B88E4C]" />
+                              <span>
+                                {isAcceptingHandover
+                                  ? "Đang ghi nhận quyết định..."
+                                  : handoverEligibility?.coOwnershipStatus?.vaultStatus === "FROZEN_RECONSIDERATION"
+                                  ? "Đồng ý nhận kho (Suy nghĩ lại / Gỡ đóng băng)"
+                                  : acceptResponse?.isConsensusComplete === false
+                                  ? "Đã đồng ý (Cập nhật lại)"
+                                  : "Chấp nhận & nhận kho di sản"}
+                              </span>
+                            </button>
+
+                            {/* Nút từ chối nhận (Kích hoạt đóng băng theo SRS) */}
+                            {handoverEligibility?.coOwnershipStatus?.mode === "CO_OWNERSHIP" && (
+                              <button
+                                onClick={handleRejectHandover}
+                                disabled={isAcceptingHandover}
+                                className="w-full py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-40"
+                              >
+                                <AlertTriangle className="w-3.5 h-3.5 text-red-600" />
+                                <span>Từ chối nhận kho di sản này</span>
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Banner thông báo chờ đồng thuận nhóm */}
+                        {acceptResponse && acceptResponse.isConsensusComplete === false && (
+                          <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl space-y-1.5 text-xs">
+                            <div className="flex items-center gap-1.5 text-amber-900 font-bold text-[11px]">
+                              <Clock className="w-3.5 h-3.5 text-amber-600 animate-spin" />
+                              <span>ĐÃ GHI NHẬN ĐỒNG Ý - ĐANG CHỜ CÁC THÀNH VIÊN KHÁC</span>
+                            </div>
+                            <p className="text-[10px] text-amber-800 leading-relaxed">
+                              Theo quy định <strong>Đồng sở hữu (SRS v3.11.0)</strong>, mọi người nhận trong nhóm phải cùng xác minh và đồng ý trước khi hệ thống cam kết bàn giao nguyên tử và cấp Grant tải tệp.
+                            </p>
+                          </div>
                         )}
                       </div>
                     )}
 
-                    {/* BƯỚC 5: KHU VỰC TẢI & GIẢI MÃ TỪNG FILE TẠI CLIENT */}
-                    {acceptResponse && (
+                    {/* BƯỚC 5: KHU VỰC TẢI & GIẢI MÃ TỪNG FILE TẠI CLIENT (CHỈ HIỆN KHI ĐÃ ĐỦ ĐỒNG THUẬN) */}
+                    {acceptResponse && acceptResponse.isConsensusComplete !== false && (
                       <div className="p-4 bg-emerald-50/70 border border-emerald-300 rounded-xl space-y-3 pt-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 text-emerald-950 font-bold text-xs">

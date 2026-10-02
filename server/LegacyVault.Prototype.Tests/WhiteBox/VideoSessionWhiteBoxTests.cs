@@ -380,6 +380,7 @@ public class VideoSessionWhiteBoxTests
         var executorId = Guid.NewGuid();
 
         timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: true);
+        timeLockService.ApproveCaseForDelivery(caseId); // Time-Lock hoàn tất hợp lệ
 
         var sessionResp = await videoSessionService.RequestSessionAsync(new CreateVideoSessionRequest
         {
@@ -538,4 +539,296 @@ public class VideoSessionWhiteBoxTests
         };
         Assert.Equal(4, identities.Count);
     }
+
+    #region SRS v3.11.0: KIỂM THỬ ĐỒNG SỞ HỮU (CO-OWNERSHIP CONSENSUS CEREMONY)
+
+    [Fact]
+    public async Task CoOwnership_Situation1_B_Accepts_C_Pending_ShouldRecordB_AndNotIssueGrantsYet()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var executorId = Guid.NewGuid();
+        var benB = Guid.NewGuid();
+        var benC = Guid.NewGuid();
+
+        // Khởi tạo và mở khóa Time-Lock hợp lệ
+        timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: true);
+        timeLockService.ApproveCaseForDelivery(caseId);
+
+        // Thiết lập Kho K đồng sở hữu cho B và C
+        await videoSessionService.ConfigureVaultAsync(caseId, RecipientMode.CO_OWNED, new[] { benB, benC });
+
+        // Executor xác nhận B
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(caseId, executorId, new AuthorizeRecipientRequest
+        {
+            RecipientId = benB,
+            FaceMatched = true,
+            NationalIdMatched = true
+        });
+
+        // Act: B xác minh xong và bấm Nhận (C chưa trả lời)
+        var respB = await videoSessionService.AcceptHandoverAsync(caseId, benB, new AcceptHandoverRequest
+        {
+            RecipientId = benB,
+            LegalAcknowledgment = true,
+            SecondFactorProof = "fido2-hardware-proof-user-b-ok"
+        });
+
+        // Assert: Theo SRS, hệ thống lưu quyết định của B, CHƯA CẤP GRANT CHO AI
+        Assert.True(respB.Success);
+        Assert.False(respB.IsConsensusComplete);
+        Assert.Null(respB.GrantId); // Chưa ai có Grant!
+        Assert.Equal(HandoverStatus.PENDING_RESPONSE, respB.VaultHandoverStatus);
+
+        // Kiểm tra Eligibility của B: Đã ghi nhận quyết định nhưng CHƯA ĐƯỢC TẢI
+        var eligB = await videoSessionService.GetHandoverEligibilityAsync(caseId, benB);
+        Assert.True(eligB.IsAlreadyAccepted);
+        Assert.False(eligB.CanDownload); // Chưa tải được!
+        Assert.NotNull(eligB.CoOwnershipStatus);
+        Assert.Equal(1, eligB.CoOwnershipStatus.AcceptedBeneficiariesCount);
+        Assert.Equal(2, eligB.CoOwnershipStatus.TotalRequiredBeneficiaries);
+        Assert.False(eligB.CoOwnershipStatus.IsAllConsented);
+
+        // C cố lấy khóa giải mã khi chưa đủ đồng thuận -> Phải bị từ chối
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            videoSessionService.GetDecryptionKeyMaterialAsync(caseId, benC));
+    }
+
+    [Fact]
+    public async Task CoOwnership_Situation2_B_And_C_BothAccept_ShouldCommitOnce_AndIssueDistinctGrants()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var executorId = Guid.NewGuid();
+        var benB = Guid.NewGuid();
+        var benC = Guid.NewGuid();
+
+        timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: true);
+        timeLockService.ApproveCaseForDelivery(caseId);
+
+        await videoSessionService.ConfigureVaultAsync(caseId, RecipientMode.CO_OWNED, new[] { benB, benC });
+
+        // Executor xác nhận B và C
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(caseId, executorId, new AuthorizeRecipientRequest { RecipientId = benB });
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(caseId, executorId, new AuthorizeRecipientRequest { RecipientId = benC });
+
+        // B đồng ý nhận
+        await videoSessionService.AcceptHandoverAsync(caseId, benB, new AcceptHandoverRequest
+        {
+            RecipientId = benB,
+            SecondFactorProof = "fido2-hardware-proof-user-b-ok"
+        });
+
+        // Act: C đồng ý nhận -> Đạt 100% đồng thuận
+        var respC = await videoSessionService.AcceptHandoverAsync(caseId, benC, new AcceptHandoverRequest
+        {
+            RecipientId = benC,
+            SecondFactorProof = "fido2-hardware-proof-user-c-ok"
+        });
+
+        // Assert: Cam kết bàn giao 1 lần; cấp Grant riêng cho B và C cùng manifest
+        Assert.True(respC.Success);
+        Assert.True(respC.IsConsensusComplete);
+        Assert.NotNull(respC.GrantId);
+        Assert.NotNull(respC.DownloadToken);
+        Assert.Equal(HandoverStatus.HANDOVER_COMMITTED, respC.VaultHandoverStatus);
+
+        // B kiểm tra lại eligibility: Quyền tải đã bật
+        var eligB = await videoSessionService.GetHandoverEligibilityAsync(caseId, benB);
+        Assert.True(eligB.CanDownload);
+        Assert.NotNull(eligB.ExistingGrantId);
+
+        var eligC = await videoSessionService.GetHandoverEligibilityAsync(caseId, benC);
+        Assert.True(eligC.CanDownload);
+        Assert.NotNull(eligC.ExistingGrantId);
+
+        // Hai Grant của B và C phải có ID và DownloadToken riêng biệt
+        Assert.NotEqual(eligB.ExistingGrantId, eligC.ExistingGrantId);
+
+        // Cả B và C đều có thể lấy vật liệu giải mã an toàn
+        var keyB = await videoSessionService.GetDecryptionKeyMaterialAsync(caseId, benB);
+        var keyC = await videoSessionService.GetDecryptionKeyMaterialAsync(caseId, benC);
+        Assert.NotNull(keyB.WrappedKeyEnvelope);
+        Assert.NotNull(keyC.WrappedKeyEnvelope);
+    }
+
+    [Fact]
+    public async Task CoOwnership_Situation3_OneRejects_ShouldFreezeVault_ForTwoYearsReconsideration()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var executorId = Guid.NewGuid();
+        var benB = Guid.NewGuid();
+        var benC = Guid.NewGuid();
+
+        timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: true);
+        timeLockService.ApproveCaseForDelivery(caseId);
+
+        await videoSessionService.ConfigureVaultAsync(caseId, RecipientMode.CO_OWNED, new[] { benB, benC });
+
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(caseId, executorId, new AuthorizeRecipientRequest { RecipientId = benB });
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(caseId, executorId, new AuthorizeRecipientRequest { RecipientId = benC });
+
+        // B đồng ý nhận
+        await videoSessionService.AcceptHandoverAsync(caseId, benB, new AcceptHandoverRequest { RecipientId = benB, SecondFactorProof = "passkey-b-ok" });
+
+        // Act: C từ chối nhận (Reject)
+        var respRejectC = await videoSessionService.AcceptHandoverAsync(caseId, benC, new AcceptHandoverRequest
+        {
+            RecipientId = benC,
+            IsReject = true,
+            RejectionReason = "Tranh chấp tài sản chung, chưa thống nhất chia",
+            SecondFactorProof = "passkey-c-ok"
+        });
+
+        // Assert: Kho chuyển sang FROZEN_RECONSIDERATION ngay lập tức (AC-10)
+        Assert.True(respRejectC.Success);
+        Assert.False(respRejectC.IsConsensusComplete);
+        Assert.Equal(HandoverStatus.FROZEN_RECONSIDERATION, respRejectC.VaultHandoverStatus);
+
+        var eligB = await videoSessionService.GetHandoverEligibilityAsync(caseId, benB);
+        Assert.False(eligB.CanDownload);
+        Assert.NotNull(eligB.CoOwnershipStatus);
+        Assert.True(eligB.CoOwnershipStatus.IsFrozen);
+        Assert.NotNull(eligB.CoOwnershipStatus.ReconsiderationExpiresAt);
+    }
+
+    [Fact]
+    public async Task CoOwnership_Situation4_Reconsideration_ConsensusReached_ShouldUnfreezeAndDeliver()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var executorId = Guid.NewGuid();
+        var benB = Guid.NewGuid();
+        var benC = Guid.NewGuid();
+
+        timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: true);
+        timeLockService.ApproveCaseForDelivery(caseId);
+
+        await videoSessionService.ConfigureVaultAsync(caseId, RecipientMode.CO_OWNED, new[] { benB, benC });
+
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(caseId, executorId, new AuthorizeRecipientRequest { RecipientId = benB });
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(caseId, executorId, new AuthorizeRecipientRequest { RecipientId = benC });
+
+        // B đồng ý, C từ chối -> Đóng băng
+        await videoSessionService.AcceptHandoverAsync(caseId, benB, new AcceptHandoverRequest { RecipientId = benB, SecondFactorProof = "passkey-b" });
+        await videoSessionService.AcceptHandoverAsync(caseId, benC, new AcceptHandoverRequest { RecipientId = benC, IsReject = true, SecondFactorProof = "passkey-c" });
+
+        // Act: Trong thời hạn suy nghĩ lại 2 năm, C đổi ý và bấm Chấp nhận nhận kho chung!
+        var respReconsider = await videoSessionService.AcceptHandoverAsync(caseId, benC, new AcceptHandoverRequest
+        {
+            RecipientId = benC,
+            IsReject = false,
+            LegalAcknowledgment = true,
+            SecondFactorProof = "passkey-c-reconsidered-ok"
+        });
+
+        // Assert: Toàn bộ nhóm được bàn giao, kho giải tỏa đóng băng
+        Assert.True(respReconsider.Success);
+        Assert.True(respReconsider.IsConsensusComplete);
+        Assert.Equal(HandoverStatus.HANDOVER_COMMITTED, respReconsider.VaultHandoverStatus);
+        Assert.NotNull(respReconsider.GrantId);
+
+        var eligC = await videoSessionService.GetHandoverEligibilityAsync(caseId, benC);
+        Assert.True(eligC.CanDownload);
+        Assert.False(eligC.CoOwnershipStatus?.IsFrozen ?? true);
+    }
+
+    [Fact]
+    public async Task CoOwnership_FinalizeB_DoesNotClose_SessionOrRightsOfC()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var executorId = Guid.NewGuid();
+        var benB = Guid.NewGuid();
+        var benC = Guid.NewGuid();
+
+        timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: true);
+        timeLockService.ApproveCaseForDelivery(caseId);
+
+        var sessionResp = await videoSessionService.RequestSessionAsync(new CreateVideoSessionRequest
+        {
+            CaseId = caseId,
+            Purpose = VideoSessionPurpose.HANDOVER_VERIFICATION,
+            SubjectUserId = benB,
+            AssignedVerifierId = executorId
+        }, benB);
+
+        await videoSessionService.ConfigureVaultAsync(caseId, RecipientMode.CO_OWNED, new[] { benB, benC });
+
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(sessionResp.SessionId, executorId, new AuthorizeRecipientRequest { RecipientId = benB });
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(sessionResp.SessionId, executorId, new AuthorizeRecipientRequest { RecipientId = benC });
+
+        var guestB = await videoSessionService.GetOrCreateGuestSessionAsync(caseId, benB, executorId, sessionResp.SessionId);
+        var guestC = await videoSessionService.GetOrCreateGuestSessionAsync(caseId, benC, executorId, sessionResp.SessionId);
+
+        // B và C cùng đồng ý nhận
+        await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, benB, new AcceptHandoverRequest { RecipientId = benB, SecondFactorProof = "pk-b" });
+        await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, benC, new AcceptHandoverRequest { RecipientId = benC, SecondFactorProof = "pk-c" });
+
+        var allAssetIds = new List<Guid>
+        {
+            Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            Guid.Parse("33333333-3333-3333-3333-333333333333")
+        };
+
+        // Act 1: B tải xong và hoàn tất phiên của B
+        var finalizeB = await videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, benB, new FinalizeHandoverRequest
+        {
+            RecipientId = benB,
+            GuestToken = guestB.GuestToken,
+            DownloadedAssetIds = allAssetIds
+        });
+
+        // Assert 1: B hoàn tất, nhưng phòng CHƯA ĐÓNG vì C vẫn còn đang active
+        Assert.True(finalizeB.Success);
+        Assert.False(finalizeB.IsRoomClosed); // Phòng vẫn mở cho C!
+        Assert.True(finalizeB.AreOtherBeneficiariesStillActive);
+
+        // Quyền của C vẫn còn hiệu lực đầy đủ
+        var eligC = await videoSessionService.GetHandoverEligibilityAsync(sessionResp.SessionId, benC);
+        Assert.True(eligC.CanDownload);
+        Assert.False(eligC.IsFinalized);
+
+        // Act 2: C tải xong và hoàn tất phiên của C
+        var finalizeC = await videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, benC, new FinalizeHandoverRequest
+        {
+            RecipientId = benC,
+            GuestToken = guestC.GuestToken,
+            DownloadedAssetIds = allAssetIds
+        });
+
+        // Assert 2: C hoàn tất -> Không còn ai active -> Phòng đóng hoàn toàn
+        Assert.True(finalizeC.Success);
+        Assert.False(finalizeC.AreOtherBeneficiariesStillActive);
+        Assert.True(finalizeC.IsRoomClosed);
+    }
+    #endregion
 }
+

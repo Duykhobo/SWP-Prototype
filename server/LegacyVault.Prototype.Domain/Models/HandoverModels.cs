@@ -1,12 +1,65 @@
 namespace LegacyVault.Prototype.Domain.Models;
 
 /// <summary>
+/// Cấu hình và trạng thái của Kho di sản bàn giao (Bundle/Vault)
+/// Hỗ trợ cả 1 người nhận (SINGLE_RECIPIENT) và nhóm đồng sở hữu (CO_OWNED) theo SRS v3.11.0.
+/// </summary>
+public class HandoverVaultConfig
+{
+    public Guid BundleId { get; set; } = Guid.NewGuid();
+    public Guid CaseId { get; set; }
+    public string BundleName { get; set; } = "Kho di sản chung";
+    public RecipientMode RecipientMode { get; set; } = RecipientMode.CO_OWNED;
+    public HashSet<Guid> DesignatedRecipientIds { get; set; } = new();
+    public HandoverStatus Status { get; set; } = HandoverStatus.PENDING_RESPONSE;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? ResponseDeadlineUtc { get; set; } // Hạn 7 ngày ban đầu
+    public DateTime? FreezeStartedAt { get; set; }
+    public DateTime? ReconsiderationExpiresAt { get; set; } // Hạn suy nghĩ lại 2 năm
+    public List<HandoverAssetItem> Assets { get; set; } = new();
+}
+
+/// <summary>
+/// Quyết định tiếp nhận của từng người nhận đối với một kho bàn giao cụ thể
+/// </summary>
+public class RecipientHandoverDecision
+{
+    public Guid BundleId { get; set; }
+    public Guid RecipientId { get; set; }
+    public string RecipientName { get; set; } = string.Empty;
+    public BeneficiaryDecisionType Decision { get; set; } = BeneficiaryDecisionType.PENDING;
+    public DateTime? DecidedAt { get; set; }
+    public bool LegalAcknowledgment { get; set; }
+    public string? SecondFactorProof { get; set; }
+    public string? RejectionReason { get; set; }
+    public string? ClientIpAddress { get; set; }
+    public string? UserAgent { get; set; }
+}
+
+/// <summary>
+/// Xác nhận của Executor cho đúng người nhận và đúng kho (không phê duyệt toàn Case)
+/// </summary>
+public class ExecutorRecipientAuthorization
+{
+    public Guid BundleId { get; set; }
+    public Guid RecipientId { get; set; }
+    public Guid ExecutorId { get; set; }
+    public bool IsAuthorized { get; set; } = true;
+    public DateTime AuthorizedAt { get; set; } = DateTime.UtcNow;
+    public string? Notes { get; set; }
+    public bool FaceMatched { get; set; } = true;
+    public bool NationalIdMatched { get; set; } = true;
+    public bool InteractiveChallengePassed { get; set; } = true;
+}
+
+/// <summary>
 /// Biên bản cam kết pháp lý khi người nhận chấp nhận di sản
 /// </summary>
 public class EstateCommitment
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid CaseId { get; set; }
+    public Guid BundleId { get; set; }
     public Guid SessionId { get; set; }
     public Guid RecipientId { get; set; }
     public DateTime CommittedAt { get; set; } = DateTime.UtcNow;
@@ -17,10 +70,12 @@ public class EstateCommitment
 
 /// <summary>
 /// Quyền giải mã và tải dữ liệu di sản (TTL 168 giờ)
+/// Cấp riêng cho từng người nhận đối với từng kho bàn giao
 /// </summary>
 public class AccessGrant
 {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid BundleId { get; set; }
     public Guid CaseId { get; set; }
     public Guid RecipientId { get; set; }
     public Guid CommitmentId { get; set; }
@@ -62,6 +117,7 @@ public class GuestHandoverSession
 {
     public string GuestToken { get; set; } = Guid.NewGuid().ToString("N");
     public Guid CaseId { get; set; }
+    public Guid BundleId { get; set; }
     public Guid SessionId { get; set; }
     public Guid BeneficiaryId { get; set; }
     public string BeneficiaryName { get; set; } = "Người Thụ Hưởng Được Chỉ Định";
@@ -79,12 +135,15 @@ public class GuestHandoverSession
 
 /// <summary>
 /// Biên nhận điện tử bàn giao di sản số sau khi người nhận bấm xác nhận hoàn tất
+/// Ràng buộc theo (GrantId + RecipientId)
 /// </summary>
 public class HandoverReceipt
 {
     public Guid ReceiptId { get; set; } = Guid.NewGuid();
     public string ReceiptNumber { get; set; } = $"RCP-LV-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}";
     public Guid CaseId { get; set; }
+    public Guid BundleId { get; set; }
+    public Guid GrantId { get; set; }
     public Guid SessionId { get; set; }
     public Guid BeneficiaryId { get; set; }
     public string BeneficiaryName { get; set; } = string.Empty;

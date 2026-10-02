@@ -45,4 +45,9 @@ public interface IVideoSessionService
     Task<GuestHandoverSession> GetOrCreateGuestSessionAsync(Guid caseId, Guid beneficiaryId, Guid executorId, Guid sessionId);
 
     Task<GuestHandoverSession?> ValidateGuestSessionAsync(string guestToken);
+
+    // Download audit & dynamic vault configuration
+    Task<bool> RecordAssetDownloadAsync(string downloadToken, Guid assetId);
+
+    Task<HandoverVaultConfig> ConfigureVaultAsync(Guid bundleOrCaseId, RecipientMode mode, IEnumerable<Guid> designatedRecipientIds);
 }

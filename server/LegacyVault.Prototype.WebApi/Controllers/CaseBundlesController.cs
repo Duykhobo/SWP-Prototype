@@ -33,9 +33,13 @@ public class CaseBundlesController : ControllerBase
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
 
         var token = guestToken ?? Request.Headers["X-Guest-Token"].FirstOrDefault();
-        var currentUserId = await ResolveEffectiveUserIdAsync(userId, token);
+        var auth = await ResolveCallerContextAsync(caseBundleId, token, userId);
+        if (!auth.IsSuccess)
+        {
+            return StatusCode(auth.StatusCode, new { success = false, message = auth.ErrorMessage });
+        }
 
-        var result = await _videoSessionService.GetHandoverEligibilityAsync(caseBundleId, currentUserId);
+        var result = await _videoSessionService.GetHandoverEligibilityAsync(caseBundleId, auth.UserId);
         return Ok(result);
     }
 
@@ -54,12 +58,20 @@ public class CaseBundlesController : ControllerBase
         var req = request ?? new AcceptHandoverRequest();
 
         var token = req.GuestToken ?? guestToken ?? Request.Headers["X-Guest-Token"].FirstOrDefault();
-        var currentUserId = await ResolveEffectiveUserIdAsync(userId ?? req.RecipientId, token);
+        var auth = await ResolveCallerContextAsync(caseBundleId, token, userId ?? req.RecipientId);
+        if (!auth.IsSuccess)
+        {
+            return StatusCode(auth.StatusCode, new AcceptHandoverResponse
+            {
+                Success = false,
+                Message = auth.ErrorMessage ?? "Không thể xác thực danh tính người nhận."
+            });
+        }
 
         req.ClientIpAddress ??= HttpContext.Connection.RemoteIpAddress?.ToString();
         req.UserAgent ??= Request.Headers.UserAgent.ToString();
-        req.RecipientId ??= currentUserId;
-        req.GuestToken ??= token;
+        req.RecipientId = auth.UserId;
+        req.GuestToken = token;
 
         // Xác thực Passkey / FIDO2 thứ hai
         if (!IsValidSecondFactorProof(req.SecondFactorProof))
@@ -71,7 +83,7 @@ public class CaseBundlesController : ControllerBase
             });
         }
 
-        var result = await _videoSessionService.AcceptHandoverAsync(caseBundleId, currentUserId, req);
+        var result = await _videoSessionService.AcceptHandoverAsync(caseBundleId, auth.UserId, req);
         if (!result.Success)
         {
             return BadRequest(result);
@@ -94,11 +106,15 @@ public class CaseBundlesController : ControllerBase
         Response.Headers.Append("Pragma", "no-cache");
 
         var token = guestToken ?? Request.Headers["X-Guest-Token"].FirstOrDefault();
-        var currentUserId = await ResolveEffectiveUserIdAsync(userId, token);
+        var auth = await ResolveCallerContextAsync(caseBundleId, token, userId);
+        if (!auth.IsSuccess)
+        {
+            return StatusCode(auth.StatusCode, new { success = false, message = auth.ErrorMessage });
+        }
 
         try
         {
-            var keyMaterial = await _videoSessionService.GetDecryptionKeyMaterialAsync(caseBundleId, currentUserId);
+            var keyMaterial = await _videoSessionService.GetDecryptionKeyMaterialAsync(caseBundleId, auth.UserId);
             return Ok(keyMaterial);
         }
         catch (InvalidOperationException ex)
@@ -122,7 +138,9 @@ public class CaseBundlesController : ControllerBase
         [FromQuery] Guid? executorId = null)
     {
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
-        var currentExecutorId = await ResolveEffectiveUserIdAsync(executorId, null);
+        var auth = await ResolveCallerContextAsync(caseBundleId, null, executorId);
+        var currentExecutorId = auth.IsSuccess ? auth.UserId : (executorId ?? Guid.Parse("22222222-2222-2222-2222-222222222222"));
+
         try
         {
             var req = request ?? new AuthorizeRecipientRequest();
@@ -151,14 +169,18 @@ public class CaseBundlesController : ControllerBase
     {
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
         var token = request.GuestToken ?? guestToken ?? Request.Headers["X-Guest-Token"].FirstOrDefault();
-        var currentBeneficiaryId = await ResolveEffectiveUserIdAsync(beneficiaryId ?? request.RecipientId, token);
+        var auth = await ResolveCallerContextAsync(caseBundleId, token, beneficiaryId ?? request.RecipientId);
+        if (!auth.IsSuccess)
+        {
+            return StatusCode(auth.StatusCode, new { success = false, message = auth.ErrorMessage });
+        }
 
-        request.GuestToken ??= token;
-        request.RecipientId ??= currentBeneficiaryId;
+        request.GuestToken = token;
+        request.RecipientId = auth.UserId;
 
         try
         {
-            var result = await _videoSessionService.FinalizeHandoverSessionAsync(caseBundleId, currentBeneficiaryId, request);
+            var result = await _videoSessionService.FinalizeHandoverSessionAsync(caseBundleId, auth.UserId, request);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -207,42 +229,74 @@ public class CaseBundlesController : ControllerBase
     public async Task<IActionResult> DownloadEncryptedAsset(
         [FromRoute] Guid caseBundleId, 
         [FromRoute] Guid assetId,
-        [FromQuery] string? downloadToken = null)
+        [FromQuery] string? downloadToken = null,
+        [FromQuery] string? token = null)
     {
-        var token = downloadToken ?? Request.Headers["X-Download-Token"].FirstOrDefault();
-        if (!string.IsNullOrEmpty(token))
+        var effectiveToken = downloadToken ?? token ?? Request.Headers["X-Download-Token"].FirstOrDefault();
+        var result = await _videoSessionService.VerifyAndServeEncryptedAssetAsync(caseBundleId, assetId, effectiveToken);
+        if (!result.Success)
         {
-            await _videoSessionService.RecordAssetDownloadAsync(token, assetId);
+            return StatusCode(result.StatusCode, new { success = false, message = result.ErrorMessage });
         }
 
-        var dummyEncryptedBytes = System.Text.Encoding.UTF8.GetBytes($"[CIPHERTEXT-BLOB:CASE-{caseBundleId}:ASSET-{assetId}]");
-        return File(dummyEncryptedBytes, "application/octet-stream", $"asset_{assetId:N}.enc");
+        return File(result.EncryptedData!, result.ContentType, result.FileName);
     }
 
-    private async Task<Guid> ResolveEffectiveUserIdAsync(Guid? explicitUserId, string? guestToken)
+    private record AuthContextResult(bool IsSuccess, int StatusCode, string? ErrorMessage, Guid UserId, bool IsGuest, GuestHandoverSession? GuestSession);
+
+    private async Task<AuthContextResult> ResolveCallerContextAsync(
+        Guid caseBundleId,
+        string? guestToken,
+        Guid? explicitUserId = null)
     {
+        // 1. Nếu có cung cấp Guest Token: Bắt buộc phải kiểm tra nghiêm ngặt, KHÔNG BAO GIỜ FALLBACK nếu token sai!
         if (!string.IsNullOrWhiteSpace(guestToken))
         {
-            var guestSession = await _videoSessionService.ValidateGuestSessionAsync(guestToken);
-            if (guestSession != null)
-                return guestSession.BeneficiaryId;
+            var guest = await _videoSessionService.ValidateGuestSessionAsync(guestToken);
+            if (guest == null)
+            {
+                return new AuthContextResult(false, 401, "Phiên khách (Guest Token) không hợp lệ, đã hết hạn hoặc đã hoàn tất.", Guid.Empty, false, null);
+            }
+
+            if (guest.BundleId != caseBundleId && guest.CaseId != caseBundleId)
+            {
+                return new AuthContextResult(false, 403, "Phiên khách không có quyền hạn trên kho di sản này.", Guid.Empty, false, null);
+            }
+
+            if (explicitUserId.HasValue && explicitUserId.Value != Guid.Empty && explicitUserId.Value != guest.BeneficiaryId)
+            {
+                return new AuthContextResult(false, 403, "Danh tính yêu cầu không khớp với phiên khách đã cấp.", Guid.Empty, false, null);
+            }
+
+            return new AuthContextResult(true, 200, null, guest.BeneficiaryId, true, guest);
         }
 
-        if (explicitUserId.HasValue && explicitUserId.Value != Guid.Empty)
-            return explicitUserId.Value;
-
+        // 2. Nếu không có Guest Token, kiểm tra JWT Claims
         var subClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (!string.IsNullOrEmpty(subClaim) && Guid.TryParse(subClaim, out var parsed))
-            return parsed;
+        {
+            return new AuthContextResult(true, 200, null, parsed, false, null);
+        }
 
-        // Fallback mặc định cho Prototype Testbench
-        return Guid.Parse("11111111-1111-1111-1111-111111111111");
+        // 3. Fallback cho Môi trường Testbench Prototype nếu có chỉ định rõ ràng userId
+        if (explicitUserId.HasValue && explicitUserId.Value != Guid.Empty)
+        {
+            return new AuthContextResult(true, 200, null, explicitUserId.Value, false, null);
+        }
+
+        // Mặc định cho testbench khi không có token hay user nào truyền vào
+        return new AuthContextResult(true, 200, null, Guid.Parse("11111111-1111-1111-1111-111111111111"), false, null);
     }
 
     private static bool IsValidSecondFactorProof(string? proof)
     {
         if (string.IsNullOrWhiteSpace(proof)) return false;
-        // Kiểm tra chữ ký Passkey/WebAuthn tối thiểu 16 ký tự và định dạng hợp lệ
+        // Kiểm tra chữ ký Passkey / WebAuthn assertion:
+        if (proof.StartsWith("{") && proof.EndsWith("}"))
+        {
+            // WebAuthn structured assertion (clientDataJSON / authenticatorData / signature)
+            return proof.Contains("authenticatorData") || proof.Contains("clientDataJSON") || proof.Contains("signature");
+        }
         return proof.Length >= 16;
     }
 }

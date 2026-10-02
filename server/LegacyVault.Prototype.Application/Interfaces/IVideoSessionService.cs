@@ -49,5 +49,7 @@ public interface IVideoSessionService
     // Download audit & dynamic vault configuration
     Task<bool> RecordAssetDownloadAsync(string downloadToken, Guid assetId);
 
+    Task<AssetDownloadResultDto> VerifyAndServeEncryptedAssetAsync(Guid bundleId, Guid assetId, string? downloadToken);
+
     Task<HandoverVaultConfig> ConfigureVaultAsync(Guid bundleOrCaseId, RecipientMode mode, IEnumerable<Guid> designatedRecipientIds);
 }

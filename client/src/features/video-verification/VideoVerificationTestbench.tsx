@@ -158,6 +158,55 @@ export const VideoVerificationTestbench: React.FC = () => {
   const [finalReceipt, setFinalReceipt] = useState<any>(null);
   const [showReceiptModal, setShowReceiptModal] = useState<boolean>(false);
 
+  // Ký xác nhận biên nhận điện tử (Canvas Signature Pad)
+  const signatureCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [hasDrawnSignature, setHasDrawnSignature] = useState<boolean>(false);
+  const [isDrawingSignature, setIsDrawingSignature] = useState<boolean>(false);
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    setIsDrawingSignature(true);
+    const rect = canvas.getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    ctx.beginPath();
+    ctx.moveTo(clientX - rect.left, clientY - rect.top);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawingSignature) return;
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#0B291E";
+    ctx.lineTo(clientX - rect.left, clientY - rect.top);
+    ctx.stroke();
+    setHasDrawnSignature(true);
+  };
+
+  const stopDrawing = () => {
+    setIsDrawingSignature(false);
+  };
+
+  const clearSignature = () => {
+    const canvas = signatureCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setHasDrawnSignature(false);
+  };
+
   // Tải trạng thái điều kiện bàn giao từ Backend
   const fetchHandoverEligibility = async (targetSessionId?: string) => {
     const sId = targetSessionId || sessionId;
@@ -209,14 +258,21 @@ export const VideoVerificationTestbench: React.FC = () => {
     }
   };
 
-  // Bước 6 & 7: Người nhận bấm "Tôi xác nhận đã nhận đầy đủ và muốn kết thúc phiên"
+  // Bước 6 & 7: Người nhận bấm "Tôi xác nhận đã nhận đầy đủ & Ký biên nhận điện tử"
   const handleFinalizeHandover = async () => {
     if (!sessionId) return;
     try {
       setIsFinalizing(true);
+      let signatureDataUrl: string | undefined = undefined;
+      if (signatureCanvasRef.current && hasDrawnSignature) {
+        signatureDataUrl = signatureCanvasRef.current.toDataURL("image/png");
+      }
+
       const res = await axios.post(`${API_BASE}/api/case-bundles/${caseId}/finalize-handover`, {
         downloadedAssetIds: downloadedAssetIds,
+        clientConfirmedAssetIds: downloadedAssetIds,
         legalDeclaration: "Tôi xác nhận đã nhận đầy đủ và muốn kết thúc phiên.",
+        recipientSignatureData: signatureDataUrl,
         guestToken: guestToken,
       });
       setFinalReceipt(res.data.receipt);
@@ -1532,23 +1588,64 @@ export const VideoVerificationTestbench: React.FC = () => {
                               mandatoryAssets.every((a: any) => downloadedAssetIds.includes(a.assetId));
 
                             return (
-                              <div className="space-y-2">
+                              <div className="space-y-3">
+                                {/* Khung ký tay xác nhận điện tử */}
+                                <div className="p-3 bg-[#FAF9F5] border border-[#DCD9D0] rounded-xl space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[11px] font-bold text-[#0B291E] flex items-center gap-1">
+                                      <span>Ký xác nhận biên nhận điện tử (Electronic Signature):</span>
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={clearSignature}
+                                      className="text-[10px] text-amber-700 hover:text-amber-800 underline cursor-pointer"
+                                    >
+                                      Ký lại (Xóa)
+                                    </button>
+                                  </div>
+                                  <div className="bg-white border-2 border-dashed border-[#DCD9D0] rounded-lg overflow-hidden relative">
+                                    <canvas
+                                      ref={signatureCanvasRef}
+                                      width={380}
+                                      height={90}
+                                      onMouseDown={startDrawing}
+                                      onMouseMove={draw}
+                                      onMouseUp={stopDrawing}
+                                      onMouseLeave={stopDrawing}
+                                      onTouchStart={startDrawing}
+                                      onTouchMove={draw}
+                                      onTouchEnd={stopDrawing}
+                                      className="w-full h-[90px] cursor-crosshair touch-none"
+                                    />
+                                    {!hasDrawnSignature && (
+                                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center text-[11px] text-[#A09D94] italic">
+                                        Dùng chuột hoặc ngón tay ký vào đây...
+                                      </div>
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] text-[#66786E]">
+                                    Chữ ký điện tử sẽ được băm mã hóa SHA-256 gắn liền với nội dung biên nhận và lưu trữ vĩnh viễn trong CSDL kiểm toán.
+                                  </p>
+                                </div>
+
                                 <button
                                   onClick={handleFinalizeHandover}
-                                  disabled={!allMandatoryDone || isFinalizing}
+                                  disabled={!allMandatoryDone || !hasDrawnSignature || isFinalizing}
                                   className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                                 >
                                   <ShieldCheck className="w-4 h-4 text-emerald-300" />
                                   <span>
                                     {isFinalizing
                                       ? "Đang lưu biên nhận & đóng phiên..."
-                                      : "Tôi xác nhận đã nhận đầy đủ và muốn kết thúc phiên"}
+                                      : !hasDrawnSignature
+                                      ? "Vui lòng ký tên vào ô trên để hoàn tất"
+                                      : "Tôi xác nhận đã nhận đầy đủ & Ký biên nhận điện tử"}
                                   </span>
                                 </button>
 
                                 {!allMandatoryDone && (
                                   <p className="text-[10px] text-amber-800 text-center italic">
-                                    (Vui lòng tải & giải mã toàn bộ {mandatoryAssets.length} tệp bắt buộc ở trên để kích hoạt nút xác nhận hoàn tất.)
+                                    (Vui lòng tải & giải mã toàn bộ {mandatoryAssets.length} tệp bắt buộc ở trên để kích hoạt ký nhận.)
                                   </p>
                                 )}
                               </div>
@@ -1754,9 +1851,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                 <strong className="text-[#0B291E]">{finalReceipt.beneficiaryName}</strong>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-[#EFECE6]">
-                <span className="text-[#66786E]">Tệp bắt buộc đã nhận:</span>
+                <span className="text-[#66786E]">Tệp bắt buộc đã nhận & đối soát:</span>
                 <strong className="text-emerald-700 font-mono">
-                  {finalReceipt.downloadedAssetsCount}/{finalReceipt.totalAssetsCount} tệp (100%)
+                  {finalReceipt.downloadedAssetsCount}/{finalReceipt.totalAssetsCount} tệp (Máy chủ & Thiết bị 100%)
                 </strong>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-[#EFECE6]">
@@ -1765,10 +1862,25 @@ export const VideoVerificationTestbench: React.FC = () => {
                   ĐÃ THU HỒI & ĐÓNG PHIÊN
                 </span>
               </div>
+              {/* Hiển thị chữ ký vẽ tay điện tử */}
+              {finalReceipt.recipientSignatureData && (
+                <div className="p-2 bg-white border border-[#DCD9D0] rounded-lg text-center space-y-1">
+                  <span className="text-[10px] text-[#66786E] block font-semibold">Chữ ký điện tử người nhận:</span>
+                  <div className="bg-[#FAF9F5] p-1.5 rounded border border-[#EFECE6] flex items-center justify-center">
+                    <img
+                      src={finalReceipt.recipientSignatureData}
+                      alt="Chữ ký điện tử của người thụ hưởng"
+                      className="max-h-16 object-contain"
+                    />
+                  </div>
+                </div>
+              )}
               <div className="pt-1">
-                <span className="text-[10px] text-[#66786E] block mb-1">Chữ ký số chứng thực (Digital Audit Signature):</span>
+                <span className="text-[10px] text-[#66786E] block mb-1">
+                  Ký xác nhận biên nhận điện tử (Mã băm toàn vẹn SHA-256):
+                </span>
                 <span className="font-mono text-[10px] bg-white border border-[#DCD9D0] p-1.5 rounded block break-all text-[#0B291E]">
-                  {finalReceipt.digitalSignatureAudit}
+                  {finalReceipt.receiptAuditDigest || finalReceipt.digitalSignatureAudit}
                 </span>
               </div>
             </div>

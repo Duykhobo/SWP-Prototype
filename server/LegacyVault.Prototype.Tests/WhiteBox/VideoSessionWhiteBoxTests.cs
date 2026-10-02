@@ -239,7 +239,8 @@ public class VideoSessionWhiteBoxTests
 
         // Khởi tạo TimeLock và giải phóng thời gian trễ
         timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: true);
-        // Chuyển sang đã duyệt
+        timeLockService.ApproveCaseForDelivery(caseId); // TimeLock kiểm tra và phê duyệt độc lập với thẩm định video
+
         var sessionResp = await videoSessionService.RequestSessionAsync(new CreateVideoSessionRequest
         {
             CaseId = caseId,
@@ -350,6 +351,8 @@ public class VideoSessionWhiteBoxTests
             Outcome = VerificationOutcome.PASS
         }, verifierId);
 
+        timeLockService.ApproveCaseForDelivery(caseId); // TimeLock phê duyệt độc lập
+
         // Grant cấp thành công
         var acceptResp = await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, subjectId, new AcceptHandoverRequest
         {
@@ -445,7 +448,18 @@ public class VideoSessionWhiteBoxTests
         // Executor cho phép nhận
         await videoSessionService.AuthorizeRecipientByExecutorAsync(sessionResp.SessionId, executorId, new AuthorizeRecipientRequest());
 
-        // Kịch bản A: Người nhận chưa tải đủ 3 file bắt buộc mà cố bấm kết thúc -> Phải ném lỗi!
+        timeLockService.ApproveCaseForDelivery(caseId);
+
+        // Người nhận chấp nhận di sản để được cấp Grant ACTIVE
+        var acceptResp = await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, subjectId, new AcceptHandoverRequest
+        {
+            LegalAcknowledgment = true,
+            SecondFactorProof = "passkey-valid-signature"
+        });
+        Assert.True(acceptResp.Success);
+        Assert.NotNull(acceptResp.DownloadToken);
+
+        // Kịch bản A: Người nhận chưa tải file qua server (hoặc chưa đủ file) mà cố bấm kết thúc -> Phải ném lỗi!
         var partialAssetIds = new List<Guid> { Guid.Parse("11111111-1111-1111-1111-111111111111") }; // Chỉ mới tải 1 file
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, subjectId, new FinalizeHandoverRequest
@@ -454,7 +468,7 @@ public class VideoSessionWhiteBoxTests
                 GuestToken = guestSession.GuestToken
             }));
 
-        // Kịch bản B: Người nhận đã tải đủ cả 3 file bắt buộc -> Phát hành Receipt và thu hồi Guest Token
+        // Kịch bản B: Người nhận đã thực sự tải đủ cả 3 file qua máy chủ
         var allAssetIds = new List<Guid>
         {
             Guid.Parse("11111111-1111-1111-1111-111111111111"),
@@ -462,17 +476,26 @@ public class VideoSessionWhiteBoxTests
             Guid.Parse("33333333-3333-3333-3333-333333333333")
         };
 
+        foreach (var assetId in allAssetIds)
+        {
+            var downloaded = await videoSessionService.RecordAssetDownloadAsync(acceptResp.DownloadToken, assetId);
+            Assert.True(downloaded);
+        }
+
         var finalizeResp = await videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, subjectId, new FinalizeHandoverRequest
         {
             DownloadedAssetIds = allAssetIds,
             GuestToken = guestSession.GuestToken,
-            LegalDeclaration = "Tôi xác nhận đã nhận đầy đủ và muốn kết thúc phiên."
+            LegalDeclaration = "Tôi xác nhận đã nhận đầy đủ và muốn kết thúc phiên.",
+            RecipientSignatureData = "data:image/svg+xml;utf8,<svg>test-signature</svg>"
         });
 
         Assert.True(finalizeResp.Success);
         Assert.NotNull(finalizeResp.Receipt);
         Assert.StartsWith("RCP-LV-", finalizeResp.Receipt.ReceiptNumber);
         Assert.Equal(3, finalizeResp.Receipt.DownloadedAssetsCount);
+        Assert.NotEmpty(finalizeResp.Receipt.ReceiptContentHash);
+        Assert.StartsWith("SHA256:", finalizeResp.Receipt.ReceiptAuditDigest);
 
         // Xác thực Guest Session đã bị thu hồi
         var validatedGuest = await videoSessionService.ValidateGuestSessionAsync(guestSession.GuestToken);
@@ -788,8 +811,15 @@ public class VideoSessionWhiteBoxTests
         var guestC = await videoSessionService.GetOrCreateGuestSessionAsync(caseId, benC, executorId, sessionResp.SessionId);
 
         // B và C cùng đồng ý nhận
-        await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, benB, new AcceptHandoverRequest { RecipientId = benB, SecondFactorProof = "pk-b" });
-        await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, benC, new AcceptHandoverRequest { RecipientId = benC, SecondFactorProof = "pk-c" });
+        var acceptB_initial = await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, benB, new AcceptHandoverRequest { RecipientId = benB, SecondFactorProof = "pk-b" });
+        Assert.False(acceptB_initial.IsConsensusComplete); // B đồng ý nhưng chưa đủ đồng thuận
+
+        var acceptC = await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, benC, new AcceptHandoverRequest { RecipientId = benC, SecondFactorProof = "pk-c" });
+        Assert.True(acceptC.IsConsensusComplete); // C đồng ý -> Đủ 100% đồng thuận, cấp Grant cho cả nhóm
+
+        // B lấy Grant cá nhân sau khi đạt đồng thuận
+        var acceptB = await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, benB, new AcceptHandoverRequest { RecipientId = benB, SecondFactorProof = "pk-b" });
+        Assert.NotNull(acceptB.DownloadToken);
 
         var allAssetIds = new List<Guid>
         {
@@ -797,6 +827,13 @@ public class VideoSessionWhiteBoxTests
             Guid.Parse("22222222-2222-2222-2222-222222222222"),
             Guid.Parse("33333333-3333-3333-3333-333333333333")
         };
+
+        // B tải xong các file qua server
+        foreach (var assetId in allAssetIds)
+        {
+            var ok = await videoSessionService.RecordAssetDownloadAsync(acceptB.DownloadToken!, assetId);
+            Assert.True(ok);
+        }
 
         // Act 1: B tải xong và hoàn tất phiên của B
         var finalizeB = await videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, benB, new FinalizeHandoverRequest
@@ -816,6 +853,12 @@ public class VideoSessionWhiteBoxTests
         Assert.True(eligC.CanDownload);
         Assert.False(eligC.IsFinalized);
 
+        // C tải xong các file qua server
+        foreach (var assetId in allAssetIds)
+        {
+            await videoSessionService.RecordAssetDownloadAsync(acceptC.DownloadToken!, assetId);
+        }
+
         // Act 2: C tải xong và hoàn tất phiên của C
         var finalizeC = await videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, benC, new FinalizeHandoverRequest
         {
@@ -828,6 +871,190 @@ public class VideoSessionWhiteBoxTests
         Assert.True(finalizeC.Success);
         Assert.False(finalizeC.AreOtherBeneficiariesStillActive);
         Assert.True(finalizeC.IsRoomClosed);
+    }
+    #endregion
+
+    #region SRS Security & Electronic Signature Tests
+    [Fact]
+    public async Task DownloadAsset_WithoutToken_OrInvalidToken_ShouldReturn401()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var bundleId = Guid.NewGuid();
+        var assetId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
+        // Act 1: Không có token
+        var resNoToken = await videoSessionService.VerifyAndServeEncryptedAssetAsync(bundleId, assetId, null);
+        Assert.False(resNoToken.Success);
+        Assert.Equal(401, resNoToken.StatusCode);
+
+        // Act 2: Token giả mạo không tồn tại
+        var resFakeToken = await videoSessionService.VerifyAndServeEncryptedAssetAsync(bundleId, assetId, "fake-download-token-1234");
+        Assert.False(resFakeToken.Success);
+        Assert.Equal(401, resFakeToken.StatusCode);
+    }
+
+    [Fact]
+    public async Task DownloadAsset_WhenRescueHoldActive_ShouldReturn423Locked()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var subjectId = Guid.NewGuid();
+        var ownerId = Guid.NewGuid();
+        var executorId = Guid.NewGuid();
+
+        timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: true);
+        timeLockService.ApproveCaseForDelivery(caseId);
+
+        var sessionResp = await videoSessionService.RequestSessionAsync(new CreateVideoSessionRequest
+        {
+            CaseId = caseId,
+            Purpose = VideoSessionPurpose.HANDOVER_VERIFICATION,
+            SubjectUserId = subjectId,
+            AssignedVerifierId = executorId
+        }, subjectId);
+
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(sessionResp.SessionId, executorId, new AuthorizeRecipientRequest());
+
+        var acceptResp = await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, subjectId, new AcceptHandoverRequest
+        {
+            LegalAcknowledgment = true,
+            SecondFactorProof = "passkey-ok"
+        });
+        Assert.True(acceptResp.Success);
+        Assert.NotNull(acceptResp.DownloadToken);
+
+        // Chủ kho kích hoạt Rescue Hold
+        await videoSessionService.TriggerRescueHoldAsync(caseId, ownerId, "Khẩn cấp: Tạm giữ");
+
+        // Act: Người nhận cố tải file bằng downloadToken hợp lệ -> Phải bị chặn 423 Locked!
+        var assetId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var downloadResult = await videoSessionService.VerifyAndServeEncryptedAssetAsync(caseId, assetId, acceptResp.DownloadToken);
+
+        Assert.False(downloadResult.Success);
+        Assert.Equal(423, downloadResult.StatusCode);
+        Assert.Contains("Rescue Hold", downloadResult.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task SubmitVerdict_Pass_DoesNotAlterCaseTimeLockCountdown()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var subjectId = Guid.NewGuid();
+        var verifierId = Guid.NewGuid();
+
+        // Khởi tạo TimeLock 48 giờ (không phải demo)
+        var initialTimeLock = timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: false);
+        Assert.True(initialTimeLock.IsLocked);
+        Assert.True(initialTimeLock.RemainingSeconds > 3600);
+
+        var sessionResp = await videoSessionService.RequestSessionAsync(new CreateVideoSessionRequest
+        {
+            CaseId = caseId,
+            Purpose = VideoSessionPurpose.HANDOVER_VERIFICATION,
+            SubjectUserId = subjectId,
+            AssignedVerifierId = verifierId
+        }, subjectId);
+
+        // Act: Verifier xác minh video đạt tiêu chuẩn (PASS)
+        await videoSessionService.SubmitVerdictAsync(sessionResp.SessionId, new SubmitVerdictRequest
+        {
+            Outcome = VerificationOutcome.PASS,
+            VerifierNotes = "Khuôn mặt và CCCD khớp 100%."
+        }, verifierId);
+
+        // Assert: TimeLock KHÔNG bị đặt về 0 hoặc mở khóa ngay lập tức!
+        var postVerdictTimeLock = timeLockService.GetStatus(caseId);
+        Assert.True(postVerdictTimeLock.IsLocked);
+        Assert.True(postVerdictTimeLock.RemainingSeconds > 3600);
+    }
+
+    [Fact]
+    public async Task FinalizeHandover_RequiresValidServerDownloads_AndGeneratesTrueSha256ReceiptDigest()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var subjectId = Guid.NewGuid();
+        var executorId = Guid.NewGuid();
+
+        timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: true);
+        timeLockService.ApproveCaseForDelivery(caseId);
+
+        var sessionResp = await videoSessionService.RequestSessionAsync(new CreateVideoSessionRequest
+        {
+            CaseId = caseId,
+            Purpose = VideoSessionPurpose.HANDOVER_VERIFICATION,
+            SubjectUserId = subjectId,
+            AssignedVerifierId = executorId
+        }, subjectId);
+
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(sessionResp.SessionId, executorId, new AuthorizeRecipientRequest());
+
+        var acceptResp = await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, subjectId, new AcceptHandoverRequest
+        {
+            LegalAcknowledgment = true,
+            SecondFactorProof = "passkey-ok"
+        });
+
+        var allAssetIds = new List<Guid>
+        {
+            Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            Guid.Parse("33333333-3333-3333-3333-333333333333")
+        };
+
+        // Khi người nhận chưa tải qua server mà bấm finalize -> Ném lỗi
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, subjectId, new FinalizeHandoverRequest
+            {
+                DownloadedAssetIds = allAssetIds
+            }));
+
+        // Tải đủ file qua server
+        foreach (var assetId in allAssetIds)
+        {
+            var res = await videoSessionService.VerifyAndServeEncryptedAssetAsync(caseId, assetId, acceptResp.DownloadToken);
+            Assert.True(res.Success);
+            Assert.NotNull(res.EncryptedData);
+        }
+
+        // Ký xác nhận biên nhận điện tử
+        var signatureData = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+        var finalizeResp = await videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, subjectId, new FinalizeHandoverRequest
+        {
+            DownloadedAssetIds = allAssetIds,
+            RecipientSignatureData = signatureData,
+            LegalDeclaration = "Tôi cam đoan đã nhận và giải mã toàn bộ tệp di sản."
+        });
+
+        Assert.True(finalizeResp.Success);
+        var receipt = finalizeResp.Receipt;
+        Assert.NotNull(receipt);
+        Assert.Equal(signatureData, receipt.RecipientSignatureData);
+        Assert.Equal("ELECTRONIC_RECEIPT_SIGNATURE", receipt.SignatureType);
+        Assert.NotEmpty(receipt.ReceiptContentHash);
+        Assert.Equal(64, receipt.ReceiptContentHash.Length); // 64 hex chars = 256 bits
+        Assert.Equal($"SHA256:{receipt.ReceiptContentHash}", receipt.ReceiptAuditDigest);
     }
     #endregion
 }

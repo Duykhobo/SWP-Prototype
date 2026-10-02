@@ -163,8 +163,12 @@ public class FinalizeHandoverRequest
     public Guid? RecipientId { get; set; }
     public Guid? BundleId { get; set; }
     public List<Guid> DownloadedAssetIds { get; set; } = new();
+    public List<Guid>? ClientConfirmedAssetIds { get; set; }
     public string LegalDeclaration { get; set; } = "Tôi xác nhận đã nhận đầy đủ và muốn kết thúc phiên.";
     public string? GuestToken { get; set; }
+    
+    // Ký xác nhận biên nhận điện tử
+    public string? RecipientSignatureData { get; set; } // Data URI từ Canvas chữ ký
 }
 
 public class FinalizeHandoverResponse
@@ -191,6 +195,22 @@ public class HandoverReceiptDto
     public DateTime ReceivedAt { get; set; }
     public int DownloadedAssetsCount { get; set; }
     public int TotalAssetsCount { get; set; }
+    public List<Guid> ServerServedAssetIds { get; set; } = new();
+    public List<Guid> ClientConfirmedAssetIds { get; set; } = new();
     public string LegalDeclaration { get; set; } = string.Empty;
+    public string SignatureType { get; set; } = "ELECTRONIC_RECEIPT_SIGNATURE";
+    public string? RecipientSignatureData { get; set; }
+    public string ReceiptContentHash { get; set; } = string.Empty;
+    public string ReceiptAuditDigest { get; set; } = string.Empty;
     public string DigitalSignatureAudit { get; set; } = string.Empty;
+}
+
+public class AssetDownloadResultDto
+{
+    public bool Success { get; set; }
+    public string? ErrorMessage { get; set; }
+    public int StatusCode { get; set; } = 200;
+    public string FileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = "application/octet-stream";
+    public byte[]? EncryptedData { get; set; }
 }

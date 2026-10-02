@@ -149,8 +149,18 @@ public class HandoverReceipt
     public string BeneficiaryName { get; set; } = string.Empty;
     public Guid ExecutorId { get; set; }
     public DateTime ReceivedAt { get; set; } = DateTime.UtcNow;
-    public List<Guid> DownloadedAssetIds { get; set; } = new();
+    
+    // Tách bạch: Log máy chủ đã phục vụ file & Xác nhận người nhận đã tải/mở được file
+    public List<Guid> ServerServedAssetIds { get; set; } = new();
+    public List<Guid> ClientConfirmedAssetIds { get; set; } = new();
+    public List<Guid> DownloadedAssetIds { get; set; } = new(); // Giữ cho tương thích ngược
     public int TotalAssetsCount { get; set; }
     public string LegalDeclaration { get; set; } = "Tôi xác nhận đã nhận đầy đủ và muốn kết thúc phiên.";
-    public string DigitalSignatureAudit { get; set; } = string.Empty;
+
+    // Ký xác nhận biên nhận điện tử (Electronic Receipt Confirmation)
+    public string SignatureType { get; set; } = "ELECTRONIC_RECEIPT_SIGNATURE";
+    public string? RecipientSignatureData { get; set; } // Data URI (canvas chữ ký)
+    public string ReceiptContentHash { get; set; } = string.Empty; // SHA-256 thực của nội dung biên nhận
+    public string ReceiptAuditDigest { get; set; } = string.Empty; // SHA256:{hash}
+    public string DigitalSignatureAudit { get; set; } = string.Empty; // Tương thích ngược
 }

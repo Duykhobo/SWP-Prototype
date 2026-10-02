@@ -106,6 +106,44 @@ public class VideoSessionsController : ControllerBase
     }
 
     /// <summary>
+    /// Kiểm tra điều kiện bàn giao di sản ngay trong phòng gọi video
+    /// </summary>
+    [HttpGet("{sessionId}/handover-eligibility")]
+    public async Task<IActionResult> GetHandoverEligibility(
+        [FromRoute] Guid sessionId, 
+        [FromQuery] Guid? userId = null)
+    {
+        Response.Headers.Append("Cache-Control", "no-store, no-cache");
+        var currentUserId = GetCurrentUserId(userId);
+        var eligibility = await _videoSessionService.GetHandoverEligibilityAsync(sessionId, currentUserId);
+        return Ok(eligibility);
+    }
+
+    /// <summary>
+    /// Người nhận bấm "Chấp nhận nhận di sản" ngay trong phòng gọi
+    /// </summary>
+    [HttpPost("{sessionId}/accept-handover")]
+    public async Task<IActionResult> AcceptHandoverInCall(
+        [FromRoute] Guid sessionId, 
+        [FromBody] AcceptHandoverRequest? request = null,
+        [FromQuery] Guid? userId = null)
+    {
+        Response.Headers.Append("Cache-Control", "no-store, no-cache");
+        var currentUserId = GetCurrentUserId(userId);
+        var req = request ?? new AcceptHandoverRequest();
+        req.ClientIpAddress ??= HttpContext.Connection.RemoteIpAddress?.ToString();
+        req.UserAgent ??= Request.Headers.UserAgent.ToString();
+
+        var result = await _videoSessionService.AcceptHandoverAsync(sessionId, currentUserId, req);
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
+
+        return Ok(result);
+    }
+
+    /// <summary>
     /// P0: Owner kích hoạt Emergency Hold và tự động mở phiên xác minh cứu hộ khẩn cấp
     /// </summary>
     [HttpPost("rescue/hold")]

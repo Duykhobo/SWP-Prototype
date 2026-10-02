@@ -9,5 +9,6 @@ public interface ITimeLockRescueService
     TimeLockStatusDto GetStatus(Guid caseId);
     TimeLockStatusDto SubmitAliveClaim(SubmitAliveClaimRequest request);
     TimeLockStatusDto AdjudicateRescue(RescueDecisionRequest request);
+    TimeLockStatusDto ApproveCaseForDelivery(Guid caseId);
     void ToggleDemoMode(Guid caseId, bool isDemoMode);
 }

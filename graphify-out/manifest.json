@@ -2034,10 +2034,10 @@
     "semantic_hash": "ecd2d24911fc214ce1d97dcc60f5ffdc"
   },
   "server/LegacyVault.Prototype.Application/Interfaces/ITimeLockRescueService.cs": {
-    "mtime": 1790574951.898429,
-    "seen": 1790906350.5763621,
-    "ast_hash": "63b2456389ff62e908dbd5430af40a79",
-    "semantic_hash": "63b2456389ff62e908dbd5430af40a79"
+    "mtime": 1790951431.3489583,
+    "seen": 1790951710.3085961,
+    "ast_hash": "c127fbfff6f26377a48f3857e912a653",
+    "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Application/LegacyVault.Prototype.Application.csproj": {
     "mtime": 1790574760.981117,
@@ -2148,10 +2148,10 @@
     "semantic_hash": "da0558d6f9286d605fa2f8cb83786b6e"
   },
   "server/LegacyVault.Prototype.Infrastructure/Services/TimeLockRescueService.cs": {
-    "mtime": 1790575011.786929,
-    "seen": 1790906350.5763621,
-    "ast_hash": "24e79fa1dbffc2cecaf09663423d32f6",
-    "semantic_hash": "24e79fa1dbffc2cecaf09663423d32f6"
+    "mtime": 1790951437.4018495,
+    "seen": 1790951710.3131354,
+    "ast_hash": "0ca6dfb93e944fee5cd31a16697415d1",
+    "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Tests/BlackBox/BoundaryValueAnalysisTests.cs": {
     "mtime": 1790614417.3021512,
@@ -3354,9 +3354,9 @@
     "semantic_hash": ""
   },
   "client/src/features/video-verification/VideoVerificationTestbench.tsx": {
-    "mtime": 1790949882.773199,
-    "seen": 1790949972.4195151,
-    "ast_hash": "d423b3de528611789828d72431242aca",
+    "mtime": 1790952457.6273131,
+    "seen": 1790952540.159557,
+    "ast_hash": "925a663514f2cd678e464b5711b6059e",
     "semantic_hash": ""
   },
   "scratch/build_from_template.js": {
@@ -3432,9 +3432,9 @@
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Application/Interfaces/IVideoSessionService.cs": {
-    "mtime": 1790947966.562176,
-    "seen": 1790948348.3650224,
-    "ast_hash": "bd24223676d3dcc00b38cc2b46632878",
+    "mtime": 1790951873.5960395,
+    "seen": 1790952540.1793633,
+    "ast_hash": "bcb7b736e037b8f39143df040dd5e68c",
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Domain/Models/VideoSessionModels.cs": {
@@ -3450,21 +3450,21 @@
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Infrastructure/Services/VideoSessionService.cs": {
-    "mtime": 1790948044.470969,
-    "seen": 1790948348.3695304,
-    "ast_hash": "dc98fa028033959720270f0d3176c2c1",
+    "mtime": 1790951834.6191747,
+    "seen": 1790952540.184875,
+    "ast_hash": "af5e3075cc133681811cf9272a07ae62",
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Tests/WhiteBox/VideoSessionWhiteBoxTests.cs": {
-    "mtime": 1790948089.6180935,
-    "seen": 1790948348.3730752,
-    "ast_hash": "17ae23f49d2cb12d869465323c4f06aa",
+    "mtime": 1790951912.7401893,
+    "seen": 1790952540.187391,
+    "ast_hash": "57b8e90ec2c01fe54444f59fffed1eba",
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.WebApi/Controllers/VideoSessionsController.cs": {
-    "mtime": 1790948006.3701992,
-    "seen": 1790948348.3750756,
-    "ast_hash": "b06634cf737d4add53e1503a63bde64a",
+    "mtime": 1790951033.3980353,
+    "seen": 1790951710.3161356,
+    "ast_hash": "8cf8eaed939260ae96ca32791a7464c1",
     "semantic_hash": ""
   },
   "scratch/system-flows-template.html": {
@@ -3477,6 +3477,24 @@
     "mtime": 1790927066.42734,
     "seen": 1790948348.4176772,
     "ast_hash": "1a75bdaad7a37128c195dea1128a8c18",
+    "semantic_hash": ""
+  },
+  "server/LegacyVault.Prototype.Application/DTOs/HandoverDtos.cs": {
+    "mtime": 1790951764.9841483,
+    "seen": 1790952540.1763513,
+    "ast_hash": "e4af7b3d20565d2fb46d4394fafc04f0",
+    "semantic_hash": ""
+  },
+  "server/LegacyVault.Prototype.Domain/Models/HandoverModels.cs": {
+    "mtime": 1790951742.206252,
+    "seen": 1790952540.1813629,
+    "ast_hash": "593a3cf6d0913aefcf301d3ebcdf0313",
+    "semantic_hash": ""
+  },
+  "server/LegacyVault.Prototype.WebApi/Controllers/CaseBundlesController.cs": {
+    "mtime": 1790951849.8158276,
+    "seen": 1790952540.1884155,
+    "ast_hash": "d2231c1845f6fee4f8498a84d066221c",
     "semantic_hash": ""
   }
 }

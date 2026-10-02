@@ -104,6 +104,23 @@ public class TimeLockRescueService : ITimeLockRescueService
         return MapToDto(state);
     }
 
+    public TimeLockStatusDto ApproveCaseForDelivery(Guid caseId)
+    {
+        var state = _cases.GetOrAdd(caseId, id => new CaseState
+        {
+            CaseId = id,
+            IsDemoMode = true,
+            StartedAt = DateTime.UtcNow,
+            UnlockTargetTime = DateTime.UtcNow
+        });
+
+        state.Status = CaseStatus.APPROVED_FOR_DELIVERY;
+        state.UnlockTargetTime = DateTime.UtcNow; // Mở khóa thời gian trễ
+        _logger.LogInformation("Case {CaseId} đã được phê duyệt chuyển giao di sản (APPROVED_FOR_DELIVERY).", caseId);
+
+        return MapToDto(state);
+    }
+
     public void ToggleDemoMode(Guid caseId, bool isDemoMode)
     {
         if (_cases.TryGetValue(caseId, out var state))

@@ -4,6 +4,10 @@
 
 Tài liệu này là mục lục chính thức điều hướng toàn bộ hồ sơ kỹ thuật, kiến trúc, cơ sở dữ liệu, quy chuẩn tích hợp và tài liệu mật mã cho hệ thống **LegacyVault**.
 
+> [!IMPORTANT]
+> **Nguyên Tắc Kiến Trúc Cốt Lõi Của Phiên Bản Prototype:**  
+> Phiên bản prototype thực hiện nhập liệu và thẩm định hồ sơ thủ công bởi con người (Executor và Verifier). AI/OCR được định hướng bổ sung trong tương lai để hỗ trợ trích xuất thông tin; không thay thế quyết định của người thẩm định.
+
 ---
 
 ## 📂 CẤU TRÚC THƯ VIỆN TÀI LIỆU (`docs/`)
@@ -38,9 +42,9 @@ docs/
 
 * **[KIEN_TRUC_MAT_MA_VA_LUU_TRU_DI_SAN.md](02_architecture/KIEN_TRUC_MAT_MA_VA_LUU_TRU_DI_SAN.md)**: **[TÀI LIỆU MẬT MÃ CỐT LÕI]** Đặc tả kiến trúc mã hóa phong bì (Envelope Encryption), phục hồi KEK bằng Shamir SSS trong RAM, kiểm soát bộ nhớ không ghi đĩa ngầm, quản lý phiên bản WORM, chính sách retention giữ 3 bản gần nhất và tiêu hủy Crypto-shredding.
 * **[SYSTEM_ARCHITECTURE_DOCUMENT.md](02_architecture/SYSTEM_ARCHITECTURE_DOCUMENT.md)**: Tài liệu Kiến trúc Hệ thống chuẩn hóa theo phương pháp luận *System Design Primer*:
-  * Đánh giá CAP Theorem (CP System), Phân tầng C4 Container (.NET 10 LTS + React 19), Chiến lược giao dịch ACID CSDL, Pipeline CI/CD tự động.
-* **[DATABASE_SCHEMA_ERD.md](02_architecture/DATABASE_SCHEMA_ERD.md)**: Thiết kế đầy đủ 25 thực thể cơ sở dữ liệu trên SQL Server 2022 + EF Core 10 (.NET 10 LTS):
-  * Phân biệt rõ `Persons` và `Users`, gom kho `HandoverVaults`, thực thể phiên bản chỉ định phân cấp `EstatePlanVersions` $\rightarrow$ `AssetDesignationVersions` $\rightarrow$ `DesignationVersionRecipients`, 5 gói cước chuẩn SRS (`OWNER_FREE`, `LEGACY_XS`, `LEGACY_XS_MAX`, `RECIPIENT_FREE`, `RECIPIENT_PLUS`).
+  * Đánh giá CAP Theorem (CP System), Phân tầng C4 Container (.NET 8 LTS + React 19), Chiến lược giao dịch ACID CSDL, Pipeline CI/CD tự động.
+* **[DATABASE_SCHEMA_ERD.md](02_architecture/DATABASE_SCHEMA_ERD.md)**: Thiết kế đầy đủ các thực thể cơ sở dữ liệu trên SQL Server 2022 + EF Core 8 (.NET 8 LTS):
+  * Phân biệt rõ `Persons` và `Users`, gom kho `HandoverVaults`, thực thể phiên bản chỉ định phân cấp `EstatePlanVersions` $\rightarrow$ `AssetDesignationVersions` $\rightarrow$ `DesignationVersionRecipients`, 3 gói cước chính cho Chủ kho (`OWNER_FREE`, `LEGACY_XS`, `LEGACY_XS_MAX`) cùng 2 gói lưu trữ cho Người nhận (`RECIPIENT_FREE`, `RECIPIENT_PLUS`).
 * **[STATE_MACHINES.md](02_architecture/STATE_MACHINES.md)**: Quy chuẩn chuyển trạng thái của 5 máy trạng thái: Điểm danh DMS, Hồ sơ chứng tử Case, Kho bàn giao tự gom, Lựa chọn chuyển quyền 1:1, Đơn hàng SePay VietQR.
 * **[PERMISSION_MATRIX.md](02_architecture/PERMISSION_MATRIX.md)**: Ma trận phân quyền Zero-Trust cho 5 vai trò ($Owner \ne Executor \ne Verifier$).
 * **[TECHNOLOGY_PROS_CONS_COMPARISON.md](02_architecture/TECHNOLOGY_PROS_CONS_COMPARISON.md)**: Bảng phân tích ưu/nhược điểm các công nghệ lựa chọn (.NET vs Node.js, SQL Server vs PostgreSQL, Cloudflare R2 vs AWS S3).
@@ -49,8 +53,8 @@ docs/
 
 ## 3. 🔌 [03_api_and_integration/](03_api_and_integration/) — Hợp đồng API & Tích hợp
 
-* **[FRONTEND_BACKEND_API_CONTRACT.md](03_api_and_integration/FRONTEND_BACKEND_API_CONTRACT.md)**: Hợp đồng giao tiếp API RESTful giữa Client SPA và Backend ASP.NET Core 10 Web API.
-* **[BE_INTEGRATION_GUIDE.md](03_api_and_integration/BE_INTEGRATION_GUIDE.md)**: Hướng dẫn phát triển Backend ASP.NET Core 10, Clean Architecture, Webhook SePay VietQR, DMS Background Worker.
+* **[FRONTEND_BACKEND_API_CONTRACT.md](03_api_and_integration/FRONTEND_BACKEND_API_CONTRACT.md)**: Hợp đồng giao tiếp API RESTful giữa Client SPA và Backend ASP.NET Core 8 Web API.
+* **[BE_INTEGRATION_GUIDE.md](03_api_and_integration/BE_INTEGRATION_GUIDE.md)**: Hướng dẫn phát triển Backend ASP.NET Core 8, Clean Architecture, Webhook SePay VietQR, DMS Background Worker.
 * **[FE_INTEGRATION_GUIDE.md](03_api_and_integration/FE_INTEGRATION_GUIDE.md)**: Hướng dẫn phát triển React 19 Frontend theo chuẩn Feature-Sliced Design (FSD), tải file stream giải mã qua TLS 1.3.
 * **[ERROR_CODES.md](03_api_and_integration/ERROR_CODES.md)**: Danh mục mã lỗi chuẩn RFC 7807 ProblemDetails phục vụ xử lý UI thân thiện và truy vết `correlationId`.
 
@@ -58,8 +62,8 @@ docs/
 
 ## 4. 🔄 [04_business_flows/](04_business_flows/) — Luồng Nghiệp vụ & Sơ đồ Swimlane
 
-* **[MAIN_FLOWS_DETAILED_SPECIFICATION.md](04_business_flows/MAIN_FLOWS_DETAILED_SPECIFICATION.md)**: Đặc tả chi tiết 5 luồng nghiệp vụ chính từ tạo két, điểm danh DMS, xác nhận chứng tử đến bàn giao di sản.
-* **[BUSINESS_FLOW_AND_INTEGRATION_ANALYSIS.md](04_business_flows/BUSINESS_FLOW_AND_INTEGRATION_ANALYSIS.md)**: Phân tích luồng tích hợp nghiệp vụ và các điểm chạm dịch vụ bên ngoài (FPT.AI eKYC, SePay VietQR, Cloudflare R2, Google OIDC).
+* **[MAIN_FLOWS_DETAILED_SPECIFICATION.md](04_business_flows/MAIN_FLOWS_DETAILED_SPECIFICATION.md)**: Đặc tả chi tiết các luồng nghiệp vụ chính từ tạo két, điểm danh DMS, xác nhận chứng tử đến bàn giao di sản.
+* **[BUSINESS_FLOW_AND_INTEGRATION_ANALYSIS.md](04_business_flows/BUSINESS_FLOW_AND_INTEGRATION_ANALYSIS.md)**: Phân tích luồng tích hợp nghiệp vụ và các điểm chạm dịch vụ (Xác minh danh tính thủ công bởi Verifier, SePay VietQR, Cloudflare R2, Google OIDC).
 * **[DEVELOPER_SWIMLANE_GUIDE.md](04_business_flows/DEVELOPER_SWIMLANE_GUIDE.md)** & **[WORKFLOW_SWIMLANE_ARCHITECTURE.md](04_business_flows/WORKFLOW_SWIMLANE_ARCHITECTURE.md)**: Hướng dẫn lập trình viên tra cứu sơ đồ làn bơi theo 4 tầng kiến trúc.
 * **Luồng 01 (Xác thực, Phân quyền & JIT):**
   * **[FLOW_01_SYSTEM_MERGED.xml](04_business_flows/FLOW_01_SYSTEM_MERGED.xml)**: Sơ đồ Swimlane XML mở trên [app.diagrams.net](https://app.diagrams.net).
@@ -67,6 +71,9 @@ docs/
 * **Luồng 02 (Thiết lập Kế hoạch, Mã hóa Phong bì & Kích hoạt DMS):**
   * **[FLOW_02_SYSTEM_MERGED.xml](04_business_flows/FLOW_02_SYSTEM_MERGED.xml)**: Sơ đồ Swimlane XML mở trên [app.diagrams.net](https://app.diagrams.net).
   * **[FLOW_02_DEVELOPER_IMPLEMENTATION_SPEC.md](04_business_flows/FLOW_02_DEVELOPER_IMPLEMENTATION_SPEC.md)**: Đặc tả chi tiết triển khai code Luồng 02.
+* **Luồng 03 (Điểm danh Sinh tồn DMS, Tạm treo 90 ngày & Đóng băng an toàn):**
+  * **[FLOW_03_SYSTEM_MERGED.xml](04_business_flows/FLOW_03_SYSTEM_MERGED.xml)**: Sơ đồ Swimlane XML mở trên [app.diagrams.net](https://app.diagrams.net).
+  * **[FLOW_03_DEVELOPER_IMPLEMENTATION_SPEC.md](04_business_flows/FLOW_03_DEVELOPER_IMPLEMENTATION_SPEC.md)**: Đặc tả chi tiết triển khai code Luồng 03.
 
 ---
 

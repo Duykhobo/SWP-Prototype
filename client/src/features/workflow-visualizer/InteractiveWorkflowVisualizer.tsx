@@ -150,15 +150,15 @@ const FLOW_01_STEPS: WorkflowStep[] = [
     cryptoAction: {
       title: 'Khởi tạo luồng xác thực OpenID Connect & Form an toàn',
       details: [
+        'Hệ thống cung cấp đúng 2 phương thức xác thực: Google OIDC hoặc Form mật khẩu',
         'Google OIDC: Khởi tạo Google Identity Services (GIS) với Client ID',
         'Sinh ngẫu nhiên chuỗi Cryptographic Nonce chống tấn công Replay (RFC 6749)',
-        'Form thường: Chuẩn bị gửi thông tin đăng ký/đăng nhập qua kênh bảo mật TLS 1.3',
-        'Demo Persona Switcher: Cho phép hội đồng thẩm định đổi vai trò 1-click tức thì',
+        'Form thường: Chuẩn bị gửi thông tin đăng nhập qua kênh bảo mật TLS 1.3 (SEC-02 Salted Hash)',
       ],
     },
     outboundData: {
       status: 'Client Auth Initiated',
-      payload: `{\n  "state": "READY_FOR_CREDENTIAL",\n  "nonceVerified": true,\n  "availableProviders": ["Google", "Credentials", "DemoRoles"]\n}`,
+      payload: `{\n  "state": "READY_FOR_CREDENTIAL",\n  "nonceVerified": true,\n  "availableProviders": ["Google_OIDC", "Form_Password"]\n}`,
     },
     storage: {
       r2: 'Chưa có hoạt động lưu trữ',
@@ -169,7 +169,7 @@ const FLOW_01_STEPS: WorkflowStep[] = [
       code: 'E0.1 · Popup Blocked / Network Timeout',
       trigger: 'Trình duyệt chặn popup Google Identity hoặc mất kết nối mạng',
       rollbackTo: 'Bước 01 (Chọn lại phương thức đăng nhập)',
-      action: 'Chuyển sang đăng nhập Form thường (Email/Mật khẩu) hoặc dùng Demo Switcher',
+      action: 'Chuyển sang đăng nhập Form thường (Email/Mật khẩu)',
     },
     relatedTab: 'oidc',
   },
@@ -624,8 +624,8 @@ Multipart Body:
   {
     id: 7,
     stepNum: '07',
-    plainMechanism: 'Executor mở email, bấm chấp thuận ủy thác. Hệ thống đối soát CCCD/eKYC qua FPT.AI và cập nhật trạng thái chấp nhận vào bảng [ExecutorAssignments] trên CSDL.',
-    dataFlowPath: 'Executor (Email) ➔ Cổng phản hồi Backend ➔ FPT.AI eKYC ➔ SQL Server [ExecutorAssignments]',
+    plainMechanism: 'Executor mở email, bấm chấp thuận ủy thác (nhập liệu và thẩm định thủ công). Hệ thống cập nhật trạng thái chấp nhận vào bảng [ExecutorAssignments] trên CSDL (AI/OCR là định hướng bổ sung tương lai hỗ trợ trích xuất, không thay thế người thẩm định).',
+    dataFlowPath: 'Executor (Email) ➔ Cổng phản hồi Backend ➔ SQL Server [ExecutorAssignments]',
     title: 'Gửi Lời Mời Xác Nhận Qua MailKit SMTP',
     subtitle: 'Phát email thông báo mã xác thực tới Người thực thi',
     lane: 'external',
@@ -708,7 +708,7 @@ const FLOW_03_STEPS: WorkflowStep[] = [
   {
     id: 1,
     stepNum: '01',
-    plainMechanism: 'BƯỚC 1 - Ghép Khóa: Khi sự kiện mở két được kích hoạt (DMS quá hạn & Verifier phê duyệt), hệ thống lấy Mảnh 1 (Server) kết hợp cùng Mảnh 2 (Passphrase của Người dùng) hoặc Mảnh 3 (Người thụ hưởng/Tòa án). Áp dụng công thức nội suy đa thức Lagrange trên trường Galois GF(256) để tái lập Master Key KEK 256-bit trong RAM an toàn.',
+    plainMechanism: 'BƯỚC 1 - Ghép Khóa: Khi sự kiện mở két được kích hoạt (DMS quá hạn & Verifier phê duyệt thẩm định thủ công, không dùng AI thay thế), hệ thống lấy Mảnh 1 (Server) kết hợp cùng Mảnh 2 (Passphrase của Người dùng) hoặc Mảnh 3 (Người thụ hưởng/Tòa án). Áp dụng công thức nội suy đa thức Lagrange trên trường Galois GF(256) để tái lập Master Key KEK 256-bit trong RAM an toàn.',
     dataFlowPath: 'Người Nhận / Server ➔ Nạp 2/3 Mảnh Shamir ➔ Tính toán Lagrange trên GF(256) ➔ Thu được Master Key KEK',
     title: 'BƯỚC 1: Ghép Khóa Shamir (Lagrange Interpolation)',
     subtitle: 'Nội suy đa thức Lagrange tái tạo Master Key KEK từ 2/3 mảnh phân tán',

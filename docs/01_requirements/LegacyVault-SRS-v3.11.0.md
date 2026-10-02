@@ -20,7 +20,7 @@ LegacyVault lưu giữ tài sản số, cho Owner chỉ định người thụ h
 
 ### Trong phạm vi
 
-- Năm vai trò: Owner, Executor, Beneficiary, Verifier, Admin.
+- Năm vai trò: Owner, Executor, Beneficiary, Verifier, Admin (Phiên bản prototype thực hiện nhập liệu và thẩm định hồ sơ thủ công. AI/OCR được định hướng bổ sung trong tương lai để hỗ trợ trích xuất thông tin; không thay thế quyết định của người thẩm định).
 - Kho mã hóa; tài sản dạng file và bản ghi tài khoản/ví; Owner gán người nhận cho từng tài sản và hệ thống tự gom thành kho bàn giao theo tập người nhận.
 - Danh sách người thụ hưởng một cấp; chuyển 1:1 chỉ trên kho một người trước khi Executor bắt đầu; kho đồng sở hữu cần mọi người đồng ý nhận.
 - Điểm danh và nhắc nhở độc lập; tạm treo 90 ngày và đóng băng kho khi Owner tiếp tục không phản hồi; các tín hiệu này không khởi động bàn giao.
@@ -31,6 +31,7 @@ LegacyVault lưu giữ tài sản số, cho Owner chỉ định người thụ h
 ### Ngoài phạm vi MVP
 
 - Quy trình sự kiện khác ngoài giấy chứng tử và quy trình Owner yêu cầu đảo ngược hồ sơ đã phê duyệt.
+- Tự động hóa thẩm định hồ sơ bằng AI/OCR: Prototype không để AI hay thuật toán tự động ra quyết định phê duyệt/từ chối hồ sơ di sản thay cho con người; AI/OCR chỉ là định hướng tương lai hỗ trợ trích xuất trường thông tin.
 - Phân tầng người thừa kế, danh sách ưu tiên người nhận, tự chuyển người nhận khi im lặng, chuyển tiếp nhiều vòng.
 - Chia phần trăm, chia tiền, tách file, tách kho bàn giao hoặc chia các trường tài khoản trong lúc quyết định nhận/chuyển. Owner đổi tập người nhận của từng tài sản trước snapshot nếu muốn hệ thống gom theo cách khác.
 - Chuyển trên hệ thống sau khi Executor bắt đầu hoặc sau khi nhận; chuyển cho người ngoài danh sách; chuyển tiếp quyền được người khác chuyển đến.
@@ -49,6 +50,22 @@ LegacyVault lưu giữ tài sản số, cho Owner chỉ định người thụ h
 | Admin | Quản trị tài khoản, nhân sự đủ điều kiện, thông báo, lỗi, audit và sự cố kỹ thuật | Không đọc tài sản, đổi người nhận, ký thay hoặc chấp thuận chứng tử |
 
 Executor và Verifier là hai cá nhân khác nhau theo `person_id`, không đồng thời là Owner hoặc bất kỳ Beneficiary nào trong cùng hồ sơ. Đổi email hoặc tài khoản không được bỏ qua điều kiện này. Verifier là vai trò mô phỏng trong đồ án.
+
+## Xác minh danh tính thủ công (Manual Identity Verification)
+
+Hệ thống áp dụng phương thức xác minh danh tính thủ công cho mọi vai trò liên quan; bỏ tích hợp API eKYC tự động khỏi phạm vi prototype (eKYC tự động được chuyển sang định hướng phát triển tương lai).
+
+### Luồng xử lý 4 bước:
+1. **Gửi thông tin và giấy tờ:** Người dùng gửi thông tin cá nhân và tải lên bản chụp giấy tờ xác minh (CCCD / Hộ chiếu).
+2. **Đối chiếu thủ công:** Nhân sự được phân quyền (Verifier) đối chiếu thông tin khai báo với giấy tờ thực tế; yêu cầu bổ sung khi giấy tờ mờ, thiếu góc hoặc sai lệch.
+3. **Ghi nhận kết quả kiểm toán:** Trạng thái chuyển từ `Chờ duyệt` (Pending) → `Đã xác minh` (Verified) hoặc `Bị từ chối` (Rejected), ghi nhận đầy đủ người duyệt (`verifier_id`), thời điểm duyệt (`verified_at`) và lý do (`reason`).
+4. **Tiếp tục quy trình di sản:** Hồ sơ chuyển giao di sản chỉ được tiếp tục qua các bước: thẩm định giấy chứng tử, thời gian chờ bảo vệ (Time-lock) và cấp quyền truy cập (Grant).
+
+### Các nguyên tắc ràng buộc:
+- **Không tự động xác minh:** Tuyệt đối không tự đánh dấu "Đã xác minh" chỉ vì người dùng đã tải giấy tờ lên hệ thống.
+- **Điều kiện cần nhưng chưa đủ:** Xác minh danh tính đạt cũng chưa đủ để nhận di sản (phải chờ chứng tử được duyệt, hết thời gian chờ và cấp Grant).
+- **Kiểm soát quyền xem & thời hạn lưu trữ:** Giấy tờ tùy thân chỉ cho nhân sự có quyền thẩm định xem; áp dụng thời hạn lưu trữ rõ ràng và tiêu hủy theo chính sách bảo mật dữ liệu.
+- **Đồng bộ thuật ngữ:** Toàn bộ hệ thống thống nhất dùng thuật ngữ **"Xác minh danh tính thủ công"** thay thế cho "eKYC"; eKYC tự động thuộc lộ trình phát triển tương lai.
 
 # 2. CÁC LUỒNG NGHIỆP VỤ CHÍNH
 
@@ -198,7 +215,7 @@ Executor đã nhận phân công và có giấy chứng tử. Không cần chờ
 5. Khi xác nhận giấy chứng tử đạt yêu cầu, Verifier phải tự tick ô mặc định chưa chọn với nhãn **“Tôi chịu trách nhiệm trước pháp luật”** trước khi bấm **Phê duyệt**. Phần mô tả ngay cạnh ô xác định đây là cam kết về kết quả kiểm tra giấy. Không tick thì API từ chối phê duyệt. Verifier không được tick hộ Executor và ngược lại.
 6. Hệ thống ghi `APPROVED_FOR_DELIVERY` chỉ khi giấy cùng phiên bản đã có bản ghi tick của Executor, kết quả kiểm tra đạt và bản ghi tick/phê duyệt của Verifier hợp lệ. **Đây là mốc duy nhất khởi động quy trình tiếp theo:** hệ thống thông báo dự kiến bàn giao cho mọi Beneficiary trong snapshot; các bên thống nhất ngày và Executor ghi ngày đó theo luồng chính 4. Không tự phát hành tài sản tại thời điểm duyệt.
 
-- **DEATH-01:** Giấy chứng tử do Executor nộp và được Verifier kiểm tra/phê duyệt là căn cứ mở bàn giao. Điểm danh hoặc thông tin do một bên tự khai mà không có giấy và xác nhận của cả hai vai trò không đủ điều kiện.
+- **DEATH-01:** Giấy chứng tử do Executor nhập liệu/nộp và được Verifier kiểm tra/phê duyệt hoàn toàn thủ công là căn cứ mở bàn giao. Phiên bản prototype thực hiện nhập liệu và thẩm định hồ sơ thủ công. AI/OCR được định hướng bổ sung trong tương lai để hỗ trợ trích xuất thông tin; không thay thế quyết định của người thẩm định. Điểm danh hoặc thông tin do một bên tự khai mà không có giấy và xác nhận của cả hai vai trò không đủ điều kiện.
 - **DEATH-02:** Hai ô cam kết phải được tick chủ động, riêng từng người và gắn với đúng `death_certificate_version_id`, `person_id`, vai trò, nội dung cam kết, thời điểm máy chủ, kết quả xác thực và hash của giấy. Ô không được chọn sẵn; tài khoản khác, Admin hoặc thao tác lặp không được tạo bản ghi thay.
 - **DEATH-03:** Mỗi kho nguồn tối đa một hồ sơ chứng tử đang hiệu lực. Bổ sung giấy trong hồ sơ mở giữ lịch sử phiên bản; hồ sơ bị từ chối có thể nộp hồ sơ mới liên kết lịch sử, không mở song song.
 - **DEATH-04:** Mỗi quyết định phê duyệt ghi Verifier, phiên bản giấy đã kiểm tra, kết quả, thời điểm và snapshot tài sản/chỉ định gốc/kho tự gom được phép bàn giao. Bản giấy thiếu, sai Owner hoặc chưa có đủ hai bản ghi tick không thể thông báo và ghi ngày ở luồng chính 4.

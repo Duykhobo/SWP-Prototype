@@ -294,6 +294,16 @@ erDiagram
 * **Quyết định:** Áp dụng thời hạn đóng băng 2 năm lịch (`FROZEN_RECONSIDERATION`) cho phép đổi ý từ Từ chối sang Nhận.
 * **Hệ quả:** Thể hiện tính nhân văn của sản phẩm di sản số và bảo vệ quyền lợi tối đa cho người thụ hưởng.
 
+### ADR-06: Xác minh Danh tính & Thẩm định Hồ sơ Thủ công (Bỏ API eKYC khỏi Prototype)
+
+* **Bối cảnh:** Việc mở khóa di sản số liên quan trực tiếp đến quyền tài sản và trách nhiệm pháp lý dân sự tối cao (Điều 616, 624 BLDS 2015). Việc tích hợp API eKYC tự động vừa phụ thuộc vào dịch vụ bên thứ ba chưa ổn định về chính sách B2B, vừa tiềm ẩn rủi ro Deepfake/nhầm lẫn không thể quy trách nhiệm cá nhân trong giao dịch thừa kế.
+* **Quyết định:** 
+  1. **Chốt xác minh danh tính thủ công:** Bỏ tích hợp API eKYC khỏi phạm vi prototype; đưa eKYC tự động (FPT.AI / OCR / Liveness) vào hướng phát triển tương lai. Đổi tên toàn bộ "eKYC" thành "Xác minh danh tính thủ công" trên SRS, kiến trúc và giao diện.
+  2. **Quy trình 4 bước chuẩn:** (1) Người dùng gửi thông tin và giấy tờ xác minh $\rightarrow$ (2) Nhân sự được phân quyền (Verifier) đối chiếu thủ công, yêu cầu bổ sung khi cần $\rightarrow$ (3) Ghi nhận kết quả `Chờ duyệt` $\rightarrow$ `Đã xác minh` / `Bị từ chối` kèm người duyệt (`verifier_id`), thời điểm (`verified_at`) và lý do $\rightarrow$ (4) Hồ sơ chuyển giao tiếp tục qua bước thẩm định giấy chứng tử, thời gian chờ bảo vệ và cấp Grant.
+  3. **Ràng buộc an toàn:** Tuyệt đối không tự đánh dấu "Đã xác minh" chỉ vì đã tải giấy tờ lên. Xác minh danh tính đạt cũng chưa đủ để nhận di sản (bắt buộc phải qua thẩm định chứng tử và cấp Grant).
+  4. **Quyền riêng tư & Lưu trữ:** Giấy tờ tùy thân chỉ cho nhân sự có quyền thẩm định xem; áp dụng thời hạn lưu trữ rõ ràng và tiêu hủy an toàn theo quy định.
+* **Hệ quả:** Đảm bảo 100% tuân thủ pháp lý, phân định trách nhiệm cá nhân minh bạch, triệt tiêu rủi ro lỗi tự động hóa và định hình lộ trình nâng cấp AI/eKYC chuẩn mực trong tương lai.
+
 ---
 
 ## 8. MA TRẬN KIỂM THỬ PHÂN QUYỀN & BẢO MẬT (SECURITY & AUTHORIZATION TEST MATRIX)

@@ -15,7 +15,7 @@
 | **3** | **Cloudflare R2 Storage** | Kết nối trực tiếp S3 API tới `https://{accountId}.r2.cloudflarestorage.com`, sinh Presigned URL PUT/GET 15 phút, tải về RAM streaming TLS. | **ĐẠT (Sẵn sàng live API)** |
 | **4** | **SePay VietQR 24/7** | Sinh mã VietQR chuẩn NAPAS tự động quét bằng mọi App ngân hàng, webhook Server-to-Server đối soát giao dịch thời gian thực. | **ĐẠT (100% Real VietQR)** |
 | **5** | **MailKit & MimeKit SMTP** | Kết nối Socket TLS qua cổng 587 (`smtp.gmail.com` / Brevo), xác thực tài khoản và gửi email HTML cảnh báo khẩn cấp trực tiếp vào Hộp thư cá nhân. | **ĐẠT (100% Live SMTP)** |
-| **6** | **eKYC FPT.AI Vision SDK** | Gửi ảnh CCCD và ảnh selfie trực tiếp tới máy chủ FPT.AI (`https://api.fpt.ai/vision/idr/vnm/` và `/dmp/checkface/v1/`), trích xuất OCR và đối sánh khuôn mặt thật. | **ĐẠT (100% Live API)** |
+| **6** | **Xác minh danh tính thủ công** | Người dùng gửi giấy tờ; nhân sự phân quyền đối chiếu, yêu cầu bổ sung khi cần; ghi kết quả Chờ duyệt → Đã xác minh / Bị từ chối kèm verifier_id, thời điểm, lý do. Bỏ tích hợp API eKYC khỏi prototype; đưa eKYC tự động vào tương lai. | **ĐẠT (Quy trình thủ công 100%)** |
 | **7** | **Time-Lock & Rescue Engine** | Cỗ máy trạng thái (State Machine) quản lý cửa sổ trễ 48h (hoặc 2 phút biểu diễn), tiếp nhận `AliveClaim` và còi báo động hủy bàn giao. | **ĐẠT (100% Real Logic)** |
 | **8** | **Google OpenID Connect (OIDC)** | Xác thực ID Token trực tiếp với Google Public JWKS qua `Google.Apis.Auth`, kiểm tra chữ ký RSA-256 từ máy chủ Google. | **ĐẠT (100% Live OIDC)** |
 
@@ -107,7 +107,23 @@
 
 ---
 
-### 2.6. Thẩm Định Danh Tính eKYC FPT.AI & Hệ Sinh Thái FPT Cloud AI Marketplace
+### 2.6. Xác Minh Danh Tính Thủ Công (Prototype Scope) & Định Hướng eKYC Tương Lai
+
+> [!IMPORTANT]
+> **Quyết định kiến trúc chính thức:** Prototype LegacyVault chốt sử dụng **xác minh danh tính thủ công**, bỏ tích hợp API eKYC khỏi phạm vi prototype. Các giải pháp eKYC tự động (FPT.AI / OCR / Liveness) được đưa vào định hướng phát triển tương lai.
+
+- **Quy trình Xác minh danh tính thủ công 4 bước trong Prototype:**
+  1. *Người dùng gửi thông tin và giấy tờ xác minh:* Người dùng nhập thông tin nhân thân và tải lên hình ảnh giấy tờ tùy thân (CCCD / Hộ chiếu).
+  2. *Nhân sự được phân quyền đối chiếu:* Nhân sự có thẩm quyền (Verifier / Compliance Officer) xem giấy tờ, đối chiếu với dữ liệu khai báo, yêu cầu bổ sung khi giấy tờ mờ, thiếu góc hoặc không khớp.
+  3. *Ghi nhận kết quả kiểm toán:* Chuyển trạng thái `Chờ duyệt` (Pending) $\rightarrow$ `Đã xác minh` (Verified) hoặc `Bị từ chối` (Rejected), ghi nhận đầy đủ người duyệt (`verifier_id`), thời điểm (`verified_at`) và lý do (`reason`).
+  4. *Tiến trình chuyển giao di sản:* Hồ sơ tiếp tục qua bước thẩm định giấy chứng tử độc lập, thời gian chờ bảo vệ an toàn (Time-lock) và cấp Grant.
+- **Các nguyên tắc ràng buộc an toàn cốt lõi:**
+  - **Không tự động xác minh:** Tuyệt đối không tự đánh dấu "Đã xác minh" chỉ vì người dùng đã tải giấy tờ lên hệ thống.
+  - **Điều kiện cần nhưng chưa đủ:** Xác minh danh tính đạt cũng chưa đủ để nhận di sản (bắt buộc phải qua thẩm định chứng tử và cấp Grant).
+  - **Quyền riêng tư & Lưu trữ:** Giấy tờ tùy thân chỉ cho nhân sự có quyền thẩm định xem; áp dụng thời hạn lưu trữ rõ ràng và tiêu hủy an toàn theo quy định.
+- **Định hướng eKYC tự động trong tương lai (Roadmap):**
+  - Khảo sát các giải pháp công nghệ eKYC tự động (FPT.AI Vision SDK, FPT AI Marketplace, Tesseract OCR, MediaPipe Face Tracking) để hỗ trợ tiền điền biểu mẫu (pre-fill) và phát hiện dấu hiệu giả mạo ban đầu.
+  - Khi triển khai trong tương lai, AI/eKYC đóng vai trò trợ lý trích xuất thông tin, tuyệt đối không thay thế quyết định của người thẩm định.
 
 - **Phân định 2 cổng dịch vụ của FPT:**
   1. **FPT.AI Vision SDK (`api.fpt.ai` - Cổng `console.fpt.ai`)**:
@@ -198,7 +214,7 @@
 | **Lưu trữ tệp tin** | **Cloudflare R2** | AWS S3 / Google Cloud Storage | **0 USD phí Egress**, tiết kiệm 100% chi phí tải dữ liệu di sản cho người thụ hưởng. |
 | **Cổng thanh toán** | **SePay VietQR** | VNPAY / MoMo B2B Gateway | Không yêu cầu pháp nhân doanh nghiệp; tự động khớp lệnh 24/7 tức thì cho đồ án sinh viên. |
 | **Dịch vụ Email** | **MailKit & MimeKit SMTP** | SendGrid / Twilio API | Miễn phí qua Gmail App Password, linh hoạt chuyển đổi máy chủ SMTP không bị phụ thuộc nhà cung cấp. |
-| **Thẩm định eKYC** | **FPT.AI Vision SDK** | VNPT eKYC | FPT.AI cung cấp Developer Portal mở cho cá nhân và sinh viên; VNPT bắt buộc ký hợp đồng pháp nhân doanh nghiệp. |
+| **Xác minh danh tính & Thẩm định** | **Xác minh danh tính thủ công (Human Verifier)** | Tích hợp eKYC tự động / AI quyết định thay người | Chốt xác minh danh tính thủ công trong prototype; bỏ tích hợp API eKYC; đưa eKYC tự động vào tương lai. Giấy tờ chỉ cho người có quyền thẩm định xem, có thời hạn lưu rõ ràng. |
 | **Cơ chế chống thông đồng** | **Time-Lock 48h + AliveClaim** | Mở kho trực tiếp sau khi duyệt | Trao quyền tối thượng cho Chủ tài sản tự bảo vệ mạng sống và quyền sở hữu trước khi di sản được chuyển giao. |
 
 > [!TIP]

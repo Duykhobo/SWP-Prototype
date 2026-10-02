@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LegacyVault - Master Business Flows Architectural Explorer (ISO/ANSI Standard)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+  <!-- draw.io / diagrams.net Official Vector Viewer -->
+  <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    body {
+      background-color: #060A14;
+      color: #F1F5F9;
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+    
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    /* Edge connectors */
+    .flow-edge {
+      fill: none;
+      stroke-width: 1.8px;
+      transition: stroke 0.25s ease, stroke-width 0.25s ease;
+    }
+    .flow-edge.highlight-out {
+      stroke: #10B981 !important;
+      stroke-width: 3.5px !important;
+      filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.7));
+    }
+    .flow-edge.highlight-in {
+      stroke: #38BDF8 !important;
+      stroke-width: 3px !important;
+      filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.6));
+    }
+
+    @keyframes marchAnts {
+      from { stroke-dashoffset: 24; }
+      to { stroke-dashoffset: 0; }
+    }
+    .flow-edge.active-trace {
+      stroke: #10B981 !important;
+      stroke-width: 3.5px !important;
+      stroke-dasharray: 8 4 !important;
+      animation: marchAnts 0.8s linear infinite !important;
+      filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.9));
+    }
+
+    /* Active Step Pulse Animation */
+    @keyframes pulseGlow {
+      0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.8), 0 0 20px rgba(16, 185, 129, 0.5);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0), 0 0 32px rgba(16, 185, 129, 0.85);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0), 0 0 20px rgba(16, 185, 129, 0.5);
+      }
+    }
+
+    .node-card-active {
+      border-color: #10B981 !important;
+      animation: pulseGlow 1.8s infinite ease-in-out !important;
+      transform: scale(1.02);
+      z-index: 50 !important;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0B1120;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1E293B;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+
+    pre[class*="language-"] {
+      margin: 0;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      background: #0B1120 !important;
+    }
+
+    .mxgraph {
+      background: #FFFFFF;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden select-none">
+  <!-- Top Header Navigation -->
+  <header class="bg-[#0B1120] border-b border-slate-800 px-5 py-2.5 flex flex-wrap items-center justify-between z-20 shadow-xl gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-emerald-500 to-cyan-500 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-emerald-500/20">
+        🏛️
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-sm font-bold text-white tracking-wide">LegacyVault · Sơ Đồ Quy Trình Nghiệp Vụ & Khớp Nối Mã Nguồn</h1>
+          <span class="text-[10px] font-mono bg-emerald-950 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-bold">
+            XML + REAL CODE GROUNDED
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">Khớp nối chính xác file XML với Controller C#, WebCrypto TS, SQL Server 2022 & Cloudflare R2</p>
+      </div>
+    </div>
+
+    <!-- Mode Selector & Flow Tabs -->
+    <div class="flex items-center gap-3">
+      <!-- Flow Tabs -->
+      <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+        <button onclick="switchFlow('flow1')" id="tab-flow1" class="flow-tab px-3 py-1.5 rounded-lg font-bold bg-indigo-600 text-white shadow-sm transition cursor-pointer">
+          Flow 01 (Auth & JIT)
+        </button>
+        <button onclick="switchFlow('flow2')" id="tab-flow2" class="flow-tab px-3 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer">
+          Flow 02 (Vault Setup & DMS)
+        </button>
+        <button onclick="switchFlow('flow3')" id="tab-flow3" class="flow-tab px-3 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer">
+          Flow 03 (Handover & Freeze)
+        </button>
+      </div>
+
+      <!-- View Engine Switcher -->
+      <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+        <button onclick="setViewMode('swimlane')" id="btn-swimlane" class="view-btn px-2.5 py-1.5 rounded-lg font-bold bg-emerald-500 text-black shadow-sm transition cursor-pointer flex items-center gap-1.5">
+          <span>📐</span> Sơ Đồ Swimlane Chuẩn
+        </button>
+        <button onclick="setViewMode('graph')" id="btn-graph" class="view-btn px-2.5 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer flex items-center gap-1.5">
+          <span>🕸️</span> Đồ Thị Mạng Lưới
+        </button>
+        <button onclick="setViewMode('drawio')" id="btn-drawio" class="view-btn px-2.5 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer flex items-center gap-1.5">
+          <span>📄</span> Bản Vẽ Gốc Draw.io
+        </button>
+      </div>
+
+      <!-- Extra Links -->
+      <a href="envelope-encryption.html" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700 flex items-center gap-1">
+        <span>🔐</span> Mã Hóa AES-GCM
+      </a>
+    </div>
+  </header>
+
+  <!-- Step-by-Step Controller Sub-Bar -->
+  <div class="bg-[#090E1D] border-b border-slate-800/90 px-5 py-2 flex flex-wrap items-center justify-between text-xs z-10 gap-3">
+    <div class="flex items-center gap-2.5">
+      <span class="font-bold text-emerald-400 flex items-center gap-1.5">
+        <span>🧭</span> ĐI THEO TỪNG BƯỚC:
+      </span>
+      <div class="flex items-center bg-slate-900 p-0.5 rounded-lg border border-slate-700">
+        <button onclick="prevStep()" class="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-white font-bold cursor-pointer transition">
+          ◀ Trước
+        </button>
+        <button onclick="nextStep()" class="px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-black font-bold cursor-pointer transition ml-1">
+          Kế Tiếp ▶
+        </button>
+      </div>
+      <button onclick="toggleAutoPlay()" id="btn-autoplay" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold cursor-pointer transition flex items-center gap-1.5">
+        <span>▶️</span> Tự động chạy
+      </button>
+      
+      <div class="h-4 w-px bg-slate-700 mx-1"></div>
+      
+      <span id="step-badge" class="font-mono bg-indigo-950 text-indigo-300 px-3 py-1 rounded-lg border border-indigo-700/60 font-semibold flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="step-badge-text">Bước 1 / 21: Khởi Đầu Phiên Làm Việc</span>
+      </span>
+    </div>
+
+    <!-- Quick Jump & View Actions -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1.5">
+        <span class="text-slate-400">Nhảy nhanh:</span>
+        <select id="step-select" onchange="jumpToStep(parseInt(this.value))" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs focus:outline-none focus:border-emerald-500 max-w-[280px]">
+          <!-- Populated by JS -->
+        </select>
+      </div>
+      
+      <div class="flex items-center bg-slate-900 p-0.5 rounded-lg border border-slate-700">
+        <button onclick="zoomIn()" class="px-2 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded font-bold" title="Phóng to">+</button>
+        <button onclick="zoomOut()" class="px-2 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded font-bold" title="Thu nhỏ">-</button>
+        <button onclick="fitView()" class="px-2 py-1 text-slate-300 hover:text-white hover:bg-slate-800 rounded" title="Xem toàn cảnh">⛶ Toàn Cảnh</button>
+        <button onclick="zoomToActiveNode()" class="px-2 py-1 text-emerald-400 hover:bg-slate-800 rounded font-semibold" title="Căn giữa bước hiện tại">🎯 Căn Giữa</button>
+      </div>
+
+      <button onclick="toggleRoadmapDrawer()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1 cursor-pointer">
+        📋 Lộ trình các bước
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Viewports Area -->
+  <main class="flex-1 relative overflow-hidden flex">
+    <!-- Viewport 1: SVG Architectural Swimlane Canvas (Primary Mode) -->
+    <div id="swimlane-container" class="flex-1 h-full relative bg-[#060A14] overflow-hidden">
+      <svg id="blueprint-svg" class="w-full h-full cursor-grab active:cursor-grabbing">
+        <defs>
+          <marker id="arrow-default" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#64748B" />
+          </marker>
+          <marker id="arrow-emerald" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#10B981" />
+          </marker>
+          <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#EF4444" />
+          </marker>
+          <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284C7" />
+          </marker>
+          <marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0D9488" />
+          </marker>
+          <marker id="arrow-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#8B5CF6" />
+          </marker>
+        </defs>
+        <g id="blueprint-content"></g>
+      </svg>
+
+      <!-- HUD Overlay (Top-Left) -->
+      <div class="absolute top-4 left-4 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-3 shadow-xl max-w-xs pointer-events-none">
+        <h2 id="blueprint-title-hud" class="text-xs font-bold text-emerald-400 tracking-wider">FLOW 01 · AUTH & JIT</h2>
+        <p id="blueprint-count-hud" class="text-[11px] text-slate-400 font-mono mt-0.5">80 Nodes • 66 Edges (Swimlane chuẩn XML)</p>
+        <div class="mt-2 text-[10px] text-slate-400 border-t border-slate-800 pt-1.5 grid grid-cols-2 gap-1.5">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+            <span>Khởi đầu / Hoàn tất</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+            <span>Rẽ nhánh (Decision)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>
+            <span>Input / Output (I/O)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
+            <span>Ngoại lệ (Exception)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search Bar Overlay (Top-Right) -->
+      <div class="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl p-1.5 shadow-xl flex items-center gap-2">
+        <span class="text-slate-400 text-xs pl-2">🔍</span>
+        <input type="text" id="blueprint-search" placeholder="Tìm bước hoặc thực thể..." oninput="searchBlueprint(this.value)" class="bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none w-48" />
+      </div>
+    </div>
+
+    <!-- Viewport 2: Clean D3 Force Graph (Network Mode) -->
+    <div id="graph-container" class="flex-1 h-full relative bg-[#060A14] hidden">
+      <svg id="d3-svg" class="w-full h-full cursor-grab active:cursor-grabbing"></svg>
+    </div>
+
+    <!-- Viewport 3: Draw.io Vector Viewer (Full XML) -->
+    <div id="drawio-container" class="flex-1 h-full p-4 overflow-auto hidden bg-slate-950">
+      <div class="max-w-7xl mx-auto bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-2xl">
+        <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-300">Bản Vẽ Vector Gốc Draw.io (Chính xác 100% Khung Hình):</span>
+            <span id="drawio-flow-badge" class="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">FLOW 01</span>
+          </div>
+          <button onclick="openInDrawIo()" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold cursor-pointer transition">
+            🚀 Mở Trên Diagrams.net App
+          </button>
+        </div>
+        <div id="mxgraph-host" class="w-full flex justify-center"></div>
+      </div>
+    </div>
+
+    <!-- Right Code-Grounded Inspector Panel -->
+    <aside id="inspector-panel" class="w-[460px] h-full bg-[#080D1A] border-l border-slate-800 flex flex-col z-10 shadow-2xl">
+      <div class="p-3.5 border-b border-slate-800 bg-[#0B1120] flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span id="node-type" class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-700/50 font-bold">
+            START/STOP OVAL
+          </span>
+          <span class="text-xs text-slate-400 font-mono">BƯỚC ĐANG CHỌN</span>
+        </div>
+        <button onclick="zoomToActiveNode()" class="text-slate-400 hover:text-emerald-400 text-xs px-2.5 py-1 rounded bg-slate-800/80 border border-slate-700 cursor-pointer flex items-center gap-1 transition" title="Căn giữa node hiện tại">
+          🎯 Căn Giữa
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+        <!-- Node Label & Overview -->
+        <div>
+          <h3 id="node-label" class="text-sm font-bold text-white leading-snug">
+            START User accesses LegacyVault via Web Browser (HTTPS)
+          </h3>
+          <p id="node-file" class="text-[11px] font-mono text-emerald-400 mt-1 break-all">
+            File: client/src/App.tsx
+          </p>
+        </div>
+
+        <!-- Technical Specs -->
+        <div class="grid grid-cols-2 gap-2 text-[11px] bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+          <div>
+            <span class="text-slate-400 block text-[10px]">Endpoint / Giao thức:</span>
+            <span id="node-endpoint" class="font-mono text-amber-300 font-semibold break-all">GET https://legacyvault.vn</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px]">Quy chuẩn bảo mật:</span>
+            <span id="node-rule" class="font-mono text-indigo-300 font-semibold break-all">SEC-01: Bắt buộc TLS 1.3</span>
+          </div>
+        </div>
+
+        <!-- Description Text from XML -->
+        <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-800/80">
+          <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider mb-1">Mô tả nghiệp vụ XML:</span>
+          <div id="node-desc" class="text-slate-300 text-[11px] leading-relaxed whitespace-pre-wrap">
+            Khởi đầu phiên làm việc: Người dùng truy cập cổng thông tin an toàn LegacyVault.
+          </div>
+        </div>
+
+        <!-- Real Code Grounding Section -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+              <span>💻</span> Mã nguồn thực thi tương ứng:
+            </span>
+            <span id="code-lang-badge" class="font-mono text-[9px] px-1.5 py-0.5 bg-slate-800 text-slate-400 rounded">
+              TYPESCRIPT
+            </span>
+          </div>
+          <pre><code id="code-snippet-box" class="language-typescript">// client/src/App.tsx
+export const App: React.FC = () => {
+  const [currentRole, setCurrentRole] = useState('OWNER');
+  return &lt;MainNavbar /&gt;;
+};</code></pre>
+        </div>
+
+        <!-- Node Connections list -->
+        <div>
+          <span class="text-[11px] font-bold text-slate-300 block mb-1.5">Liên kết trong sơ đồ (Edges):</span>
+          <ul id="node-links" class="space-y-1.5 text-[11px]">
+            <!-- Populated by JS -->
+          </ul>
+        </div>
+      </div>
+
+      <div class="p-2.5 border-t border-slate-800 bg-[#0B1120] text-[10px] text-slate-400 text-center">
+        Được đối chiếu trực tiếp giữa .xml và source code trong client/src/ & server/.
+      </div>
+    </aside>
+  </main>
+
+  <!-- Step Roadmap Drawer (Collapsible bottom) -->
+  <div id="roadmap-drawer" class="bg-[#0B1120] border-t border-slate-800 px-6 py-3 z-30 shadow-2xl">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+        <span>🗺️</span> LỘ TRÌNH TOÀN BỘ CÁC BƯỚC TRONG FLOW:
+      </span>
+      <button onclick="toggleRoadmapDrawer()" class="text-slate-400 hover:text-white text-xs cursor-pointer">
+        ✕ Đóng
+      </button>
+    </div>
+    <div id="roadmap-chips" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto py-1">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <script>
+    const flows = /* FLOWS_DATA_PLACEHOLDER */;
+    const roadmaps = /* ROADMAPS_PLACEHOLDER */;
+
+    let activeFlowKey = 'flow1';
+    let activeViewMode = 'swimlane';
+    let currentStepIndex = 0;
+    let autoPlayInterval = null;
+
+    // SVG Pan & Zoom state
+    let blueprintSvg, blueprintGroup, blueprintZoom;
+    let currentBounds = { minX: 0, minY: 0, width: 2500, height: 2300 };
+
+    // Force Graph state
+    let simulation, d3Svg, gGroup, linkElements, nodeElements, zoomBehavior;
+    let currentCleanNodes = [];
+    let currentCleanEdges = [];
+
+    // Helper: compute recursive absolute coordinates from XML parent-child hierarchy
+    function computeAbsoluteLayout(flow) {
+      const nodeMap = new Map(flow.nodes.map(function(n) { return [n.id, n]; }));
+      const absMap = new Map();
+
+      function getAbs(n) {
+        if (!n) return { x: 0, y: 0, w: 100, h: 50 };
+        if (absMap.has(n.id)) return absMap.get(n.id);
+
+        let x = (n.geometry && n.geometry.x) || 0;
+        let y = (n.geometry && n.geometry.y) || 0;
+        let p = n.parent;
+        while (p && nodeMap.has(p)) {
+          const pn = nodeMap.get(p);
+          x += (pn.geometry && pn.geometry.x) || 0;
+          y += (pn.geometry && pn.geometry.y) || 0;
+          p = pn.parent;
+        }
+
+        const res = {
+          id: n.id,
+          parent: n.parent,
+          x: x,
+          y: y,
+          w: (n.geometry && n.geometry.width) || 120,
+          h: (n.geometry && n.geometry.height) || 60,
+          value: n.value || '',
+          style: n.style || '',
+          isVertex: n.isVertex
+        };
+        absMap.set(n.id, res);
+        return res;
+      }
+
+      flow.nodes.forEach(function(n) { getAbs(n); });
+      return absMap;
+    }
+
+    // Render Mode 1: Swimlane Architecture Blueprint
+    function renderSwimlaneBlueprint() {
+      const flow = flows[activeFlowKey];
+      document.getElementById('blueprint-title-hud').textContent = flow.title;
+      document.getElementById('blueprint-count-hud').textContent = flow.nodes.length + ' Nodes • ' + flow.edges.length + ' Edges (Swimlane chuẩn XML)';
+
+      blueprintSvg = d3.select("#blueprint-svg");
+      blueprintGroup = d3.select("#blueprint-content");
+      blueprintGroup.selectAll("*").remove();
+
+      const absMap = computeAbsoluteLayout(flow);
+
+      // Compute bounding box
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      absMap.forEach(function(n) {
+        minX = Math.min(minX, n.x);
+        minY = Math.min(minY, n.y);
+        maxX = Math.max(maxX, n.x + n.w);
+        maxY = Math.max(maxY, n.y + n.h);
+      });
+      minX = Math.max(0, minX - 40);
+      minY = Math.max(0, minY - 40);
+      const contentWidth = Math.max(1200, maxX - minX + 80);
+      const contentHeight = Math.max(800, maxY - minY + 80);
+      currentBounds = { minX: minX, minY: minY, width: contentWidth, height: contentHeight };
+
+      // Setup D3 Zoom on Blueprint SVG
+      blueprintZoom = d3.zoom()
+        .scaleExtent([0.1, 3.0])
+        .on("zoom", function(event) {
+          blueprintGroup.attr("transform", event.transform);
+        });
+      blueprintSvg.call(blueprintZoom);
+
+      // Separate nodes into layers
+      const containers = [];
+      const lanes = [];
+      const steps = [];
+      const decorations = [];
+
+      flow.nodes.forEach(function(n) {
+        const abs = absMap.get(n.id);
+        const style = n.style || '';
+        if (style.includes('swimlane')) {
+          if (n.id.startsWith('lane') || (abs.w < 500 && abs.h > 600)) {
+            lanes.push(abs);
+          } else {
+            containers.push(abs);
+          }
+        } else if (n.id === 'intro' || n.id === 'title' || n.id === 'legend' || n.id.startsWith('callout_')) {
+          decorations.push(abs);
+        } else {
+          steps.push(abs);
+        }
+      });
+
+      // Layer 1: Containers
+      const containerG = blueprintGroup.append("g").attr("class", "layer-containers");
+      containers.forEach(function(c) {
+        const g = containerG.append("g").attr("id", "container-" + c.id);
+        g.append("rect")
+          .attr("x", c.x)
+          .attr("y", c.y)
+          .attr("width", c.w)
+          .attr("height", c.h)
+          .attr("rx", 10)
+          .attr("fill", "#090F1E")
+          .attr("stroke", "#1E293B")
+          .attr("stroke-width", 1.5);
+
+        const headerTitle = c.value.replace(/<[^>]*>/g, ' ').replace(/&amp;/g, '&').trim();
+        g.append("rect")
+          .attr("x", c.x)
+          .attr("y", c.y)
+          .attr("width", c.w)
+          .attr("height", 32)
+          .attr("rx", 10)
+          .attr("fill", "#0F172A");
+
+        g.append("text")
+          .attr("x", c.x + 16)
+          .attr("y", c.y + 20)
+          .attr("fill", "#38BDF8")
+          .attr("font-size", "12px")
+          .attr("font-weight", "700")
+          .attr("letter-spacing", "0.05em")
+          .text(headerTitle);
+      });
+
+      // Layer 2: Column Swimlanes
+      const laneG = blueprintGroup.append("g").attr("class", "layer-lanes");
+      lanes.forEach(function(l) {
+        const g = laneG.append("g").attr("id", "lane-" + l.id);
+        g.append("rect")
+          .attr("x", l.x)
+          .attr("y", l.y)
+          .attr("width", l.w)
+          .attr("height", l.h)
+          .attr("fill", "#070C18")
+          .attr("stroke", "#1E293B")
+          .attr("stroke-width", 1);
+
+        g.append("rect")
+          .attr("x", l.x)
+          .attr("y", l.y)
+          .attr("width", l.w)
+          .attr("height", 30)
+          .attr("fill", "#111827")
+          .attr("stroke", "#1E293B")
+          .attr("stroke-width", 1);
+
+        const laneTitle = l.value.replace(/<[^>]*>/g, '').trim();
+        let icon = "⚙️";
+        if (laneTitle.includes("USER") || laneTitle.includes("OWNER")) icon = "👤";
+        else if (laneTitle.includes("CLIENT")) icon = "💻";
+        else if (laneTitle.includes("GOOGLE")) icon = "🌐";
+        else if (laneTitle.includes("DATABASE") || laneTitle.includes("DB")) icon = "🗄️";
+        else if (laneTitle.includes("CLOUDFLARE") || laneTitle.includes("R2")) icon = "☁️";
+        else if (laneTitle.includes("VERIFIER")) icon = "🔍";
+        else if (laneTitle.includes("EXECUTOR")) icon = "⚖️";
+        else if (laneTitle.includes("SEPAY")) icon = "💳";
+        else if (laneTitle.includes("SMTP")) icon = "✉️";
+
+        g.append("text")
+          .attr("x", l.x + l.w / 2)
+          .attr("y", l.y + 19)
+          .attr("text-anchor", "middle")
+          .attr("fill", "#94A3B8")
+          .attr("font-size", "11px")
+          .attr("font-weight", "700")
+          .text(icon + ' ' + laneTitle);
+      });
+
+      // Layer 3: Connection Edges
+      const edgeG = blueprintGroup.append("g").attr("class", "layer-edges");
+      const labelG = blueprintGroup.append("g").attr("class", "layer-edge-labels");
+
+      flow.edges.forEach(function(e) {
+        const s = absMap.get(e.source);
+        const t = absMap.get(e.target);
+        if (!s || !t) return;
+
+        const pathData = computeConnectorPath(s, t, e.geometry && e.geometry.points);
+        if (!pathData) return;
+
+        const isError = (e.value || '').toLowerCase().match(/fail|block|error|invalid|conflict|locked|offline/) ||
+                        (e.id || '').includes('err') || (e.id || '').includes('block') || (e.id || '').includes('offline');
+        const isSuccess = (e.value || '').toLowerCase().match(/valid|success|ok|allowed|created/) ||
+                          (e.id || '').includes('ok') || (e.id || '').includes('success');
+        const isLoop = (e.id || '').startsWith('loop_');
+
+        let strokeColor = "#475569";
+        let marker = "url(#arrow-default)";
+        if (isError) {
+          strokeColor = "#EF4444";
+          marker = "url(#arrow-red)";
+        } else if (isSuccess) {
+          strokeColor = "#10B981";
+          marker = "url(#arrow-emerald)";
+        } else if ((e.value || '').includes('Google')) {
+          strokeColor = "#0284C7";
+          marker = "url(#arrow-blue)";
+        } else if ((e.value || '').includes('Email') || (e.value || '').includes('Password')) {
+          strokeColor = "#0D9488";
+          marker = "url(#arrow-teal)";
+        }
+
+        const pathEl = edgeG.append("path")
+          .attr("id", "edge-" + e.id)
+          .attr("d", pathData.d)
+          .attr("class", "flow-edge edge-src-" + e.source + " edge-tgt-" + e.target)
+          .attr("stroke", strokeColor)
+          .attr("stroke-width", isError || isSuccess ? 2.2 : 1.8)
+          .attr("marker-end", marker);
+
+        if (isLoop || isError) {
+          pathEl.attr("stroke-dasharray", "5 3");
+        }
+
+        if (e.value && e.value.trim() && pathData.mid) {
+          const cleanLabel = e.value.replace(/<[^>]*>/g, ' ').replace(/&amp;/g, '&').trim();
+          if (cleanLabel.length > 0) {
+            const lg = labelG.append("g")
+              .attr("transform", "translate(" + pathData.mid.x + ", " + pathData.mid.y + ")");
+
+            const labelWidth = Math.min(180, cleanLabel.length * 6.5 + 16);
+            lg.append("rect")
+              .attr("x", -labelWidth / 2)
+              .attr("y", -9)
+              .attr("width", labelWidth)
+              .attr("height", 18)
+              .attr("rx", 5)
+              .attr("fill", isError ? "#450A0A" : isSuccess ? "#064E3B" : "#0F172A")
+              .attr("stroke", isError ? "#DC2626" : isSuccess ? "#059669" : "#334155")
+              .attr("stroke-width", 1);
+
+            lg.append("text")
+              .attr("text-anchor", "middle")
+              .attr("y", 3.5)
+              .attr("fill", isError ? "#FCA5A5" : isSuccess ? "#6EE7B7" : "#CBD5E1")
+              .attr("font-size", "9.5px")
+              .attr("font-weight", "600")
+              .text(cleanLabel.length > 28 ? cleanLabel.slice(0, 26) + '...' : cleanLabel);
+          }
+        }
+      });
+
+      // Layer 4: Step Cards (interactive foreignObjects)
+      const stepG = blueprintGroup.append("g").attr("class", "layer-steps");
+      steps.forEach(function(s) {
+        const style = s.style || '';
+        const isStart = style.includes('ellipse') && !s.id.includes('conn_') && !s.id.includes('merge');
+        const isConnector = style.includes('ellipse') && (s.id.includes('conn_') || s.id.includes('merge'));
+        const isDecision = style.includes('rhombus');
+        const isIO = style.includes('parallelogram');
+        const isOffPage = style.includes('offPageConnector');
+        const isError = s.id.startsWith('e0') || s.id.startsWith('e1') || s.id.startsWith('e2') ||
+                        s.id.startsWith('e3') || s.id.startsWith('e4') || s.id.startsWith('e5') ||
+                        style.includes('fillColor=#FEE2E2');
+
+        const fo = stepG.append("foreignObject")
+          .attr("id", "fo-" + s.id)
+          .attr("x", s.x)
+          .attr("y", s.y)
+          .attr("width", s.w)
+          .attr("height", s.h)
+          .attr("class", "overflow-visible cursor-pointer");
+
+        const rawLines = s.value.split(/<br[^>]*>/i);
+        const headerLine = rawLines[0] ? rawLines[0].replace(/<[^>]*>/g, '').trim() : '';
+        const bodyLines = rawLines.slice(1).map(function(l) { return l.replace(/<[^>]*>/g, '').trim(); }).filter(Boolean).join(' · ');
+
+        let cardTheme = "bg-slate-900/90 border-slate-700/80 text-slate-200 hover:border-slate-500";
+        let badgeColor = "bg-slate-800 text-slate-300";
+        let iconSymbol = "⚙️";
+
+        if (isStart) {
+          cardTheme = "bg-gradient-to-r from-emerald-950/90 to-emerald-900/80 border-emerald-500 text-emerald-100 shadow-emerald-950/50";
+          badgeColor = "bg-emerald-900 text-emerald-300";
+          iconSymbol = "🟢";
+        } else if (isDecision) {
+          cardTheme = "bg-gradient-to-br from-amber-950/90 via-slate-900 to-amber-950/80 border-amber-500/80 text-amber-100 shadow-amber-950/40";
+          badgeColor = "bg-amber-900/80 text-amber-300";
+          iconSymbol = "❓";
+        } else if (isIO) {
+          cardTheme = "bg-gradient-to-br from-sky-950/90 via-slate-900 to-sky-900/80 border-sky-400/80 text-sky-100 shadow-sky-950/40";
+          badgeColor = "bg-sky-900/80 text-sky-300";
+          iconSymbol = "📥";
+        } else if (isError) {
+          cardTheme = "bg-red-950/70 border-red-500/80 text-red-200 shadow-red-950/40";
+          badgeColor = "bg-red-900/80 text-red-300";
+          iconSymbol = "⚠️";
+        } else if (isOffPage) {
+          cardTheme = "bg-purple-950/80 border-purple-500/80 text-purple-200 shadow-purple-950/40";
+          badgeColor = "bg-purple-900/80 text-purple-300";
+          iconSymbol = "➡️";
+        } else if (isConnector) {
+          cardTheme = "bg-purple-950/90 border-purple-400 text-purple-200 flex items-center justify-center text-center font-bold";
+        }
+
+        const div = fo.append("xhtml:div")
+          .attr("id", "node-card-" + s.id)
+          .attr("class", "w-full h-full rounded-xl border p-2 flex flex-col justify-between text-xs transition-all shadow-md select-none " + cardTheme)
+          .on("click", function(e) {
+            e.stopPropagation();
+            onStepCardClick(s.id);
+          });
+
+        if (isConnector) {
+          div.html('<div class="text-xs font-bold text-center w-full leading-tight">' + s.value.replace(/<br[^>]*>/gi, ' ') + '</div>');
+        } else {
+          div.html(
+            '<div>' +
+              '<div class="flex items-center justify-between gap-1 mb-1">' +
+                '<span class="text-[9px] font-mono px-1.5 py-0.5 rounded font-bold uppercase truncate max-w-[80%] ' + badgeColor + '">' +
+                  iconSymbol + ' ' + headerLine +
+                '</span>' +
+                '<span class="text-[9px] font-mono opacity-50 text-slate-400">#' + s.id.slice(0, 8) + '</span>' +
+              '</div>' +
+              '<div class="text-[10.5px] leading-tight text-slate-200 line-clamp-3">' +
+                (bodyLines || headerLine) +
+              '</div>' +
+            '</div>'
+          );
+        }
+      });
+
+      // Layer 5: Decorations & Callouts
+      const decoG = blueprintGroup.append("g").attr("class", "layer-decorations");
+      decorations.forEach(function(d) {
+        const fo = decoG.append("foreignObject")
+          .attr("x", d.x)
+          .attr("y", d.y)
+          .attr("width", d.w)
+          .attr("height", d.h);
+
+        const cleanHtml = d.value.replace(/<b/g, '<strong class="text-white font-bold"').replace(/<\/b/g, '</strong>');
+        fo.append("xhtml:div")
+          .attr("class", "w-full h-full rounded-xl bg-slate-900/80 border border-slate-700/60 p-3 text-[11px] text-slate-300 leading-relaxed overflow-y-auto")
+          .html(cleanHtml);
+      });
+
+      // Default fit view
+      fitView();
+    }
+
+    // Smart connector path computation
+    function computeConnectorPath(source, target, waypoints) {
+      const sx = source.x, sy = source.y, sw = source.w, sh = source.h;
+      const tx = target.x, ty = target.y, tw = target.w, th = target.h;
+
+      if (waypoints && waypoints.length > 0) {
+        const firstPt = waypoints[0];
+        let startX = sx + sw / 2, startY = sy + sh;
+        if (firstPt.y < sy) { startY = sy; }
+        else if (firstPt.x > sx + sw) { startX = sx + sw; startY = sy + sh / 2; }
+        else if (firstPt.x < sx) { startX = sx; startY = sy + sh / 2; }
+
+        const lastPt = waypoints[waypoints.length - 1];
+        let endX = tx + tw / 2, endY = ty;
+        if (lastPt.y > ty + th) { endY = ty + th; }
+        else if (lastPt.x < tx) { endX = tx; endY = ty + th / 2; }
+        else if (lastPt.x > tx + tw) { endX = tx + tw; endY = ty + th / 2; }
+
+        let d = "M " + startX + " " + startY;
+        waypoints.forEach(function(p) {
+          d += " L " + p.x + " " + p.y;
+        });
+        d += " L " + endX + " " + endY;
+
+        const midIdx = Math.floor(waypoints.length / 2);
+        const midPt = waypoints[midIdx] || { x: (startX + endX) / 2, y: (startY + endY) / 2 };
+        return { d: d, mid: midPt };
+      }
+
+      const sCenter = { x: sx + sw / 2, y: sy + sh / 2 };
+      const tCenter = { x: tx + tw / 2, y: ty + th / 2 };
+
+      if (ty >= sy + sh - 5) {
+        const start = { x: sCenter.x, y: sy + sh };
+        const end = { x: tCenter.x, y: ty };
+        if (Math.abs(start.x - end.x) < 8) {
+          return {
+            d: "M " + start.x + " " + start.y + " L " + end.x + " " + end.y,
+            mid: { x: start.x, y: (start.y + end.y) / 2 }
+          };
+        }
+        const midY = (start.y + end.y) / 2;
+        return {
+          d: "M " + start.x + " " + start.y + " L " + start.x + " " + midY + " L " + end.x + " " + midY + " L " + end.x + " " + end.y,
+          mid: { x: (start.x + end.x) / 2, y: midY }
+        };
+      }
+
+      if (tx >= sx + sw - 5) {
+        const start = { x: sx + sw, y: sCenter.y };
+        const end = { x: tx, y: tCenter.y };
+        const midX = (start.x + end.x) / 2;
+        return {
+          d: "M " + start.x + " " + start.y + " L " + midX + " " + start.y + " L " + midX + " " + end.y + " L " + end.x + " " + end.y,
+          mid: { x: midX, y: (start.y + end.y) / 2 }
+        };
+      }
+
+      if (sx >= tx + tw - 5) {
+        const start = { x: sx, y: sCenter.y };
+        const end = { x: tx + tw, y: tCenter.y };
+        const midX = (start.x + end.x) / 2;
+        return {
+          d: "M " + start.x + " " + start.y + " L " + midX + " " + start.y + " L " + midX + " " + end.y + " L " + end.x + " " + end.y,
+          mid: { x: midX, y: (start.y + end.y) / 2 }
+        };
+      }
+
+      const routeRight = sCenter.x < 1200;
+      const offset = routeRight ? Math.max(sx + sw, tx + tw) + 35 : Math.min(sx, tx) - 35;
+      const start = routeRight ? { x: sx + sw, y: sCenter.y } : { x: sx, y: sCenter.y };
+      const end = routeRight ? { x: tx + tw, y: tCenter.y } : { x: tx, y: tCenter.y };
+      return {
+        d: "M " + start.x + " " + start.y + " L " + offset + " " + start.y + " L " + offset + " " + end.y + " L " + end.x + " " + end.y,
+        mid: { x: offset, y: (start.y + end.y) / 2 }
+      };
+    }
+
+    // Step Card Click handler
+    function onStepCardClick(nodeId) {
+      const roadmap = roadmaps[activeFlowKey] || [];
+      const stepIdx = roadmap.findIndex(function(s) { return s.id === nodeId; });
+      if (stepIdx !== -1) {
+        jumpToStep(stepIdx);
+      } else {
+        const flow = flows[activeFlowKey];
+        const rawNode = flow.nodes.find(function(n) { return n.id === nodeId; });
+        if (rawNode) {
+          selectNodeDetail(rawNode);
+          highlightNodeInCanvas(nodeId);
+        }
+      }
+    }
+
+    // View Switching
+    function setViewMode(mode) {
+      activeViewMode = mode;
+      document.querySelectorAll('.view-btn').forEach(function(b) {
+        b.className = "view-btn px-2.5 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer flex items-center gap-1.5";
+      });
+      const activeBtn = document.getElementById("btn-" + mode);
+      if (activeBtn) {
+        activeBtn.className = "view-btn px-2.5 py-1.5 rounded-lg font-bold bg-emerald-500 text-black shadow-sm transition cursor-pointer flex items-center gap-1.5";
+      }
+
+      document.getElementById('swimlane-container').classList.add('hidden');
+      document.getElementById('graph-container').classList.add('hidden');
+      document.getElementById('drawio-container').classList.add('hidden');
+
+      if (mode === 'swimlane') {
+        document.getElementById('swimlane-container').classList.remove('hidden');
+        renderSwimlaneBlueprint();
+      } else if (mode === 'graph') {
+        document.getElementById('graph-container').classList.remove('hidden');
+        renderD3Graph();
+      } else if (mode === 'drawio') {
+        document.getElementById('drawio-container').classList.remove('hidden');
+        renderDrawIo();
+      }
+
+      updateStepControls();
+    }
+
+    function switchFlow(flowKey) {
+      activeFlowKey = flowKey;
+      currentStepIndex = 0;
+      if (autoPlayInterval) stopAutoPlay();
+
+      document.querySelectorAll('.flow-tab').forEach(function(b) {
+        b.className = "flow-tab px-3 py-1.5 rounded-lg font-bold text-slate-400 hover:text-white transition cursor-pointer";
+      });
+      const activeBtn = document.getElementById("tab-" + flowKey);
+      if (activeBtn) {
+        activeBtn.className = "flow-tab px-3 py-1.5 rounded-lg font-bold bg-indigo-600 text-white shadow-sm transition cursor-pointer";
+      }
+
+      if (activeViewMode === 'swimlane') {
+        renderSwimlaneBlueprint();
+      } else if (activeViewMode === 'graph') {
+        renderD3Graph();
+      } else if (activeViewMode === 'drawio') {
+        renderDrawIo();
+      }
+
+      updateStepControls();
+    }
+
+    function updateStepControls() {
+      const roadmap = roadmaps[activeFlowKey] || [];
+      const current = roadmap[currentStepIndex] || { id: "", num: "00", title: "Khởi Đầu", desc: "" };
+      
+      document.getElementById('step-badge-text').textContent = 'Bước ' + (currentStepIndex + 1) + ' / ' + roadmap.length + ': ' + current.title;
+
+      const selectEl = document.getElementById('step-select');
+      selectEl.innerHTML = '';
+      roadmap.forEach(function(s, idx) {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = '[' + s.num + '] ' + s.title;
+        if (idx === currentStepIndex) opt.selected = true;
+        selectEl.appendChild(opt);
+      });
+
+      const chipsEl = document.getElementById('roadmap-chips');
+      chipsEl.innerHTML = '';
+      roadmap.forEach(function(s, idx) {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.onclick = function() { jumpToStep(idx); };
+        chip.className = 'px-2.5 py-1 rounded-lg border text-left cursor-pointer transition flex items-center gap-1.5 ' +
+          (idx === currentStepIndex 
+            ? 'bg-emerald-500 text-black border-emerald-400 font-bold shadow-md' 
+            : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-600');
+        chip.innerHTML = '<span class="font-mono text-[10px] opacity-75">' + s.num + '</span> <span>' + s.title + '</span>';
+        chipsEl.appendChild(chip);
+      });
+
+      if (current.id) {
+        highlightNodeInCanvas(current.id);
+        const flow = flows[activeFlowKey];
+        const rawNode = flow.nodes.find(function(n) { return n.id === current.id; });
+        if (rawNode) {
+          selectNodeDetail(rawNode);
+        }
+      }
+    }
+
+    function highlightNodeInCanvas(targetNodeId) {
+      if (activeViewMode === 'swimlane') {
+        document.querySelectorAll('.node-card-active').forEach(function(el) { el.classList.remove('node-card-active'); });
+        document.querySelectorAll('.flow-edge').forEach(function(el) {
+          el.classList.remove('highlight-out', 'highlight-in', 'active-trace');
+        });
+
+        const card = document.getElementById('node-card-' + targetNodeId);
+        if (card) {
+          card.classList.add('node-card-active');
+        }
+
+        document.querySelectorAll('.edge-src-' + targetNodeId).forEach(function(el) {
+          el.classList.add('active-trace');
+        });
+        document.querySelectorAll('.edge-tgt-' + targetNodeId).forEach(function(el) {
+          el.classList.add('highlight-in');
+        });
+
+        centerBlueprintOnNode(targetNodeId);
+      } else if (activeViewMode === 'graph' && nodeElements) {
+        highlightStepNode(targetNodeId);
+      }
+    }
+
+    function selectNodeDetail(node) {
+      const style = node.style || '';
+      let typeLabel = "PROCESS RECTANGLE";
+      if (style.includes('rhombus')) typeLabel = "DECISION RHOMBUS";
+      else if (style.includes('parallelogram')) typeLabel = "I/O PARALLELOGRAM";
+      else if (style.includes('ellipse')) typeLabel = "START/STOP OVAL";
+      else if (node.id.startsWith('e0') || node.id.startsWith('e1') || node.id.startsWith('e2') || style.includes('fillColor=#FEE2E2')) typeLabel = "EXCEPTION GUARD";
+      else if (style.includes('offPageConnector')) typeLabel = "OFF-PAGE CONNECTOR";
+
+      document.getElementById("node-type").textContent = typeLabel;
+      
+      const cleanLabel = node.value ? node.value.replace(/<br[^>]*>/gi, ' ').replace(/<[^>]*>/g, '').trim() : node.id;
+      document.getElementById("node-label").textContent = cleanLabel;
+      document.getElementById("node-desc").textContent = cleanLabel;
+
+      const roadmap = roadmaps[activeFlowKey] || [];
+      const matched = roadmap.find(function(s) { return s.id === node.id; });
+
+      if (matched) {
+        document.getElementById("node-file").textContent = 'File: ' + matched.file;
+        document.getElementById("node-endpoint").textContent = matched.endpoint || "-";
+        document.getElementById("node-rule").textContent = matched.rule || "-";
+        if (matched.desc) document.getElementById("node-desc").textContent = matched.desc;
+        
+        const codeBox = document.getElementById("code-snippet-box");
+        codeBox.textContent = matched.code || '// Không có snippet code cụ thể';
+        document.getElementById("code-lang-badge").textContent = (matched.lang || "csharp").toUpperCase();
+        codeBox.className = 'language-' + (matched.lang || 'csharp');
+        Prism.highlightElement(codeBox);
+      } else {
+        document.getElementById("node-file").textContent = 'ID: ' + node.id;
+        document.getElementById("node-endpoint").textContent = "-";
+        document.getElementById("node-rule").textContent = "-";
+        
+        const codeBox = document.getElementById("code-snippet-box");
+        codeBox.textContent = '// Thực thể đồ thị: ' + cleanLabel + '\n// Thuộc tính style: ' + (node.style || '');
+        codeBox.className = "language-csharp";
+        Prism.highlightElement(codeBox);
+      }
+
+      const flow = flows[activeFlowKey];
+      const edges = flow.edges.filter(function(e) { return e.source === node.id || e.target === node.id; });
+      const listEl = document.getElementById("node-links");
+      listEl.innerHTML = "";
+      if (edges.length === 0) {
+        listEl.innerHTML = '<li class="text-slate-500 italic">Không có liên kết trực tiếp</li>';
+      } else {
+        edges.forEach(function(l) {
+          const isOut = l.source === node.id;
+          const otherId = isOut ? l.target : l.source;
+          const otherNode = flow.nodes.find(function(n) { return n.id === otherId; });
+          const otherLabel = otherNode ? (otherNode.value || otherId).replace(/<[^>]*>/g, ' ').trim() : otherId;
+          const li = document.createElement("li");
+          li.className = "bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 flex justify-between items-center cursor-pointer hover:border-slate-600 transition";
+          li.onclick = function() { onStepCardClick(otherId); };
+          li.innerHTML = '<span class="text-slate-400">' + (isOut ? '→ ' + (l.value || 'Kế tiếp') : '← ' + (l.value || 'Từ')) + '</span> <strong class="text-emerald-400 font-mono truncate max-w-[200px]">' + otherLabel + '</strong>';
+          listEl.appendChild(li);
+        });
+      }
+    }
+
+    function fitView() {
+      if (!blueprintSvg || !blueprintZoom) return;
+      const svgEl = document.getElementById('blueprint-svg');
+      const w = svgEl.clientWidth;
+      const h = svgEl.clientHeight;
+      const scale = Math.min((w - 40) / currentBounds.width, (h - 40) / currentBounds.height, 1.0);
+      const tx = (w - currentBounds.width * scale) / 2 - currentBounds.minX * scale;
+      const ty = (h - currentBounds.height * scale) / 2 - currentBounds.minY * scale;
+
+      blueprintSvg.transition().duration(600).ease(d3.easeCubicOut).call(
+        blueprintZoom.transform,
+        d3.zoomIdentity.translate(tx, ty).scale(scale)
+      );
+    }
+
+    function zoomIn() {
+      if (!blueprintSvg || !blueprintZoom) return;
+      blueprintSvg.transition().duration(300).call(blueprintZoom.scaleBy, 1.25);
+    }
+
+    function zoomOut() {
+      if (!blueprintSvg || !blueprintZoom) return;
+      blueprintSvg.transition().duration(300).call(blueprintZoom.scaleBy, 0.8);
+    }
+
+    function centerBlueprintOnNode(nodeId) {
+      if (!blueprintSvg || !blueprintZoom) return;
+      const flow = flows[activeFlowKey];
+      const absMap = computeAbsoluteLayout(flow);
+      const node = absMap.get(nodeId);
+      if (!node) return;
+
+      const svgEl = document.getElementById('blueprint-svg');
+      const w = svgEl.clientWidth;
+      const h = svgEl.clientHeight;
+      const scale = 1.05;
+
+      const tx = w / 2 - (node.x + node.w / 2) * scale;
+      const ty = h / 2 - (node.y + node.h / 2) * scale;
+
+      blueprintSvg.transition().duration(700).ease(d3.easeCubicOut).call(
+        blueprintZoom.transform,
+        d3.zoomIdentity.translate(tx, ty).scale(scale)
+      );
+    }
+
+    function zoomToActiveNode() {
+      const roadmap = roadmaps[activeFlowKey] || [];
+      const current = roadmap[currentStepIndex];
+      if (current) {
+        if (activeViewMode === 'swimlane') {
+          centerBlueprintOnNode(current.id);
+        } else if (activeViewMode === 'graph') {
+          centerOnNode(current.id);
+        }
+      }
+    }
+
+    function searchBlueprint(query) {
+      if (!query) return;
+      const q = query.toLowerCase();
+      const flow = flows[activeFlowKey];
+      const match = flow.nodes.find(function(n) { return (n.value || '').toLowerCase().includes(q) || n.id.toLowerCase().includes(q); });
+      if (match) {
+        onStepCardClick(match.id);
+      }
+    }
+
+    function nextStep() {
+      const roadmap = roadmaps[activeFlowKey] || [];
+      currentStepIndex = (currentStepIndex < roadmap.length - 1) ? currentStepIndex + 1 : 0;
+      updateStepControls();
+    }
+
+    function prevStep() {
+      const roadmap = roadmaps[activeFlowKey] || [];
+      currentStepIndex = (currentStepIndex > 0) ? currentStepIndex - 1 : roadmap.length - 1;
+      updateStepControls();
+    }
+
+    function jumpToStep(idx) {
+      currentStepIndex = idx;
+      updateStepControls();
+    }
+
+    function toggleAutoPlay() {
+      if (autoPlayInterval) stopAutoPlay();
+      else startAutoPlay();
+    }
+
+    function startAutoPlay() {
+      document.getElementById('btn-autoplay').innerHTML = '<span>⏸</span> Tạm dừng';
+      document.getElementById('btn-autoplay').className = 'px-3 py-1 rounded-lg bg-amber-500 text-black border border-amber-400 font-bold cursor-pointer transition flex items-center gap-1.5';
+      autoPlayInterval = setInterval(function() { nextStep(); }, 2800);
+    }
+
+    function stopAutoPlay() {
+      clearInterval(autoPlayInterval);
+      autoPlayInterval = null;
+      document.getElementById('btn-autoplay').innerHTML = '<span>▶️</span> Tự động chạy';
+      document.getElementById('btn-autoplay').className = 'px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold cursor-pointer transition flex items-center gap-1.5';
+    }
+
+    function toggleRoadmapDrawer() {
+      document.getElementById('roadmap-drawer').classList.toggle('hidden');
+    }
+
+    // View Mode 2: Clean D3 Force Graph
+    function renderD3Graph() {
+      const flow = flows[activeFlowKey];
+      const svgContainer = document.getElementById('graph-container');
+      const width = svgContainer.clientWidth;
+      const height = svgContainer.clientHeight;
+
+      d3Svg = d3.select("#d3-svg").attr("viewBox", [0, 0, width, height]);
+      d3Svg.selectAll("*").remove();
+      gGroup = d3Svg.append("g");
+
+      zoomBehavior = d3.zoom()
+        .scaleExtent([0.15, 3])
+        .on("zoom", function(event) { gGroup.attr("transform", event.transform); });
+      d3Svg.call(zoomBehavior);
+
+      const stepNodes = flow.nodes.filter(function(n) {
+        const s = n.style || '';
+        return !s.includes('swimlane') && n.id !== 'intro' && n.id !== 'title' && n.id !== 'legend';
+      });
+
+      const nodeMap = new Map();
+      currentCleanNodes = stepNodes.map(function(n) {
+        const clean = {
+          id: n.id,
+          label: n.value ? n.value.replace(/<[^>]*>/g, ' ').trim().slice(0, 32) : n.id,
+          fullText: n.value ? n.value.replace(/<br[^>]*>/gi, '\n').replace(/<[^>]*>/g, '').trim() : '',
+          style: n.style || '',
+          isDecision: (n.style || '').includes('rhombus'),
+          isProcess: (n.style || '').includes('rounded') || (n.style || '').includes('rectangle'),
+          isIO: (n.style || '').includes('parallelogram'),
+          isStart: (n.style || '').includes('ellipse'),
+          radius: (n.style || '').includes('rhombus') ? 22 : 18
+        };
+        nodeMap.set(n.id, clean);
+        return clean;
+      });
+
+      currentCleanEdges = flow.edges
+        .filter(function(e) { return nodeMap.has(e.source) && nodeMap.has(e.target); })
+        .map(function(e) {
+          return {
+            source: e.source,
+            target: e.target,
+            label: e.value ? e.value.replace(/<[^>]*>/g, ' ').trim() : ''
+          };
+        });
+
+      simulation = d3.forceSimulation(currentCleanNodes)
+        .force("link", d3.forceLink(currentCleanEdges).id(function(d) { return d.id; }).distance(110))
+        .force("charge", d3.forceManyBody().strength(-350))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("collision", d3.forceCollide().radius(function(d) { return d.radius + 24; }));
+
+      linkElements = gGroup.append("g")
+        .selectAll("line")
+        .data(currentCleanEdges)
+        .join("line")
+        .attr("class", "flow-edge")
+        .attr("stroke", "#475569")
+        .attr("stroke-width", 1.8);
+
+      nodeElements = gGroup.append("g")
+        .selectAll("g")
+        .data(currentCleanNodes)
+        .join("g")
+        .attr("class", "node cursor-pointer")
+        .call(d3.drag()
+          .on("start", function(event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+          .on("drag", function(event, d) { d.fx = event.x; d.fy = event.y; })
+          .on("end", function(event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }));
+
+      nodeElements.append("circle")
+        .attr("r", function(d) { return d.radius; })
+        .attr("fill", function(d) {
+          if (d.isStart) return "#10B981";
+          if (d.isDecision) return "#F59E0B";
+          if (d.isIO) return "#38BDF8";
+          return "#475569";
+        })
+        .attr("stroke", "#0D1527")
+        .attr("stroke-width", 2.5)
+        .attr("filter", "drop-shadow(0px 3px 6px rgba(0,0,0,0.6))");
+
+      nodeElements.append("text")
+        .attr("dy", function(d) { return d.radius + 14; })
+        .attr("text-anchor", "middle")
+        .attr("fill", "#F1F5F9")
+        .attr("font-size", "10px")
+        .attr("font-weight", "600")
+        .text(function(d) { return d.label.slice(0, 22); });
+
+      nodeElements.on("click", function(event, d) {
+        onStepCardClick(d.id);
+      });
+
+      simulation.on("tick", function() {
+        linkElements
+          .attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; });
+
+        nodeElements.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+      });
+    }
+
+    function centerOnNode(nodeId) {
+      if (!simulation || !d3Svg || !zoomBehavior) return;
+      const simNode = simulation.nodes().find(function(n) { return n.id === nodeId; });
+      if (simNode) {
+        const svgContainer = document.getElementById('graph-container');
+        const width = svgContainer.clientWidth;
+        const height = svgContainer.clientHeight;
+        d3Svg.transition().duration(600).ease(d3.easeCubicOut).call(
+          zoomBehavior.transform,
+          d3.zoomIdentity.translate(width / 2, height / 2).scale(1.2).translate(-simNode.x, -simNode.y)
+        );
+      }
+    }
+
+    function highlightStepNode(targetNodeId) {
+      if (!nodeElements) return;
+      nodeElements.select("circle")
+        .attr("stroke", function(d) { return d.id === targetNodeId ? "#10B981" : "#0D1527"; })
+        .attr("stroke-width", function(d) { return d.id === targetNodeId ? 5 : 2.5; })
+        .attr("r", function(d) { return d.id === targetNodeId ? d.radius + 5 : d.radius; });
+
+      centerOnNode(targetNodeId);
+    }
+
+    // View Mode 3: Draw.io Vector Viewer
+    function renderDrawIo() {
+      const flow = flows[activeFlowKey];
+      document.getElementById('drawio-flow-badge').textContent = flow.title;
+      
+      const host = document.getElementById('mxgraph-host');
+      host.innerHTML = '';
+
+      const mxConfig = {
+        highlight: "#10B981",
+        nav: true,
+        resize: true,
+        toolbar: "zoom layers tags pages",
+        xml: flow.xml
+      };
+
+      const mxDiv = document.createElement('div');
+      mxDiv.className = 'mxgraph';
+      mxDiv.style.width = '100%';
+      mxDiv.style.minHeight = '1800px';
+      mxDiv.setAttribute('data-mxgraph', JSON.stringify(mxConfig));
+      host.appendChild(mxDiv);
+
+      if (window.GraphViewer && window.GraphViewer.processElements) {
+        window.GraphViewer.processElements();
+      }
+    }
+
+    function openInDrawIo() {
+      const flow = flows[activeFlowKey];
+      const encoded = encodeURIComponent(flow.xml);
+      window.open('https://app.diagrams.net/#R' + encoded, '_blank');
+    }
+
+    // Initial boot
+    switchFlow('flow1');
+  </script>
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LegacyVault - Flow 02: Thiết Lập & Kích Hoạt Kế Hoạch Di Sản Graph</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <style>
+    body { background-color: #080D1A; color: #F1F5F9; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+    .node text { pointer-events: none; font-size: 11px; font-weight: 600; fill: #F8FAFC; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
+    .link { stroke: #334155; stroke-opacity: 0.6; stroke-width: 1.5px; transition: all 0.25s ease; }
+    .link.highlight { stroke: #10B981; stroke-opacity: 1; stroke-width: 3.5px; }
+    .link.error { stroke: #EF4444; stroke-dasharray: 4,4; stroke-width: 2px; }
+    .link.flow { stroke: #10B981; stroke-dasharray: 6,6; animation: dash 1s linear infinite; }
+    @keyframes dash { to { stroke-dashoffset: -12; } }
+    pre[class*="language-"] { margin: 0; padding: 12px; border-radius: 8px; font-size: 11px; background: #0B1120 !important; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+  <!-- Top Navigation Header -->
+  <header class="bg-[#0D1527] border-b border-slate-800 px-6 py-2.5 flex flex-wrap items-center justify-between z-20 shadow-xl gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-linear-to-br from-emerald-400 via-teal-500 to-amber-500 flex items-center justify-center font-bold text-black text-lg shadow-lg shadow-emerald-500/20">
+        🛡️
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base font-bold text-white tracking-wide">
+            FLOW 02 · Thiết Lập, Mã Hóa R2 & Kích Hoạt Di Sản
+          </h1>
+          <span class="text-[10px] font-mono bg-emerald-950 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-bold">
+            6 LÀN BƠI • 6 NHÁNH LỖI (E1-E6)
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">
+          SePay VietQR • Cloudflare R2 • MailKit SMTP • Dead Man's Switch (DMS 30 ngày) • SETUP-01 Checklist
+        </p>
+      </div>
+    </div>
+    
+    <!-- Controls & Suite Links -->
+    <div class="flex items-center gap-3">
+      <!-- Cross Navigation -->
+      <nav class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+        <a href="flow-01.html" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-white transition">Flow 01 (Auth)</a>
+        <a href="flow-02.html" class="px-2.5 py-1 rounded-lg font-bold bg-emerald-600 text-black">Flow 02 (Vault Setup)</a>
+        <a href="envelope-encryption.html" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-white transition">Mã Hóa AES-GCM</a>
+      </nav>
+
+      <!-- Step Walkthrough -->
+      <div class="flex items-center bg-slate-900/90 px-3 py-1 rounded-xl border border-slate-700/80 text-xs gap-2">
+        <span class="text-slate-400 font-medium">Bước:</span>
+        <button onclick="prevStep()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold cursor-pointer">◀</button>
+        <span id="step-label" class="font-mono text-emerald-400 font-bold px-1 min-w-[140px] text-center">B1: Chọn Gói Cước</span>
+        <button onclick="nextStep()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold cursor-pointer">▶</button>
+      </div>
+
+      <button onclick="resetZoom()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition cursor-pointer">
+        Zoom
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Viewport -->
+  <div class="flex-1 flex overflow-hidden relative">
+    <!-- Graph Canvas SVG -->
+    <div class="flex-1 relative h-full" id="canvas-container">
+      <svg id="graph-svg" class="w-full h-full cursor-grab active:cursor-grabbing"></svg>
+      
+      <!-- Golden Rule Floating Box -->
+      <div class="absolute top-4 left-4 bg-[#0D1527]/95 backdrop-blur-md border border-slate-800 p-3.5 rounded-2xl text-xs space-y-2 shadow-2xl pointer-events-auto max-w-sm">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-1">
+          <span class="font-bold text-amber-400 font-mono flex items-center gap-1.5">
+            <span>⚠️</span> Quy Tắc Bảo Mật Di Nguyện Vàng
+          </span>
+          <span class="text-[10px] text-rose-400 font-mono">BẢO MẬT</span>
+        </div>
+        <p class="text-[11px] text-slate-300 leading-relaxed">
+          <strong>TUYỆT ĐỐI KHÔNG GỬI THÔNG BÁO CHO BENEFICIARY Ở BƯỚC NÀY</strong> để bảo vệ bí mật di sản khi Chủ kho còn sống. Chỉ lưu phân bổ vào <code class="text-emerald-300">VaultManifest</code>. Người nhận chỉ biết khi DMS kích hoạt ở Flow 03.
+        </p>
+      </div>
+
+      <!-- Legend floating box -->
+      <div class="absolute bottom-5 left-5 bg-[#0D1527]/90 backdrop-blur-md border border-slate-800 p-3 rounded-2xl text-xs space-y-2 shadow-2xl pointer-events-auto">
+        <div class="font-bold text-slate-200 border-b border-slate-800 pb-1 flex items-center justify-between">
+          <span>6 Làn Bơi & Thành Phần</span>
+        </div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#38BDF8]"></span><span class="text-slate-300">Owner (Chủ kho)</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#06B6D4]"></span><span class="text-slate-300">Client React 19</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#EAB308]"></span><span class="text-slate-300">SePay VietQR</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span><span class="text-slate-300">Backend .NET 8</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#F97316]"></span><span class="text-slate-300">Cloudflare R2 Bucket</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#A855F7]"></span><span class="text-slate-300">MailKit SMTP</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span><span class="text-slate-300">6 Nhánh Lỗi (E1 - E6)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Inspector Panel -->
+    <aside id="inspector" class="w-[450px] bg-[#0D1527] border-l border-slate-800 p-5 overflow-y-auto space-y-4 shadow-2xl z-10 transition-all flex flex-col justify-between">
+      <div class="space-y-4">
+        <!-- Node Title Header -->
+        <div class="border-b border-slate-800 pb-3">
+          <div class="flex items-center justify-between">
+            <span id="node-type" class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-emerald-400 font-bold">
+              FLOW STEP
+            </span>
+            <span id="node-lane" class="text-[10px] font-mono text-slate-400">
+              LÀN BƠI: BACKEND
+            </span>
+          </div>
+          <h2 id="node-title" class="text-lg font-bold text-white mt-1">
+            Mã Hóa Envelope & Lưu R2
+          </h2>
+          <p id="node-file" class="text-xs font-mono text-slate-400 break-all mt-0.5">
+            server/LegacyVault.Prototype.WebApi/Controllers/CryptoEnvelopeController.cs
+          </p>
+        </div>
+
+        <!-- Description & Technical Details -->
+        <div class="space-y-3 text-xs leading-relaxed text-slate-300">
+          <div class="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+            <div class="font-semibold text-white flex items-center gap-1.5">
+              <span>📌 Chi tiết Kỹ thuật:</span>
+            </div>
+            <p id="node-desc">
+              Tệp tài sản số (<=20MB) được sinh khóa DEK đối xứng 256-bit, mã hóa AES-256-GCM với Nonce 12B và Tag 16B. DEK sau đó được bọc bởi Master KEK và tải lên Cloudflare R2 bucket.
+            </p>
+          </div>
+
+          <!-- Code Viewer -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-300">
+              <span>Mã nguồn triển khai thực tế:</span>
+              <span id="code-lang" class="text-slate-500 font-mono text-[10px]">C#</span>
+            </div>
+            <div class="rounded-xl overflow-hidden border border-slate-800 max-h-56 overflow-y-auto">
+              <pre><code id="code-snippet" class="language-csharp">// Click node để xem code</code></pre>
+            </div>
+          </div>
+
+          <!-- Direct Connected Links -->
+          <div class="space-y-1.5">
+            <div class="font-bold text-slate-200 text-[11px]">Dòng nghiệp vụ & Rẽ nhánh:</div>
+            <ul id="node-links" class="space-y-1.5 text-[11px]"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] text-slate-400 space-y-0.5">
+        <div class="font-semibold text-slate-300">🔒 Kích Hoạt Nguyên Tử (Atomic Activation):</div>
+        <p>Kế hoạch chỉ chuyển sang <code>ACTIVE</code> khi vượt qua toàn bộ tiêu chí của Checklist SETUP-01.</p>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const codeSnippets = {
+      SePayWebhook: `// server/.../PlanController.cs
+[HttpPost("sepay-webhook")]
+public async Task<IActionResult> HandleSePayWebhook([FromBody] SePayWebhookDto payload)
+{
+    // 1. Thẩm tra chữ ký bảo mật webhook
+    if (!VerifySePayHmac(payload)) return Unauthorized();
+
+    // 2. Kích hoạt hạn ngạch gói lưu trữ (XS: 1GB, XSMax: 10GB)
+    await _planService.UpgradeUserPlanAsync(payload.UserId, payload.Tier);
+
+    // 3. Mở khóa quyền kích hoạt Kế hoạch Di sản
+    return Ok(new { success = true, activeTier = payload.Tier });
+}`,
+      CryptoEnvelopeUpload: `// server/.../CryptoEnvelopeController.cs
+[HttpPost("upload-and-encrypt")]
+public async Task<IActionResult> UploadAndEncrypt(IFormFile file, string category)
+{
+    // Kiểm tra quota dung lượng và kích thước <= 20MB
+    if (file.Length > 20 * 1024 * 1024) throw new QuotaExceededException();
+
+    using var stream = file.OpenReadStream();
+    var encResult = await _envelopeService.EncryptStreamAsync(stream);
+
+    // Đẩy tệp .enc lên Cloudflare R2
+    string r2Key = $"vaults/{vaultId}/assets/{assetId}/v1.enc";
+    await _r2Service.PutObjectAsync(r2Key, encResult.Ciphertext);
+
+    return Created(new { assetId, r2Key, checksum = encResult.ChecksumSha256 });
+}`,
+      AssignBeneficiary: `// server/.../BeneficiaryController.cs
+[HttpPost("assign-recipients")]
+public async Task<IActionResult> AssignRecipients([FromBody] AssignBeneficiariesRequest request)
+{
+    // Lưu chỉ định vào VaultManifest, TUYỆT ĐỐI KHÔNG GỬI THÔNG BÁO CHO BENEFICIARY
+    var manifest = await _vaultService.UpdateManifestAllocationsAsync(request.Allocations);
+    return Ok(new { manifestVersion = manifest.Version, isSealed = true });
+}`,
+      ExecutorInvite: `// server/.../ExecutorController.cs
+[HttpPost("send-invitation")]
+public async Task<IActionResult> SendExecutorInvitation(string executorEmail)
+{
+    var token = GenerateSecureInvitationToken();
+    // Gửi thư ủy quyền bảo mật qua MailKit SMTP
+    await _emailService.SendEmailAsync(
+        to: executorEmail,
+        subject: "Lời mời Ủy quyền Thừa hành Di sản Số LegacyVault",
+        body: $"Mã chấp thuận ủy thác: {token}"
+    );
+    return Ok(new { invitationSent = true });
+}`,
+      DmsActivation: `// Kích hoạt Dead Man's Switch 30 ngày & Checklist SETUP-01
+public async Task<bool> ActivateEstatePlanAsync(string vaultId)
+{
+    // Kiểm tra checklist: Có ít nhất 1 tài sản, có Executor, có Beneficiary
+    var isEligible = await VerifySetupChecklistAsync(vaultId);
+    if (!isEligible) throw new ChecklistFailedException("E6");
+
+    // Chuyển trạng thái sang ACTIVE nguyên tử
+    await _vaultRepo.UpdateStateAsync(vaultId, VaultState.ACTIVE);
+    await _dmsService.ScheduleHeartbeatAsync(vaultId, cycleDays: 30, graceDays: 7);
+    return true;
+}`
+    };
+
+    const allData = {
+      nodes: [
+        // Lane 1: Owner
+        { id: "Owner_Start", lane: "owner", group: "owner", radius: 22, label: "Owner (Chủ kho)", file: "Người dùng đã đăng nhập", desc: "Chủ kho sở hữu tài sản khởi tạo quy trình thiết lập di sản cá nhân." },
+        { id: "Select_Tier", lane: "owner", group: "owner", radius: 17, label: "B1: Chọn Gói Cước", file: "Free / XS / XSMax", desc: "Chọn gói lưu trữ: Free (0đ, 100MB), XS (199k, 1GB), XSMax (399k, 10GB)." },
+        { id: "Upload_Asset", lane: "owner", group: "owner", radius: 18, label: "B3: Tải Tài Sản (<=20MB)", file: "PDF di chúc, Seed phrase...", desc: "Tải file tài sản số, chọn nhóm (Kinh tế, Kỷ vật, Bí mật đời tư)." },
+        { id: "Assign_Recipients", lane: "owner", group: "owner", radius: 18, label: "B6: Gán Người Thụ Hưởng", file: "Phân bổ Beneficiary", desc: "Chỉ định tỷ lệ hưởng di sản cho từng người thụ hưởng, lưu vào VaultManifest." },
+        { id: "Choose_Executor", lane: "owner", group: "owner", radius: 18, label: "B8: Chỉ Định Executor", file: "Người thừa hành ủy thác", desc: "Chọn người thực thi độc lập (tuân thủ Tam quyền phân lập ASSIGN-06)." },
+        { id: "Activate_DMS", lane: "owner", group: "owner", radius: 22, label: "B10: Kích Hoạt Di Sản & DMS", file: "DMS 30 ngày + Ân hạn 7 ngày", desc: "Kích hoạt nguyên tử kế hoạch sang ACTIVE và khởi động Dead Man's Switch." },
+
+        // Lane 2: Client UI
+        { id: "SePayModal", lane: "client", group: "client", radius: 17, label: "SePayPaymentModal", file: "client/.../SePayPaymentModal.tsx", desc: "Hiển thị Dynamic VietQR, lắng nghe webhook thanh toán tự động." },
+        { id: "CryptoTestbench", lane: "client", group: "client", radius: 18, label: "CryptoEnvelopeTestbench", file: "client/.../CryptoEnvelopeTestbench.tsx", desc: "Validate giới hạn 20MB và kích hoạt mã hóa cục bộ." },
+
+        // Lane 3: SePay Gateway
+        { id: "SePay_Gateway", lane: "sepay", group: "sepay", radius: 20, label: "SePay VietQR Gateway", file: "Cổng thanh toán ngân hàng", desc: "Xác thực chuyển khoản VietQR tự động và gửi Webhook về máy chủ." },
+
+        // Lane 4: Backend .NET 8
+        { id: "PlanController", lane: "server", group: "server", radius: 18, label: "PlanController.cs", file: "server/.../PlanController.cs", desc: "Xử lý Webhook SePay và nâng cấp hạn ngạch lưu trữ gói." },
+        { id: "CryptoController", lane: "server", group: "server", radius: 22, label: "B4: Mã Hóa AES-256-GCM", file: "server/.../CryptoEnvelopeController.cs", desc: "Sinh DEK 256-bit, mã hóa AES-GCM với Nonce 12B + Tag 16B, bọc DEK bằng KEK." },
+        { id: "BeneficiaryController", lane: "server", group: "server", radius: 20, label: "B7: Niêm Phong Manifest", file: "server/.../BeneficiaryController.cs", desc: "Lưu bản kê số (Manifest), KHÔNG GỬI THÔNG BÁO CHO BENEFICIARY." },
+        { id: "ExecutorController", lane: "server", group: "server", radius: 18, label: "ExecutorController.cs", file: "server/.../ExecutorController.cs", desc: "Tạo token ủy thác bảo mật gửi tới Người thừa hành." },
+
+        // Lane 5: Cloudflare R2
+        { id: "CloudflareR2", lane: "storage", group: "storage", radius: 22, label: "B5: Cloudflare R2 Bucket", file: "legacyvault-private", desc: "Lưu trữ vĩnh viễn Ciphertext đối tượng .enc qua AWS S3 SDK (PutObjectAsync)." },
+
+        // Lane 6: MailKit SMTP
+        { id: "MailKit_SMTP", lane: "mail", group: "mail", radius: 18, label: "B9: MailKit SMTP Gateway", file: "Gửi thư ủy thác bảo mật", desc: "Gửi email chứa liên kết ký số chấp thuận ủy quyền cho Executor." },
+
+        // 6 Nhánh Lỗi (E1 - E6)
+        { id: "Err_E1", lane: "server", group: "error", radius: 13, label: "Lỗi E1: Free Tier Ineligible", file: "Gói Free ko được kích hoạt", desc: "Chặn kích hoạt di sản nếu chưa nâng cấp gói XS / XSMax." },
+        { id: "Err_E2", lane: "client", group: "error", radius: 13, label: "Lỗi E2: Quota Exceeded (>20MB)", file: "Chặn tệp quá kích thước", desc: "Tệp vượt quá 20MB hoặc vượt dung lượng kho gói cước." },
+        { id: "Err_E3", lane: "server", group: "error", radius: 13, label: "Lỗi E3: R2 Storage Failure", file: "Lỗi mạng hoặc S3 R2", desc: "Tự động dọn dẹp object mồ côi (CleanOrphanR2Object) và retry 3 lần." },
+        { id: "Err_E4", lane: "server", group: "error", radius: 13, label: "Lỗi E4: Beneficiary Conflict", file: "Xung đột quyền hoặc rỗng", desc: "Danh sách phân bổ rỗng hoặc Executor trùng tên Beneficiary." },
+        { id: "Err_E5", lane: "mail", group: "error", radius: 13, label: "Lỗi E5: SMTP Unreachable", file: "Email Executor không tồn tại", desc: "MailKit timeout -> Đánh dấu PENDING, yêu cầu đổi email khác." },
+        { id: "Err_E6", lane: "server", group: "error", radius: 13, label: "Lỗi E6: SETUP-01 Incomplete", file: "Thiếu checklist kích hoạt", desc: "Chưa có tài sản hoặc chưa có Executor -> Không thể chuyển sang ACTIVE." }
+      ],
+      links: [
+        { source: "Owner_Start", target: "Select_Tier", type: "chooses_plan", isFlow: true },
+        { source: "Select_Tier", target: "SePayModal", type: "shows_vietqr", isFlow: true },
+        { source: "SePayModal", target: "SePay_Gateway", type: "user_scans_qr", isFlow: true },
+        { source: "SePay_Gateway", target: "PlanController", type: "webhook_active", isFlow: true },
+        { source: "PlanController", target: "Err_E1", type: "if_free_plan", isError: true },
+        { source: "Owner_Start", target: "Upload_Asset", type: "uploads_file", isFlow: true },
+        { source: "Upload_Asset", target: "CryptoTestbench", type: "validates_size" },
+        { source: "CryptoTestbench", target: "Err_E2", type: "file_too_large", isError: true },
+        { source: "CryptoTestbench", target: "CryptoController", type: "sends_stream", isFlow: true },
+        { source: "CryptoController", target: "CloudflareR2", type: "puts_enc_file", isFlow: true },
+        { source: "CryptoController", target: "Err_E3", type: "r2_upload_fail", isError: true },
+        { source: "Owner_Start", target: "Assign_Recipients", type: "assigns_shares", isFlow: true },
+        { source: "Assign_Recipients", target: "BeneficiaryController", type: "saves_manifest", isFlow: true },
+        { source: "BeneficiaryController", target: "Err_E4", type: "role_conflict", isError: true },
+        { source: "Owner_Start", target: "Choose_Executor", type: "appoints_executor", isFlow: true },
+        { source: "Choose_Executor", target: "ExecutorController", type: "triggers_invite", isFlow: true },
+        { source: "ExecutorController", target: "MailKit_SMTP", type: "sends_email", isFlow: true },
+        { source: "MailKit_SMTP", target: "Err_E5", type: "smtp_fail", isError: true },
+        { source: "Owner_Start", target: "Activate_DMS", type: "activates_vault", isFlow: true },
+        { source: "Activate_DMS", target: "Err_E6", type: "checklist_fail", isError: true }
+      ]
+    };
+
+    const colors = {
+      owner: "#38BDF8",      // Sky
+      client: "#06B6D4",     // Cyan
+      sepay: "#EAB308",      // Yellow
+      server: "#10B981",     // Emerald
+      storage: "#F97316",    // Orange
+      mail: "#A855F7",       // Purple
+      error: "#EF4444"       // Red
+    };
+
+    const steps = [
+      { label: "B1: Chọn Gói Cước", node: "Select_Tier" },
+      { label: "B2: SePay VietQR Webhook", node: "SePay_Gateway" },
+      { label: "B3: Tải Tài Sản <=20MB", node: "Upload_Asset" },
+      { label: "B4: Mã Hóa AES-256-GCM", node: "CryptoController" },
+      { label: "B5: Đẩy File Lên R2", node: "CloudflareR2" },
+      { label: "B6: Niêm Phong Manifest", node: "BeneficiaryController" },
+      { label: "B7: Mời Executor (MailKit)", node: "MailKit_SMTP" },
+      { label: "B8: Kích Hoạt DMS 30 Ngày", node: "Activate_DMS" }
+    ];
+    let currentStepIdx = 0;
+
+    const container = document.getElementById('canvas-container');
+    let width = container.clientWidth;
+    let height = container.clientHeight;
+
+    const svg = d3.select("#graph-svg").attr("viewBox", [0, 0, width, height]);
+    const g = svg.append("g");
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.3, 3])
+      .on("zoom", (event) => g.attr("transform", event.transform));
+    svg.call(zoom);
+
+    function resetZoom() {
+      svg.transition().duration(750).call(
+        zoom.transform,
+        d3.zoomIdentity.translate(width / 2, height / 2).scale(0.82).translate(-width / 2, -height / 2)
+      );
+    }
+
+    const simulation = d3.forceSimulation(allData.nodes)
+      .force("link", d3.forceLink(allData.links).id(d => d.id).distance(120))
+      .force("charge", d3.forceManyBody().strength(-380))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collision", d3.forceCollide().radius(d => d.radius + 20));
+
+    const linkElements = g.append("g")
+      .selectAll("line")
+      .data(allData.links)
+      .join("line")
+      .attr("class", d => `link ${d.isFlow ? 'flow' : ''} ${d.isError ? 'error' : ''}`);
+
+    const nodeElements = g.append("g")
+      .selectAll("g")
+      .data(allData.nodes)
+      .join("g")
+      .attr("class", "node cursor-pointer")
+      .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
+
+    nodeElements.append("circle")
+      .attr("r", d => d.radius)
+      .attr("fill", d => colors[d.group])
+      .attr("stroke", "#0D1527")
+      .attr("stroke-width", 2.5)
+      .attr("filter", "drop-shadow(0px 4px 8px rgba(0,0,0,0.6))");
+
+    nodeElements.append("text")
+      .attr("dy", d => d.radius + 15)
+      .attr("text-anchor", "middle")
+      .text(d => d.label);
+
+    nodeElements.on("click", (event, d) => selectNode(d));
+
+    simulation.on("tick", () => {
+      linkElements
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+
+      nodeElements.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+
+    function selectNode(d) {
+      document.getElementById("node-type").textContent = d.group.toUpperCase();
+      document.getElementById("node-lane").textContent = `LÀN BƠI: ${d.lane.toUpperCase()}`;
+      document.getElementById("node-title").textContent = d.label;
+      document.getElementById("node-file").textContent = d.file;
+      document.getElementById("node-desc").textContent = d.desc;
+
+      let snippetKey = "CryptoEnvelopeUpload";
+      if (d.id.includes("SePay")) snippetKey = "SePayWebhook";
+      else if (d.id.includes("Beneficiary")) snippetKey = "AssignBeneficiary";
+      else if (d.id.includes("Executor") || d.id.includes("Mail")) snippetKey = "ExecutorInvite";
+      else if (d.id.includes("Activate")) snippetKey = "DmsActivation";
+
+      const snippet = codeSnippets[snippetKey] || `// Thực thể: ${d.label}\n// Làn bơi: ${d.lane}\n// Trách nhiệm: ${d.desc}`;
+      const codeEl = document.getElementById("code-snippet");
+      codeEl.textContent = snippet;
+      document.getElementById("code-lang").textContent = d.lane === 'client' ? 'TypeScript' : 'C#';
+      codeEl.className = d.lane === 'client' ? 'language-typescript' : 'language-csharp';
+      Prism.highlightElement(codeEl);
+
+      linkElements.classed("highlight", l => l.source.id === d.id || l.target.id === d.id);
+      nodeElements.select("circle")
+        .attr("stroke", n => n.id === d.id ? "#FFFFFF" : "#0D1527")
+        .attr("stroke-width", n => n.id === d.id ? 4 : 2.5);
+
+      const connected = allData.links.filter(l => l.source.id === d.id || l.target.id === d.id);
+      const listEl = document.getElementById("node-links");
+      listEl.innerHTML = "";
+      connected.forEach(l => {
+        const isOut = l.source.id === d.id;
+        const otherNode = isOut ? l.target : l.source;
+        const li = document.createElement("li");
+        li.className = "bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 flex justify-between items-center";
+        li.innerHTML = `<span class="${l.isError ? 'text-rose-400' : 'text-slate-400'}">${isOut ? '→ ' + l.type : '← ' + l.type}</span> <strong class="text-emerald-400 font-mono">${otherNode.label}</strong>`;
+        listEl.appendChild(li);
+      });
+    }
+
+    function nextStep() {
+      currentStepIdx = (currentStepIdx + 1) % steps.length;
+      updateStep();
+    }
+    function prevStep() {
+      currentStepIdx = (currentStepIdx - 1 + steps.length) % steps.length;
+      updateStep();
+    }
+    function updateStep() {
+      const step = steps[currentStepIdx];
+      document.getElementById('step-label').textContent = step.label;
+      const targetNode = allData.nodes.find(n => n.id === step.node);
+      if (targetNode) selectNode(targetNode);
+    }
+
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x; d.fy = d.y;
+    }
+    function dragged(event, d) {
+      d.fx = event.x; d.fy = event.y;
+    }
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null; d.fy = null;
+    }
+
+    window.addEventListener("resize", () => {
+      width = container.clientWidth; height = container.clientHeight;
+      svg.attr("viewBox", [0, 0, width, height]);
+      simulation.force("center", d3.forceCenter(width / 2, height / 2)).restart();
+    });
+
+    resetZoom();
+    setTimeout(() => {
+      const initial = allData.nodes.find(n => n.id === "CryptoController");
+      if (initial) selectNode(initial);
+    }, 400);
+  </script>
+</body>
+</html>

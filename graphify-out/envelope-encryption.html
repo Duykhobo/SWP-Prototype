@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LegacyVault - Deep Cryptographic Pipeline: Envelope Encryption AES-256-GCM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <style>
+    body { background-color: #080D1A; color: #F1F5F9; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .node text { pointer-events: none; font-size: 11px; font-weight: 600; fill: #F8FAFC; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
+    .link { stroke: #334155; stroke-opacity: 0.6; stroke-width: 1.5px; transition: all 0.25s ease; }
+    .link.highlight { stroke: #10B981; stroke-opacity: 1; stroke-width: 3.5px; }
+    .link.flow { stroke: #38BDF8; stroke-dasharray: 6,6; animation: dash 1s linear infinite; }
+    @keyframes dash { to { stroke-dashoffset: -12; } }
+    pre[class*="language-"] { margin: 0; padding: 12px; border-radius: 8px; font-size: 11px; background: #0B1120 !important; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+  <!-- Top Navigation Header -->
+  <header class="bg-[#0D1527] border-b border-slate-800 px-6 py-3 flex flex-wrap items-center justify-between z-20 shadow-xl gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-linear-to-br from-emerald-400 via-teal-500 to-cyan-500 flex items-center justify-center font-bold text-black text-lg shadow-lg shadow-emerald-500/20">
+        🔐
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base font-bold text-white tracking-wide">
+            Kiến Trúc Mật Mã Chuyên Sâu: Envelope Encryption (AES-256-GCM)
+          </h1>
+          <span class="text-[10px] font-mono bg-emerald-950 text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/30 font-bold">
+            MIL-SPEC ZERO-KNOWLEDGE
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">
+          Mô hình chi tiết cấp Byte-level buffer, RAM ZeroMemory, WebCrypto API client & C# AesGcm Engine
+        </p>
+      </div>
+    </div>
+    
+    <!-- Controls: Filter & Step Simulator -->
+    <div class="flex items-center gap-3">
+      <!-- Cross Navigation -->
+      <nav class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+        <a href="flow-01.html" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-white transition">Flow 01 (Auth)</a>
+        <a href="flow-02.html" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-white transition">Flow 02 (Vault Setup)</a>
+        <a href="envelope-encryption.html" class="px-2.5 py-1 rounded-lg font-bold bg-emerald-500 text-black">Mã Hóa AES-GCM</a>
+      </nav>
+
+      <!-- Step Walkthrough -->
+      <div class="flex items-center bg-slate-900/90 px-3 py-1 rounded-xl border border-slate-700/80 text-xs gap-2">
+        <span class="text-slate-400 font-medium">Mô phỏng chu trình:</span>
+        <button onclick="prevStep()" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold cursor-pointer">◀</button>
+        <span id="step-label" class="font-mono text-emerald-400 font-bold px-1.5 min-w-[120px] text-center">Bước 1: Plaintext</span>
+        <button onclick="nextStep()" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold cursor-pointer">▶</button>
+      </div>
+
+      <!-- Filter Buttons -->
+      <div class="flex items-center bg-slate-900 p-1 rounded-xl border border-slate-700/80 text-xs">
+        <button onclick="setFilter('all')" id="btn-all" class="filter-btn px-2.5 py-1.5 rounded-lg font-bold bg-emerald-500 text-black transition cursor-pointer">
+          Toàn Bộ
+        </button>
+        <button onclick="setFilter('client')" id="btn-client" class="filter-btn px-2.5 py-1.5 rounded-lg font-bold text-slate-300 hover:text-white transition cursor-pointer">
+          💻 Client
+        </button>
+        <button onclick="setFilter('server')" id="btn-server" class="filter-btn px-2.5 py-1.5 rounded-lg font-bold text-slate-300 hover:text-white transition cursor-pointer">
+          ⚙️ Server
+        </button>
+        <button onclick="resetZoom()" class="ml-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer">
+          Zoom
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Viewport -->
+  <div class="flex-1 flex overflow-hidden relative">
+    <!-- Graph Canvas SVG -->
+    <div class="flex-1 relative h-full" id="canvas-container">
+      <svg id="graph-svg" class="w-full h-full cursor-grab active:cursor-grabbing"></svg>
+      
+      <!-- Byte Structure Floating HUD -->
+      <div class="absolute top-4 left-4 bg-[#0D1527]/95 backdrop-blur-md border border-slate-800 p-3.5 rounded-2xl text-xs space-y-2.5 shadow-2xl pointer-events-auto max-w-md">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+          <span class="font-bold text-emerald-400 font-mono flex items-center gap-1.5">
+            <span>📦</span> Cấu Trúc Gói Khóa Bọc (WrappedKeyBase64 = 60 Bytes)
+          </span>
+          <span class="text-[10px] text-slate-400 font-mono">NIST SP 800-38D</span>
+        </div>
+        
+        <div class="grid grid-cols-12 gap-1 text-center font-mono text-[10px] text-black font-bold">
+          <div class="col-span-3 bg-cyan-400 p-1.5 rounded" title="12 bytes Nonce ngẫu nhiên chống Replay Attack">
+            IV / Nonce<br><span class="text-[9px] opacity-80">12 Bytes (96b)</span>
+          </div>
+          <div class="col-span-3 bg-amber-400 p-1.5 rounded" title="16 bytes Authentication Tag xác thực tính toàn vẹn">
+            Auth Tag<br><span class="text-[9px] opacity-80">16 Bytes (128b)</span>
+          </div>
+          <div class="col-span-6 bg-emerald-400 p-1.5 rounded" title="32 bytes khóa DEK đối xứng đã được mã hóa bằng KEK">
+            Encrypted DEK Payload<br><span class="text-[9px] opacity-80">32 Bytes (256-bit AES)</span>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+          Định dạng ghép nối liên tục: <code class="text-emerald-300 bg-slate-900 px-1 py-0.5 rounded">[0..11] Nonce</code> + <code class="text-amber-300 bg-slate-900 px-1 py-0.5 rounded">[12..27] Tag</code> + <code class="text-cyan-300 bg-slate-900 px-1 py-0.5 rounded">[28..59] CipherDEK</code>.
+        </p>
+      </div>
+
+      <!-- Legend floating box -->
+      <div class="absolute bottom-5 left-5 bg-[#0D1527]/90 backdrop-blur-md border border-slate-800 p-3.5 rounded-2xl text-xs space-y-2 shadow-2xl pointer-events-auto">
+        <div class="font-bold text-slate-200 border-b border-slate-800 pb-1 flex items-center justify-between">
+          <span>Phân loại Màu Node</span>
+          <span class="text-[10px] text-slate-400">Click node để xem Code</span>
+        </div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#06B6D4]"></span><span class="text-slate-300">Client WebCrypto</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span><span class="text-slate-300">C# AesGcm Engine</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#EC4899]"></span><span class="text-slate-300">Controllers API</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></span><span class="text-slate-300">Cloudflare R2</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]"></span><span class="text-slate-300">White-Box Test</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#EAB308]"></span><span class="text-slate-300">RAM ZeroMemory</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Inspector Panel (With Code View & Deep Specs) -->
+    <aside id="inspector" class="w-[440px] bg-[#0D1527] border-l border-slate-800 p-5 overflow-y-auto space-y-4 shadow-2xl z-10 transition-all flex flex-col justify-between">
+      <div class="space-y-4">
+        <!-- Node Title Header -->
+        <div class="border-b border-slate-800 pb-3">
+          <div class="flex items-center justify-between">
+            <span id="node-type" class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-emerald-400 font-bold">
+              CORE SERVICE
+            </span>
+            <span id="node-layer" class="text-[10px] font-mono text-slate-400">
+              LAYER: BACKEND C# (.NET 9)
+            </span>
+          </div>
+          <h2 id="node-title" class="text-lg font-bold text-white mt-1">
+            EnvelopeEncryptionService.cs
+          </h2>
+          <p id="node-file" class="text-xs font-mono text-slate-400 break-all mt-0.5">
+            server/LegacyVault.Prototype.Infrastructure/Services/EnvelopeEncryptionService.cs
+          </p>
+        </div>
+
+        <!-- Node Description & Specs -->
+        <div class="space-y-3 text-xs leading-relaxed text-slate-300">
+          <div class="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+            <div class="font-semibold text-white flex items-center gap-1.5">
+              <span>📌 Đặc tả Mật mã học:</span>
+            </div>
+            <p id="node-desc">
+              Thực thi chuẩn AEAD với AesGcm (NIST SP 800-38D). Sinh DEK 256-bit độc lập cho từng file, sinh Nonce 96-bit và Tag 128-bit. Sau đó dùng Master KEK bọc DEK thành cấu trúc 60 bytes Base64.
+            </p>
+          </div>
+
+          <!-- Deep Technical Parameters Table -->
+          <div id="tech-params" class="bg-slate-900/60 p-3 rounded-xl border border-slate-800 space-y-2 text-[11px]">
+            <div class="font-bold text-slate-200 border-b border-slate-800/80 pb-1">Thông Số Mật Mã Chuẩn Hóa:</div>
+            <div class="grid grid-cols-2 gap-2 text-slate-400">
+              <div>Thuật toán: <strong class="text-white font-mono">AES-256-GCM</strong></div>
+              <div>Độ dài khóa DEK: <strong class="text-emerald-400 font-mono">256 bits (32B)</strong></div>
+              <div>Độ dài Nonce/IV: <strong class="text-cyan-400 font-mono">96 bits (12B)</strong></div>
+              <div>Auth Tag: <strong class="text-amber-400 font-mono">128 bits (16B)</strong></div>
+              <div>Giới hạn file: <strong class="text-purple-400 font-mono">20 MiB / Stream</strong></div>
+              <div>Xóa RAM: <strong class="text-rose-400 font-mono">ZeroMemory Enforced</strong></div>
+            </div>
+          </div>
+
+          <!-- Live Code Snippet Viewer -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-300">
+              <span>Đoạn mã thực tế tương ứng:</span>
+              <span id="code-lang" class="text-slate-500 font-mono text-[10px]">C#</span>
+            </div>
+            <div class="rounded-xl overflow-hidden border border-slate-800 max-h-56 overflow-y-auto">
+              <pre><code id="code-snippet" class="language-csharp">// Click vào một node để xem mã nguồn thực tế</code></pre>
+            </div>
+          </div>
+
+          <!-- Direct Connected Links -->
+          <div class="space-y-1.5">
+            <div class="font-bold text-slate-200 text-[11px]">Liên kết trực tiếp trong đồ thị:</div>
+            <ul id="node-links" class="space-y-1.5 text-[11px]">
+              <!-- Injected dynamically -->
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Security Note -->
+      <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] text-slate-400 space-y-0.5">
+        <div class="font-semibold text-slate-300">🛡️ Tiêu chuẩn Chống Rò Rỉ (SRS v3.11.0):</div>
+        <p>Bản rõ (Plaintext) và khóa DEK không bao giờ tồn tại vĩnh viễn trên ổ đĩa. Sau khi đóng phong bì, dữ liệu gốc lập tức được giải phóng khỏi RAM.</p>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const codeSnippets = {
+      EnvelopeEncryptionService: `public async Task<EncryptionResult> EncryptStreamAsync(Stream inputStream, CancellationToken ct = default)
+{
+    // 1. Tính SHA-256 Checksum dữ liệu gốc
+    string checksum = await ComputeSha256Async(inputStream, ct);
+
+    // 2. Sinh khóa DEK 256-bit và Nonce 96-bit ngẫu nhiên
+    byte[] dek = RandomNumberGenerator.GetBytes(32);
+    byte[] nonce = RandomNumberGenerator.GetBytes(12);
+    byte[] tag = new byte[16];
+    byte[] ciphertext = new byte[plaintext.Length];
+
+    // 3. Mã hóa AES-256-GCM (NIST SP 800-38D)
+    using var aesGcm = new AesGcm(dek, 16);
+    aesGcm.Encrypt(nonce, plaintext, ciphertext, tag);
+
+    // 4. Bọc DEK bằng KEK hệ thống
+    string wrappedKey = WrapKey(dek);
+    return new EncryptionResult { ... };
+}`,
+      webCrypto: `// Client-Side Web Crypto API
+export async function encryptClientSide(plaintext: string, key: CryptoKey) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plaintext);
+
+  // 1. Hash SHA-256 đối soát toàn vẹn
+  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+  const sha256 = toHex(hashBuffer);
+
+  // 2. Sinh IV 12 bytes (96-bit)
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+  // 3. Mã hóa AES-GCM với Tag 128-bit trên RAM Client
+  const ciphertextBuffer = await window.crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: iv, tagLength: 128 },
+    key,
+    data
+  );
+  return { ciphertextBase64, ivBase64, sha256 };
+}`,
+      Server_WrapKey: `public string WrapKey(byte[] dek)
+{
+    // Mã hóa DEK bằng KEK với AES-GCM
+    byte[] nonce = RandomNumberGenerator.GetBytes(12);
+    byte[] wrappedDek = new byte[dek.Length];
+    byte[] tag = new byte[16];
+
+    using var aesGcm = new AesGcm(_kek, 16);
+    aesGcm.Encrypt(nonce, dek, wrappedDek, tag);
+
+    // Ghép nối: [12B Nonce] + [16B Tag] + [32B DEK] = 60 Bytes
+    byte[] combined = new byte[12 + 16 + 32];
+    Buffer.BlockCopy(nonce, 0, combined, 0, 12);
+    Buffer.BlockCopy(tag, 0, combined, 12, 16);
+    Buffer.BlockCopy(wrappedDek, 0, combined, 28, 32);
+
+    return Convert.ToBase64String(combined);
+}`,
+      Server_UnwrapKey: `public byte[] UnwrapKey(string wrappedKeyBase64)
+{
+    byte[] combined = Convert.FromBase64String(wrappedKeyBase64);
+    if (combined.Length < 12 + 16 + 32)
+        throw new CryptographicException("Invalid wrapped key format.");
+
+    byte[] nonce = new byte[12];
+    byte[] tag = new byte[16];
+    byte[] wrappedDek = new byte[32];
+
+    Buffer.BlockCopy(combined, 0, nonce, 0, 12);
+    Buffer.BlockCopy(combined, 12, tag, 0, 16);
+    Buffer.BlockCopy(combined, 28, wrappedDek, 0, 32);
+
+    byte[] dek = new byte[32];
+    using var aesGcm = new AesGcm(_kek, 16);
+    aesGcm.Decrypt(nonce, wrappedDek, tag, dek);
+    return dek;
+}`,
+      WhiteBoxTests: `[Fact]
+public async Task WB_RoundTrip_EncryptionAndDecryption_BranchCoverage()
+{
+    var originalBytes = Encoding.UTF8.GetBytes("Di chúc số: Chuyển giao 10 BTC cho con gái.");
+    using var stream = new MemoryStream(originalBytes);
+
+    var encResult = await _service.EncryptStreamAsync(stream);
+    var decrypted = await _service.DecryptBytesAsync(
+        encResult.Ciphertext, 
+        encResult.WrappedKeyBase64, 
+        encResult.Nonce, 
+        encResult.Tag
+    );
+
+    Assert.Equal(originalBytes, decrypted);
+    Assert.True(encResult.WrappedKeyBase64.Length >= 80); // Base64 của 60 bytes
+}`
+    };
+
+    const allData = {
+      nodes: [
+        // --- CLIENT LAYER ---
+        { id: "PlaintextFile", layer: "client", group: "client_ui", radius: 20, label: "Tệp Gốc (Plaintext)", file: "RAM Người Dùng", desc: "Tập tin tài sản số (PDF di chúc, Seed phrase, bản ghi mật) kích thước <= 20 MiB." },
+        { id: "webCrypto", layer: "client", group: "client_crypto", radius: 24, label: "webCrypto.ts", file: "client/src/shared/crypto/webCrypto.ts", desc: "Mô-đun Web Crypto API: Quản lý sinh khóa AES-256, SHA-256 Digest và mã hóa cục bộ phía máy khách." },
+        { id: "generateClientAesKey", layer: "client", group: "client_crypto", radius: 15, label: "generateKey(256b)", file: "webCrypto.ts:L13", desc: "Tạo CryptoKey đối xứng 256-bit trong RAM trình duyệt, không xuất khóa thô ra ngoài." },
+        { id: "encryptClientSide", layer: "client", group: "client_crypto", radius: 17, label: "encryptClientSide()", file: "webCrypto.ts:L45", desc: "Mã hóa luồng byte, sinh Nonce 12B và Auth Tag 128-bit thẩm định toàn vẹn." },
+        { id: "ClientZeroMemory", layer: "client", group: "zeromem", radius: 16, label: "Client Memory Flush", file: "Browser Garbage Collector", desc: "Giải phóng chuỗi byte gốc và Buffer plaintext ngay sau khi biến đổi thành Ciphertext." },
+
+        // --- NETWORK BOUNDARY ---
+        { id: "TLS_Payload", layer: "network", group: "network", radius: 20, label: "Payload TLS 1.3 / E2EE", file: "Network Transmission", desc: "Vận chuyển Ciphertext + IV + Checksum qua đường truyền HTTPS. Máy chủ không đọc được bản rõ." },
+
+        // --- SERVER LAYER ---
+        { id: "StorageController", layer: "server", group: "controller", radius: 19, label: "StorageController.cs", file: "server/.../StorageController.cs", desc: "Tiếp nhận Ciphertext, gọi Envelope Service bọc DEK bằng Master KEK và tải lên R2." },
+        { id: "EnvelopeEncryptionService", layer: "server", group: "core_service", radius: 25, label: "EnvelopeEncryptionService", file: "server/.../EnvelopeEncryptionService.cs", desc: "Engine C# .NET 9 thực thi AES-256-GCM với Master KEK (Key Encryption Key) bảo vệ DEK." },
+        { id: "Server_WrapKey", layer: "server", group: "core_service", radius: 16, label: "WrapKey() [60B]", file: "EnvelopeEncryptionService.cs:L84", desc: "Mã hóa DEK bằng Master KEK: Ghép [12B Nonce + 16B Tag + 32B DEK] -> Base64 60 bytes." },
+        { id: "Server_UnwrapKey", layer: "server", group: "core_service", radius: 16, label: "UnwrapKey()", file: "EnvelopeEncryptionService.cs:L103", desc: "Giải bọc Base64 bằng KEK hệ thống để phục hồi DEK khi người thụ hưởng được kích hoạt thừa kế." },
+        { id: "ServerZeroMemory", layer: "server", group: "zeromem", radius: 16, label: "Server ZeroMemory", file: "CryptographicOperations", desc: "Xóa sạch mảng byte DEK trần khỏi RAM sau khi bọc khóa bằng CryptographicOperations.ZeroMemory." },
+        { id: "CloudflareR2", layer: "server", group: "storage", radius: 21, label: "Cloudflare R2 Bucket", file: "Cloudflare R2 Private", desc: "Lưu trữ đối tượng Ciphertext .enc đã niêm phong (SEC-01), zero egress fee." },
+        { id: "WhiteBoxTests", layer: "server", group: "test", radius: 17, label: "White-Box Tests (100%)", file: "EnvelopeEncryptionWhiteBoxTests.cs", desc: "Bộ kiểm thử hộp trắng đạt 100% Branch Coverage cho các nhánh nạp KEK và RoundTrip giải mã." }
+      ],
+      links: [
+        { source: "PlaintextFile", target: "webCrypto", type: "inputs_to" },
+        { source: "webCrypto", target: "generateClientAesKey", type: "invokes" },
+        { source: "webCrypto", target: "encryptClientSide", type: "invokes" },
+        { source: "encryptClientSide", target: "ClientZeroMemory", type: "cleans_ram" },
+        { source: "encryptClientSide", target: "TLS_Payload", type: "transmits", isFlow: true },
+        { source: "TLS_Payload", target: "StorageController", type: "received_by", isFlow: true },
+        { source: "StorageController", target: "EnvelopeEncryptionService", type: "calls" },
+        { source: "EnvelopeEncryptionService", target: "Server_WrapKey", type: "wraps_dek" },
+        { source: "Server_WrapKey", target: "ServerZeroMemory", type: "cleans_ram" },
+        { source: "EnvelopeEncryptionService", target: "Server_UnwrapKey", type: "unwraps_dek" },
+        { source: "StorageController", target: "CloudflareR2", type: "stores_enc", isFlow: true },
+        { source: "WhiteBoxTests", target: "EnvelopeEncryptionService", type: "tests" },
+        { source: "WhiteBoxTests", target: "Server_WrapKey", type: "tests" },
+        { source: "WhiteBoxTests", target: "Server_UnwrapKey", type: "tests" }
+      ]
+    };
+
+    const colors = {
+      client_ui: "#38BDF8",      // Sky Blue
+      client_crypto: "#06B6D4",  // Cyan
+      zeromem: "#EAB308",        // Amber / Yellow
+      network: "#A855F7",        // Purple
+      controller: "#EC4899",     // Pink
+      core_service: "#10B981",   // Emerald
+      storage: "#F59E0B",        // Orange
+      test: "#8B5CF6"            // Violet
+    };
+
+    const steps = [
+      { id: "PlaintextFile", label: "Bước 1: Plaintext Tệp Gốc", node: "PlaintextFile" },
+      { id: "webCrypto", label: "Bước 2: WebCrypto RAM Encrypt", node: "webCrypto" },
+      { id: "TLS_Payload", label: "Bước 3: TLS 1.3 Transmission", node: "TLS_Payload" },
+      { id: "EnvelopeEncryptionService", label: "Bước 4: Server WrapKey (60B)", node: "EnvelopeEncryptionService" },
+      { id: "CloudflareR2", label: "Bước 5: Lưu trữ Cloudflare R2", node: "CloudflareR2" }
+    ];
+    let currentStepIdx = 0;
+
+    const container = document.getElementById('canvas-container');
+    let width = container.clientWidth;
+    let height = container.clientHeight;
+
+    const svg = d3.select("#graph-svg").attr("viewBox", [0, 0, width, height]);
+    const g = svg.append("g");
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.3, 3])
+      .on("zoom", (event) => g.attr("transform", event.transform));
+    svg.call(zoom);
+
+    function resetZoom() {
+      svg.transition().duration(750).call(
+        zoom.transform,
+        d3.zoomIdentity.translate(width / 2, height / 2).scale(0.85).translate(-width / 2, -height / 2)
+      );
+    }
+
+    let simulation, linkElements, nodeElements;
+
+    function renderGraph(filteredNodes, filteredLinks) {
+      g.selectAll("*").remove();
+
+      simulation = d3.forceSimulation(filteredNodes)
+        .force("link", d3.forceLink(filteredLinks).id(d => d.id).distance(120))
+        .force("charge", d3.forceManyBody().strength(-420))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("collision", d3.forceCollide().radius(d => d.radius + 22));
+
+      linkElements = g.append("g")
+        .selectAll("line")
+        .data(filteredLinks)
+        .join("line")
+        .attr("class", d => `link ${d.isFlow ? 'flow' : ''}`);
+
+      nodeElements = g.append("g")
+        .selectAll("g")
+        .data(filteredNodes)
+        .join("g")
+        .attr("class", "node cursor-pointer")
+        .call(d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended));
+
+      nodeElements.append("circle")
+        .attr("r", d => d.radius)
+        .attr("fill", d => colors[d.group] || "#10B981")
+        .attr("stroke", "#0D1527")
+        .attr("stroke-width", 2.5)
+        .attr("filter", "drop-shadow(0px 4px 8px rgba(0,0,0,0.6))");
+
+      nodeElements.append("text")
+        .attr("dy", d => d.radius + 15)
+        .attr("text-anchor", "middle")
+        .text(d => d.label);
+
+      nodeElements.on("click", (event, d) => {
+        selectNode(d, filteredLinks);
+      });
+
+      simulation.on("tick", () => {
+        linkElements
+          .attr("x1", d => d.source.x)
+          .attr("y1", d => d.source.y)
+          .attr("x2", d => d.target.x)
+          .attr("y2", d => d.target.y);
+
+        nodeElements.attr("transform", d => `translate(${d.x},${d.y})`);
+      });
+
+      resetZoom();
+    }
+
+    function selectNode(d, currentLinks) {
+      document.getElementById("node-type").textContent = d.group.toUpperCase().replace('_', ' ');
+      document.getElementById("node-layer").textContent = `LAYER: ${d.layer.toUpperCase()}`;
+      document.getElementById("node-title").textContent = d.label;
+      document.getElementById("node-file").textContent = d.file;
+      document.getElementById("node-desc").textContent = d.desc;
+
+      // Update Code snippet if exists
+      const snippet = codeSnippets[d.id] || `// Mô tả: ${d.desc}\n// File: ${d.file}\n// Chuẩn mật mã: AES-256-GCM (NIST SP 800-38D)`;
+      const codeEl = document.getElementById("code-snippet");
+      codeEl.textContent = snippet;
+      document.getElementById("code-lang").textContent = d.layer === 'client' ? 'TypeScript' : 'C#';
+      codeEl.className = d.layer === 'client' ? 'language-typescript' : 'language-csharp';
+      Prism.highlightElement(codeEl);
+
+      // Highlight links & nodes
+      linkElements.classed("highlight", l => l.source.id === d.id || l.target.id === d.id);
+      nodeElements.select("circle")
+        .attr("stroke", n => n.id === d.id ? "#FFFFFF" : "#0D1527")
+        .attr("stroke-width", n => n.id === d.id ? 4 : 2.5);
+
+      const connected = currentLinks.filter(l => l.source.id === d.id || l.target.id === d.id);
+      const listEl = document.getElementById("node-links");
+      listEl.innerHTML = "";
+      connected.forEach(l => {
+        const isOut = l.source.id === d.id;
+        const otherNode = isOut ? l.target : l.source;
+        const li = document.createElement("li");
+        li.className = "bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 flex justify-between items-center";
+        li.innerHTML = `<span class="text-slate-400">${isOut ? '→ ' + l.type : '← ' + l.type}</span> <strong class="text-emerald-400 font-mono">${otherNode.label}</strong>`;
+        listEl.appendChild(li);
+      });
+    }
+
+    function setFilter(filter) {
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.className = "filter-btn px-2.5 py-1.5 rounded-lg font-bold text-slate-300 hover:text-white transition cursor-pointer";
+      });
+      const activeBtn = document.getElementById(`btn-${filter}`);
+      if (activeBtn) {
+        activeBtn.className = "filter-btn px-2.5 py-1.5 rounded-lg font-bold bg-emerald-500 text-black transition cursor-pointer";
+      }
+
+      let nodes = allData.nodes;
+      if (filter === 'client') {
+        nodes = allData.nodes.filter(n => n.layer === 'client' || n.layer === 'network');
+      } else if (filter === 'server') {
+        nodes = allData.nodes.filter(n => n.layer === 'server' || n.layer === 'network');
+      }
+
+      const nodeIds = new Set(nodes.map(n => n.id));
+      const links = allData.links
+        .filter(l => {
+          const sId = typeof l.source === 'object' ? l.source.id : l.source;
+          const tId = typeof l.target === 'object' ? l.target.id : l.target;
+          return nodeIds.has(sId) && nodeIds.has(tId);
+        })
+        .map(l => ({
+          source: typeof l.source === 'object' ? l.source.id : l.source,
+          target: typeof l.target === 'object' ? l.target.id : l.target,
+          type: l.type,
+          isFlow: l.isFlow
+        }));
+
+      renderGraph(JSON.parse(JSON.stringify(nodes)), links);
+    }
+
+    function nextStep() {
+      currentStepIdx = (currentStepIdx + 1) % steps.length;
+      updateStep();
+    }
+    function prevStep() {
+      currentStepIdx = (currentStepIdx - 1 + steps.length) % steps.length;
+      updateStep();
+    }
+    function updateStep() {
+      const step = steps[currentStepIdx];
+      document.getElementById('step-label').textContent = step.label;
+      const targetNode = allData.nodes.find(n => n.id === step.node);
+      if (targetNode) {
+        selectNode(targetNode, allData.links);
+      }
+    }
+
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
+    window.addEventListener("resize", () => {
+      width = container.clientWidth;
+      height = container.clientHeight;
+      svg.attr("viewBox", [0, 0, width, height]);
+      if (simulation) simulation.force("center", d3.forceCenter(width / 2, height / 2)).restart();
+    });
+
+    // Initial render
+    setFilter('all');
+    setTimeout(() => {
+      const initialNode = allData.nodes.find(n => n.id === "EnvelopeEncryptionService");
+      if (initialNode) selectNode(initialNode, allData.links);
+    }, 500);
+  </script>
+</body>
+</html>

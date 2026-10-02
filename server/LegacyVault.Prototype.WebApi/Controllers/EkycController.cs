@@ -15,7 +15,8 @@ public class EkycController : ControllerBase
     }
 
     /// <summary>
-    /// OCR trích xuất thông tin Căn cước công dân gắn chip (FPT.AI Vision SDK)
+    /// [Định hướng tương lai] Khảo sát OCR trích xuất thông tin CCCD hỗ trợ điền biểu mẫu.
+    /// Lưu ý: Phiên bản prototype thực hiện nhập liệu và thẩm định hồ sơ thủ công; AI/OCR chỉ hỗ trợ trích xuất thông tin, không thay thế quyết định của người thẩm định.
     /// </summary>
     [HttpPost("ocr")]
     [Consumes("multipart/form-data")]

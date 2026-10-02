@@ -1,6 +1,6 @@
 # HƯỚNG DẪN LẬP TRÌNH THEO SƠ ĐỒ SWIMLANE KỸ THUẬT (DEVELOPER CODE SPEC)
 ## HỆ THỐNG LEGACYVAULT - CLEAN ARCHITECTURE .NET 8 & REACT 19
-**Tệp đồ họa tương ứng**: [`docs/FLOW_02_SYSTEM_MERGED.xml`](file:///c:/Users/ThanhDuy/Documents/01_Code_Projects/SWP-Prototype/docs/FLOW_02_SYSTEM_MERGED.xml)  
+**Tệp đồ họa tương ứng**: [`FLOW_02_SYSTEM_MERGED.xml`](./FLOW_02_SYSTEM_MERGED.xml)  
 *(Cách xem: Mở [app.diagrams.net](https://app.diagrams.net) $\rightarrow$ Chọn **File** $\rightarrow$ **Open From** $\rightarrow$ **Device** $\rightarrow$ Chọn tệp `.xml` này).*
 
 ---
@@ -38,15 +38,14 @@ Sơ đồ phân định trách nhiệm thành **4 tầng kiến trúc phần m�
 
 ---
 
-### BƯỚC 2: ĐỊNH DANH ĐIỆN TỬ CÔNG DÂN eKYC FPT.AI (MỤC SỐ 6)
+### BƯỚC 2: XÁC MINH DANH TÍNH THỦ CÔNG & KHẢO SÁT eKYC TƯƠNG LAI (MỤC SỐ 6)
 
-| Thông số kỹ thuật | Mã nguồn Frontend (React 19) | Mã nguồn Backend (.NET 8) | Dịch vụ ngoài (External) |
+| Thông số kỹ thuật | Mã nguồn Frontend (React 19) | Mã nguồn Backend (.NET 8) | Cơ chế thẩm định & Định hướng AI |
 | :--- | :--- | :--- | :--- |
-| **Tệp tin (File)** | `client/src/features/ekyc-verification/EkycTestbench.tsx` | `server/.../Controllers/EkycController.cs` | FPT.AI Vision & DMP Engine |
-| **API Endpoints** | 1. `POST /api/v1/ekyc/ocr`<br/>2. `POST /api/v1/ekyc/match-face` | `[HttpPost("ocr")]`<br/>`[HttpPost("match-face")]` | `https://api.fpt.ai/vision/idr/vnm`<br/>`https://api.fpt.ai/dmp/checkface/v1` |
-| **Dữ liệu gửi lên** | `FormData: image (frontCardFile)`, `selfie (selfieFile)` | Multipart/form-data $\rightarrow$ Forward sang FPT | Header: `api-key: sk-...` |
-| **Điều kiện Code duyệt** | `confidence >= 0.75 && isTampered == false` | `matchScore >= 80 && isLive == true` | Tiêu chuẩn Quyết định 2345/QĐ-NHNN |
-| **Cơ chế Fallback B2B** | Chuyển toggle `useSandbox: true` | `EkycService` trả về Preset Hợp lệ hoặc Giả mạo | Phòng chống lỗi 401 khi dùng Marketplace Key |
+| **Tệp tin (File)** | `client/src/features/ekyc-verification/ManualIdentityVerificationFlow.tsx`<br/>*(Tham chiếu: `EkycTestbench.tsx`)* | `server/.../Controllers/EkycController.cs`<br/>`server/.../Services/EkycService.cs` | Thẩm định thủ công bởi Chuyên viên Verifier (Đối chiếu CCCD gắn chip / Hộ chiếu) |
+| **Quy trình 4 bước** | 1. Nộp hồ sơ danh tính<br/>2. Verifier đối chiếu hồ sơ<br/>3. Ghi nhận Chờ duyệt ➔ Đã duyệt/Từ chối<br/>4. Hồ sơ chuyển giao (Cần nhưng chưa đủ) | Bắt buộc lưu `verifier_id`, `verified_at` và `reason` trong Sổ kiểm toán (Audit Trail) | Tuân thủ Đ.616, 624 BLDS 2015 & Nghị định 13/2023/NĐ-CP (Retention & Wipe) |
+| **Dữ liệu giấy tờ** | Form nộp ảnh CCCD mặt trước, mặt sau, chân dung | Tệp giấy tờ được phân quyền chỉ cho Verifier xem; áp dụng thời hạn lưu trữ | Không lưu vĩnh viễn trên public storage |
+| **Khảo sát eKYC AI** | Tab 2-4: FPT.AI Spec Sandbox, Tesseract OCR WASM, MediaPipe Face | Các endpoint PoC: `/api/v1/ekyc/ocr`, `/api/v1/ekyc/liveness-face-match` | Định hướng công cụ trợ lý trích xuất tương lai; không thay thế con người |
 
 ---
 
@@ -78,7 +77,7 @@ Sơ đồ phân định trách nhiệm thành **4 tầng kiến trúc phần m�
 | Thông số kỹ thuật | Mã nguồn Frontend (React 19) | Mã nguồn Backend (.NET 8) | Cơ chế chống gian lận & Bàn giao |
 | :--- | :--- | :--- | :--- |
 | **Tệp tin (File)** | `client/src/features/rescue-timelock/RescueTimeLockTestbench.tsx` | `server/.../Controllers/RescueTimeLockController.cs` | `server/.../Services/ShamirSecretSharingService.cs` |
-| **Kích hoạt Claim** | Executor nộp đơn + eKYC CCCD | `POST /api/v1/timelock/initiate-claim` | Đổi trạng thái: `PENDING_VERIFICATION` |
+| **Kích hoạt Claim** | Executor nộp đơn + Xác minh danh tính CCCD | `POST /api/v1/timelock/initiate-claim` | Đổi trạng thái: `PENDING_VERIFICATION` |
 | **Khóa đệm Time-Lock** | Đếm ngược 30 ngày hoãn hủy | Khóa cứng dữ liệu, cấm giải mã | Bắn email Red Alert tới Chủ kho qua MailKit |
 | **Cơ chế 1-Click Cancel** | Bấm nút: "Hủy bỏ yêu cầu mở kho" | `POST /api/v1/timelock/cancel-claim` | **Hủy Claim ngay lập tức**, tước quyền Executor |
 | **Giải mã bàn giao (Hết hạn Time-Lock)** | Beneficiary nhấp link nhận di sản | `Shamir.Reconstruct(share1, share2/3)` $\rightarrow$ Khôi phục DEK | Xóa vĩnh viễn Nhóm 3 (Bí mật đời tư) theo Đ.38 BLDS, trao quyền tải cho Người thụ hưởng |

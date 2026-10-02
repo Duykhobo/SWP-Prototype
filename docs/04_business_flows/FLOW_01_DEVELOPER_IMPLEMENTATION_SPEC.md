@@ -1,6 +1,6 @@
 # ĐẶC TẢ CHI TIẾT TRIỂN KHAI CODE CHO LẬP TRÌNH VIÊN (DEVELOPER CODE SPEC)
 ## FLOW 01 · ĐĂNG NHẬP, XÁC THỰC, PHÂN QUYỀN PERSONA & TỰ ĐỘNG TẠO TÀI KHOẢN (JIT PROVISIONING)
-**Ánh xạ trực tiếp từ Sơ đồ Swimlane draw.io**: `FLOW_01_SYSTEM_MERGED.xml` (Gồm 5 Làn bơi & 6 Nhánh lỗi E0.1 - E0.6)  
+**Ánh xạ trực tiếp từ Sơ đồ Swimlane draw.io**: `FLOW_01_SYSTEM_MERGED.xml` (Gồm 2 khối độc lập: 01A Google OIDC với 5 làn bơi & 01B Email/Password với 4 làn bơi, hội tụ tại Phần xử lý chung)  
 **Tiêu chuẩn kiến trúc**: Clean Architecture .NET 8, React 19, Microsoft SQL Server 2022 / T-SQL, Google Identity Services (OIDC)
 
 ---
@@ -13,7 +13,7 @@
    - **1-Click Persona Switcher**: Cho phép Hội đồng thẩm định và Giảng viên chuyển đổi tức thì giữa 5 vai diễn mẫu phục vụ kiểm thử tính năng và bảo vệ đồ án.
 
 2. **Tuân thủ Tam quyền phân lập (`ASSIGN-06`)**:
-   - Chủ tài sản (Owner), Người thực thi (Executor) và Công chứng viên (Verifier) bắt buộc là **3 `PersonId` độc lập khác nhau**.
+   - Chủ tài sản (Owner), Người thực thi (Executor) và Người thẩm định độc lập (Verifier) bắt buộc là **3 `PersonId` độc lập khác nhau**.
    - Cấm Executor và Verifier đứng tên Người thụ hưởng (Beneficiary) trong cùng một hồ sơ di sản.
    - `PersonId` đại diện cho căn cước thực tế của con người, `UserId` đại diện cho thông tin tài khoản đăng nhập.
 
@@ -30,10 +30,10 @@
 | Thành phần | Chi tiết kỹ thuật triển khai |
 | :--- | :--- |
 | **Làn bơi (Lanes)** | `USER · NGƯỜI DÙNG` $\rightarrow$ `CLIENT (REACT 19 SANDBOX)` |
-| **Frontend Code** | `client/src/features/auth-oidc/GoogleOidcTestbench.tsx`<br/>• Render Google GIS Sign-in Button: `window.google.accounts.id.renderButton(...)`<br/>• Form Email/Password tiêu chuẩn hoặc nút chọn Persona 1-Click.<br/>• Sinh ngẫu nhiên mã Cryptographic Nonce 256-bit chống tấn công phát lại (Replay Attack). |
-| **Backend API** | `GET /api/v1/auth/personas`<br/>• Trả về danh sách 5 Persona mẫu kèm `personId` độc lập phục vụ chuyển vai diễn tức thì. |
-| **Dữ liệu chuyển giao** | Gói tin Client State: `{ selectedProvider: "GOOGLE_OIDC", nonce: "nonce_7f2b98a1c4" }` |
-| **Xử lý nhánh lỗi E0.1** | **Popup Blocked / Network Timeout**:<br/>Trình duyệt chặn cửa sổ Google Sign-in $\rightarrow$ Hiển thị thông báo, tự động gợi ý chuyển sang Form đăng nhập Email/Mật khẩu hoặc dùng Demo Switcher. |
+| **2 Phương thức xác thực** | Người dùng lựa chọn **1 trong 2 phương thức duy nhất**:<br/>1. **Google OIDC GIS (Không mật khẩu / Passwordless)**: Đăng nhập 1 chạm an toàn qua tài khoản Google.<br/>2. **Form mật khẩu (Email / Password)**: Đăng nhập truyền thống với cơ chế băm Salted Hash (SEC-02). |
+| **Frontend Code** | `client/src/features/auth-oidc/GoogleOidcTestbench.tsx`<br/>• Render Google GIS Sign-in Button: `window.google.accounts.id.renderButton(...)`<br/>• Form Email/Password chuẩn kèm mã hóa bảo mật truyền qua TLS 1.3.<br/>• Sinh ngẫu nhiên mã Cryptographic Nonce 256-bit trong RAM chống tấn công phát lại (Replay Attack). |
+| **Dữ liệu chuyển giao** | Gói tin Client State: `{ selectedProvider: "GOOGLE_OIDC" | "FORM_PASSWORD", nonce: "nonce_7f2b98a1c4" }` |
+| **Xử lý nhánh lỗi E0.1** | **Popup Blocked / Network Timeout**:<br/>Trình duyệt chặn cửa sổ Google Sign-in $\rightarrow$ Hiển thị thông báo lỗi, tự động gợi ý chuyển sang phương thức Form Email/Mật khẩu. |
 
 ---
 
@@ -53,14 +53,14 @@
 | Thành phần | Chi tiết kỹ thuật triển khai |
 | :--- | :--- |
 | **Làn bơi (Lanes)** | `SERVER (.NET 8 WEBAPI)` $\rightarrow$ `CSDL SQL SERVER 2022` |
-| **Backend Code** | `server/LegacyVault.Prototype.WebApi/Controllers/AuthController.cs`<br/>• `[HttpPost("google-oidc")]`<br/>• Xác minh chữ ký số Google JWKS qua thư viện `GoogleJsonWebSignature.ValidateAsync(idToken)`.<br/>• Thẩm định 4 trường bắt buộc: `issuer == accounts.google.com`, `audience == GoogleClientId`, `email_verified == true`, `clock_skew <= 5 phút`. |
-| **Truy vấn T-SQL đối soát** | ```sql
-SELECT u.UserId, u.PersonId, u.Email, u.Role, p.FullName, u.IsActive
+| **Backend Code** | `server/LegacyVault.Prototype.WebApi/Controllers/AuthController.cs`<br/>• `[HttpPost("google-oidc")]`<br/>• Xác minh chữ ký số Google JWKS qua thư viện `GoogleJsonWebSignature.ValidateAsync(idToken)`.<br/>• Thẩm định toàn diện: chữ ký `RS256`, `issuer == accounts.google.com`, `audience == GoogleClientId`, `exp > now`, và đối chiếu `nonce`. |
+| **Truy vấn CSDL theo Google sub** | ```sql
+SELECT u.UserId, u.PersonId, u.Email, u.Role, p.FullName, u.IsActive, u.IsLocked
 FROM [dbo].[Users] u
 INNER JOIN [dbo].[Persons] p ON u.PersonId = p.PersonId
-WHERE u.Email = @Email AND u.IsDeleted = 0;
+WHERE u.AuthProvider = 'GOOGLE' AND u.ProviderSubjectId = @GoogleSub AND u.IsDeleted = 0;
 ``` |
-| **Xử lý nhánh lỗi E0.3** | **Google Signature Mismatch**:<br/>Chữ ký không khớp với Google Public Keys $\rightarrow$ Trả về `HTTP 401 Unauthorized`, mã lỗi `ERR_INVALID_OIDC_SIGNATURE`, ghi log cảnh báo bảo mật. |
+| **Xử lý nhánh lỗi E0.3** | **Google Token Validation Failed**:<br/>Chữ ký không khớp hoặc token hết hạn/sai audience $\rightarrow$ Trả về `HTTP 401 Unauthorized`, mã lỗi `ERR_INVALID_OIDC_TOKEN`, ghi log bảo mật. |
 
 ---
 
@@ -88,15 +88,16 @@ COMMIT TRANSACTION;
 
 ---
 
-### BƯỚC 05: PHÁT HÀNH JWT ACCESS TOKEN & GHI NHẬT KÝ KIỂM TOÁN
-
+### BƯỚC 05: KIỂM TRA TRẠNG THÁI TÀI KHOẢN, PHÁT HÀNH JWT & GHI NHẬT KÝ
+ 
 | Thành phần | Chi tiết kỹ thuật triển khai |
 | :--- | :--- |
 | **Làn bơi (Lanes)** | `SERVER (.NET 8 WEBAPI)` |
-| **Backend Code** | `server/LegacyVault.Prototype.WebApi/Controllers/AuthController.cs`<br/>• Sinh JWT Access Token ký bảo mật bằng thuật toán HS256 (`HMAC-SHA256`).<br/>• Nhúng đầy đủ các Claims: `sub`, `person_id`, `email`, `roles`, `threePersonRuleCompliant: true`. |
-| **Ghi nhật ký kiểm toán** | ```sql
+| **Kiểm tra trạng thái tài khoản** | Bắt buộc kiểm tra `user.IsActive && !user.IsLocked` trước khi phát hành phiên.<br/>$\rightarrow$ Nếu tài khoản bị khóa/vô hiệu hóa: Trả về `HTTP 403 Forbidden`, mã lỗi `E0.5_ACCOUNT_LOCKED`. |
+| **Backend Code** | `server/LegacyVault.Prototype.WebApi/Controllers/AuthController.cs`<br/>• Sinh JWT Access Token ký bảo mật bằng thuật toán HS256 (`HMAC-SHA256`).<br/>• Nhúng đầy đủ các Claims: `sub`, `person_id`, `email`, `role`.<br/>• *Lưu ý*: Quy tắc tam quyền phân lập `ASSIGN-06` được thực thi ở tầng nghiệp vụ Kế hoạch di sản (dựa trên `PersonId`), không thể chỉ dựa vào claim đăng nhập ban đầu. |
+| **Ghi nhật ký kiểm toán** | Ghi nhận **chỉ khi phát hành phiên thành công**:<br/>```sql
 INSERT INTO [dbo].[AuditEvents] (EventId, UserId, PersonId, Action, Details, IpAddress, Timestamp)
-VALUES (NEWID(), @UserId, @PersonId, 'AUTH_LOGIN_SUCCESS', N'Đăng nhập Google OIDC JIT thành công', @ClientIp, GETUTCDATE());
+VALUES (NEWID(), @UserId, @PersonId, 'AUTH_LOGIN_SUCCESS', N'Đăng nhập thành công', @ClientIp, GETUTCDATE());
 ``` |
 | **Phản hồi HTTP 200** | ```json
 {
@@ -112,30 +113,27 @@ VALUES (NEWID(), @UserId, @PersonId, 'AUTH_LOGIN_SUCCESS', N'Đăng nhập Googl
   "message": "Đăng nhập thành công!"
 }
 ``` |
-| **Xử lý nhánh lỗi E0.5** | **Token Signing Key Missing**:<br/>Máy chủ mất biến môi trường JWT Secret $\rightarrow$ Trả về HTTP 500, kích hoạt chuông cảnh báo tới quản trị viên. |
 
 ---
 
-### BƯỚC 06: PHÂN VAI & RENDER GIAO DIỆN THEO QUYỀN HẠN (RBAC SANDBOX)
+### BƯỚC 06: LƯU TRỮ TOKEN TRONG RAM & RENDER GIAO DIỆN THEO PHÂN QUYỀN
 
 | Thành phần | Chi tiết kỹ thuật triển khai |
 | :--- | :--- |
 | **Làn bơi (Lanes)** | `CLIENT (REACT 19 APPLICATION)` |
-| **Frontend Code** | `client/src/features/workflow-visualizer/InteractiveWorkflowVisualizer.tsx`<br/>• Nhận Access Token, lưu trong RAM Context (không lưu ra LocalStorage chống XSS).<br/>• Thiết lập giao diện tương ứng theo vai trò:<br/>  - **OWNER**: Mở quyền lập kế hoạch, nạp file tài sản, chọn gói thanh toán SePay.<br/>  - **EXECUTOR**: Mở cổng nộp hồ sơ chứng tử, đối soát pháp lý và kích hoạt giải mã.<br/>  - **VERIFIER**: Mở cổng thẩm tra tài liệu y tế/tư pháp, phê duyệt giấy chứng tử.<br/>  - **BENEFICIARY**: Mở két tiếp nhận tài sản bàn giao, ký xác nhận hoặc biểu quyết kho chung.<br/>  - **ADMIN**: Mở bảng giám sát hạ tầng và xem Audit Log bất biến (không có khóa giải mã). |
-| **Xử lý nhánh lỗi E0.6** | **Client-Side Role Tampering**:<br/>Người dùng cố tình can thiệp bộ nhớ RAM để tự phong quyền $\rightarrow$ Toàn bộ API nghiệp vụ phía sau đều thẩm định `person_id` và chữ ký JWT trên Server $\rightarrow$ Tự động trả về `HTTP 403 Forbidden`. |
+| **Frontend Code** | `client/src/features/auth-oidc/GoogleOidcTestbench.tsx`<br/>• Nhận Access Token, lưu trong RAM Context (`Hard Rule 1.3`: tuyệt đối không lưu ra LocalStorage chống XSS).<br/>• Nếu reload trang: Kích hoạt phiên xác thực nền hoặc yêu cầu xác thực lại.<br/>• Điều hướng về dashboard theo vai trò thực tế (`Owner`, `Executor`, `Verifier`, `Admin`). |
 
 ---
 
-## 3. DANH MỤC 6 NHÁNH NGOẠI LỆ & QUY TRÌNH HỒI QUY (ROLLBACK MATRIX)
+## 3. DANH MỤC CÁC NHÁNH NGOẠI LỆ & QUY TRÌNH HỒI QUY (ROLLBACK MATRIX)
 
 | Mã lỗi | Tên ngoại lệ | Nguyên nhân kích hoạt | Tuyến hồi quy (Rollback) | Hành động khắc phục |
 | :---: | :--- | :--- | :--- | :--- |
-| **E0.1** | `POPUP_BLOCKED` | Trình duyệt chặn popup Google Identity | Bước 01 | Gợi ý dùng Form Email/Password hoặc Demo Switcher. |
-| **E0.2** | `INVALID_ID_TOKEN` | Token Google bị sửa đổi hoặc hết hạn | Bước 01 | Xóa phiên tạm, thông báo lỗi xác thực, cho đăng nhập lại. |
-| **E0.3** | `JWKS_MISMATCH` | Chữ ký số RS256 không khớp Google Keys | Bước 01 | Từ chối cấp phiên với HTTP 401, ghi nhật ký cảnh báo. |
-| **E0.4** | `CONCURRENT_REGISTRATION` | Trùng email khi 2 request gửi đồng thời | Bước 04 | Thực thi `ROLLBACK TRANSACTION`, chuyển thành User cũ. |
-| **E0.5** | `SIGNING_KEY_ERROR` | Lỗi cấu hình máy chủ mất khóa bí mật | Bước 03 | Trả về HTTP 500, cảnh báo hệ thống nội bộ. |
-| **E0.6** | `ROLE_TAMPERING` | Sửa vai trò trái phép tại RAM trình duyệt | Bước 06 | Máy chủ chặn với HTTP 403 Forbidden do kiểm tra JWT claim. |
+| **E0.1** | `POPUP_BLOCKED` | Trình duyệt chặn popup hoặc mất kết nối mạng | Bước 01 | Gợi ý chuyển sang Form Email/Password hoặc thử lại. |
+| **E0.2** | `INVALID_ID_TOKEN` | Token Google bị can thiệp hoặc hết hạn | Bước 01 | Xóa phiên tạm, thông báo lỗi xác thực, cho đăng nhập lại. |
+| **E0.3** | `TOKEN_VALIDATION_FAILED` | Chữ ký số RS256 hoặc iss/aud/nonce không hợp lệ | Bước 01 | Từ chối cấp phiên với HTTP 401, ghi nhật ký bảo mật. |
+| **E0.4** | `CONCURRENT_REGISTRATION` | Trùng định danh Google khi 2 request gửi đồng thời | Bước 03.1 | Tải lại tài khoản đã tồn tại cho cùng Google subject. |
+| **E0.5** | `ACCOUNT_LOCKED_OR_INACTIVE` | Tài khoản bị vô hiệu hóa hoặc khóa tạm thời | Kết thúc | Trả về HTTP 403 Forbidden, hướng dẫn liên hệ Admin. |
 
 ---
 
@@ -145,6 +143,6 @@ VALUES (NEWID(), @UserId, @PersonId, 'AUTH_LOGIN_SUCCESS', N'Đăng nhập Googl
 | :--- | :--- | :--- | :--- |
 | 🏛️ **OWNER** | Nguyễn Văn Nam | `11111111-1111-1111-1111-111111111111` | Chủ sở hữu kho nguồn, mua gói cước, nạp tài sản số, chỉ định người nhận. |
 | ⚖️ **EXECUTOR** | Trần Thị Bình | `22222222-2222-2222-2222-222222222222` | Luật sư thực thi độc lập (`ASSIGN-06`); nộp chứng từ và kích hoạt bàn giao. |
-| 📜 **VERIFIER** | Lê Văn Cường | `33333333-3333-3333-3333-333333333333` | Công chứng viên thẩm tra chứng tử độc lập; tuyệt đối không xem nội dung tài sản. |
+| 📜 **VERIFIER** | Lê Văn Cường | `33333333-3333-3333-3333-333333333333` | Chuyên viên thẩm định độc lập (`ASSIGN-06`); xác minh danh tính thủ công & thẩm định chứng tử. |
 | 🎁 **BENEFICIARY** | Phạm Thị Duyên | `44444444-4444-4444-4444-444444444444` | Người thụ hưởng; tiếp nhận tài sản bàn giao, ký nhận 1:1 hoặc bỏ phiếu kho chung. |
 | 🛡️ **ADMIN** | Admin Kỹ Thuật | `99999999-9999-9999-9999-999999999999` | Quản trị viên vận hành; theo dõi Audit Log, tuyệt đối không có khóa giải mã. |

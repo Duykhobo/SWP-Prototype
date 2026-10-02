@@ -22,6 +22,7 @@ import {
 
 import { ClientTesseractOcrPoc } from './ClientTesseractOcrPoc';
 import { ClientMediaPipeFacePoc } from './ClientMediaPipeFacePoc';
+import { ManualIdentityVerificationFlow } from './ManualIdentityVerificationFlow';
 
 interface OcrData {
   success: boolean;
@@ -54,7 +55,7 @@ interface EkycTestbenchProps {
 }
 
 export const EkycTestbench: React.FC<EkycTestbenchProps> = ({ onNavigateToMarketplace }) => {
-  const [subTab, setSubTab] = useState<'service' | 'tesseract' | 'mediapipe'>('service');
+  const [subTab, setSubTab] = useState<'manual' | 'service' | 'tesseract' | 'mediapipe'>('manual');
   // Mặc định Sandbox Mode = true để trải nghiệm kiểm thử hoạt động ngay 100%
   const [useSandbox, setUseSandbox] = useState<boolean>(true);
   const [selectedPreset, setSelectedPreset] = useState<'valid' | 'tampered' | 'custom'>('valid');
@@ -156,14 +157,38 @@ export const EkycTestbench: React.FC<EkycTestbenchProps> = ({ onNavigateToMarket
 
   return (
     <HeritageCard
-      title="6. Thẩm Định Danh Tính eKYC & Phòng Thí Nghiệm AI Thị Giác"
-      subtitle="Khảo sát giải pháp thẩm định danh tính: Dịch vụ FPT.AI Spec (Sandbox/B2B), PoC Trích xuất OCR tại trình duyệt (Tesseract.js) và PoC Tương tác cử động mặt (Google MediaPipe)."
-      icon={<Scan className="w-5 h-5" />}
-      badge={<HeritageBadge variant="forest">FPT.AI Spec · PoC Labs</HeritageBadge>}
+      title="6. Xác Minh Danh Tính Thủ Công (Manual Verification Flow)"
+      subtitle="Phiên bản prototype thực hiện nhập liệu và thẩm định hồ sơ thủ công. AI/OCR được định hướng bổ sung trong tương lai để hỗ trợ trích xuất thông tin; không thay thế quyết định của người thẩm định."
+      icon={<UserCheck className="w-5 h-5 text-[#B88E4C]" />}
+      badge={<HeritageBadge variant="gold">Thẩm Định Nhân Sự · Không Tự Động Phê Duyệt</HeritageBadge>}
     >
       <div className="space-y-6">
+        {/* Core Prototype Architecture Principle Alert */}
+        <div className="p-4 bg-[#FAF6EE] border-l-4 border-[#B88E4C] rounded-r-xl text-xs space-y-1.5 shadow-2xs">
+          <div className="flex items-center gap-2 text-[#0B291E] font-bold text-sm">
+            <ShieldCheck className="w-4 h-4 text-[#B88E4C]" />
+            <span>Nguyên Tắc Kiến Trúc Prototype: Nhập Liệu & Thẩm Định Hồ Sơ Thủ Công</span>
+          </div>
+          <p className="text-[#4A453A] leading-relaxed">
+            Trong phiên bản Prototype hiện tại, toàn bộ quy trình nhập liệu thông tin và thẩm định hồ sơ chứng tử được thực hiện <strong>hoàn toàn thủ công</strong> bởi Người thực thi (Executor) và Người thẩm định độc lập (Verifier) có cam kết trách nhiệm pháp lý. 
+            <strong> AI/OCR được định hướng bổ sung trong tương lai</strong> để hỗ trợ trích xuất thông tin tự động; <strong>tuyệt đối không thay thế quyết định của người thẩm định</strong>.
+          </p>
+        </div>
         {/* Sub-Tab Navigation Switcher */}
         <div className="flex flex-wrap items-center gap-2 p-1.5 bg-[#EFECE6] border border-[#DCD9D0] rounded-xl">
+          <button
+            type="button"
+            onClick={() => setSubTab('manual')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              subTab === 'manual'
+                ? 'bg-[#0B291E] text-white shadow-xs'
+                : 'text-[#44554C] hover:text-[#0B291E] hover:bg-white/60'
+            }`}
+          >
+            <UserCheck className="w-4 h-4 text-[#B88E4C]" />
+            <span>1. Xác Minh Danh Tính Thủ Công (Prototype)</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setSubTab('service')}
@@ -174,7 +199,7 @@ export const EkycTestbench: React.FC<EkycTestbenchProps> = ({ onNavigateToMarket
             }`}
           >
             <Cpu className="w-4 h-4 text-[#B88E4C]" />
-            <span>1. Dịch Vụ eKYC / FPT Spec (Sandbox & B2B)</span>
+            <span>2. Khảo Sát eKYC / FPT Spec (Định hướng tương lai)</span>
           </button>
 
           <button
@@ -187,7 +212,7 @@ export const EkycTestbench: React.FC<EkycTestbenchProps> = ({ onNavigateToMarket
             }`}
           >
             <FileText className="w-4 h-4 text-emerald-500" />
-            <span>2. Thử Nghiệm OCR Trình Duyệt (Tesseract.js WASM)</span>
+            <span>3. Thử Nghiệm OCR Trình Duyệt (Định hướng tương lai)</span>
           </button>
 
           <button
@@ -200,17 +225,20 @@ export const EkycTestbench: React.FC<EkycTestbenchProps> = ({ onNavigateToMarket
             }`}
           >
             <Camera className="w-4 h-4 text-cyan-500" />
-            <span>3. Thử Nghiệm Chuyển Động Mặt (Google MediaPipe)</span>
+            <span>4. Thử Nghiệm Chuyển Động Mặt (Định hướng tương lai)</span>
           </button>
         </div>
 
-        {/* View 2: Tesseract OCR PoC */}
+        {/* View 1: Manual Verification Flow (Prototype Scope) */}
+        {subTab === 'manual' && <ManualIdentityVerificationFlow />}
+
+        {/* View 3: Tesseract OCR PoC */}
         {subTab === 'tesseract' && <ClientTesseractOcrPoc />}
 
-        {/* View 3: MediaPipe Face PoC */}
+        {/* View 4: MediaPipe Face PoC */}
         {subTab === 'mediapipe' && <ClientMediaPipeFacePoc />}
 
-        {/* View 1: Existing Service & Sandbox */}
+        {/* View 2: Existing Service & Sandbox */}
         {subTab === 'service' && (
           <div className="space-y-6">
         {/* Banner Chính sách FPT.AI Console & Cầu nối Module 9 */}

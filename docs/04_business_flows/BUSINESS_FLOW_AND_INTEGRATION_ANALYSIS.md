@@ -21,7 +21,7 @@
    - [4.2. Cổng thanh toán SePay VietQR (Webhook ACID & 5 Gói cước)](#42-cổng-thanh-toán-sepay-vietqr-webhook-acid--5-gói-cước)
    - [4.3. Cloudflare R2 Private Storage (S3-Compatible)](#43-cloudflare-r2-private-storage-s3-compatible)
    - [4.4. Thư viện MailKit & MimeKit SMTP](#44-thư-viện-mailkit--mimekit-smtp)
-   - [4.5. Dịch vụ eKYC FPT.AI Vision SDK](#45-dịch-vụ-ekyc-fptai-vision-sdk)
+   - [4.5. Xác minh danh tính thủ công & Khảo sát eKYC FPT.AI (Tương lai)](#45-xác-minh-danh-tính-thủ-công--khảo-sát-ekyc-fptai-tương-lai)
 5. [MA TRẬN ĐỐI SOÁT TRẠNG THÁI & MÃ LỖI RFC 7807](#5-ma-trận-đối-soát-trạng-thái--mã-lỗi-rfc-7807)
 6. [HƯỚNG DẪN THỰC THI & KIỂM THỬ TRÊN PROTOTYPE](#6-hướng-dẫn-thực-thi--kiểm-thử-trên-prototype)
 
@@ -50,10 +50,10 @@ Hệ thống **LegacyVault** được thiết kế nhằm giải quyết bài to
              |                                              |                             |
              v                                              v                             v
 +--------------------------+                 +--------------------------+    +--------------------------+
-|  Cloudflare R2 Storage   |                 |      SePay VietQR        |    |    FPT.AI Vision eKYC    |
-|  - Lưu Ciphertext .enc   |                 |  - Khớp giao dịch 24/7   |    |  - OCR CCCD gắn chip     |
-|  - Presigned URL (15m)   |                 |  - Webhook ACID chống lặp|    |  - Liveness Face Match   |
-|  - Băng thông Egress 0$  |                 |  - Hủy đơn sau 15 phút   |    |  - Tách bạch dữ liệu số  |
+|  Cloudflare R2 Storage   |                 |      SePay VietQR        |    | Xác minh danh tính       |
+|  - Lưu Ciphertext .enc   |                 |  - Khớp giao dịch 24/7   |    |  - Thẩm định thủ công    |
+|  - Presigned URL (15m)   |                 |  - Webhook ACID chống lặp|    |  - Verifier đối chiếu    |
+|  - Băng thông Egress 0$  |                 |  - Hủy đơn sau 15 phút   |    |  - (eKYC AI tương lai)   |
 +--------------------------+                 +--------------------------+    +--------------------------+
 ```
 
@@ -274,17 +274,21 @@ Hệ thống áp dụng thuật toán chia sẻ bí mật của Adi Shamir trên
 
 ---
 
-### 4.5. Dịch vụ eKYC FPT.AI Vision SDK
-- **Tài liệu tham khảo**:
-  - [FPT.AI eKYC Documentation](https://docs.fpt.ai/docs/vi/vision/documentation/sdk-ekyc/)
-- **Đánh giá & Quyết định lựa chọn (So sánh FPT.AI vs VNPT eKYC)**:
-  - **Loại bỏ VNPT eKYC**: VNPT yêu cầu pháp nhân công ty/doanh nghiệp có giấy đăng ký kinh doanh và ký hợp đồng thương mại B2B mới cấp quyền truy cập tài liệu kỹ thuật & API Tenant. Nhóm sinh viên thực hiện đồ án Capstone không thể đáp ứng điều kiện này.
-  - **Lựa chọn FPT.AI**: Cung cấp Cổng lập trình viên mở (`console.fpt.ai`), tự đăng ký tài khoản cá nhân, cấp API Key ngay lập tức với Free Tier để thử nghiệm tích hợp cho đồ án Capstone.
-- **Cơ chế hoạt động**:
-  1. **OCR Căn cước công dân gắn chip**: Gửi ảnh mặt trước và mặt sau lên endpoint FPT.AI (`https://api.fpt.ai/vision/v4/id-card`), trích xuất các trường: Số CCCD, Họ và tên, Ngày sinh, Giới tính, Quê quán, Địa chỉ thường trú, Ngày hết hạn.
-  2. **Đối sánh khuôn mặt (Face Matching / Liveness)**: Gửi ảnh chân dung trên CCCD và ảnh chụp selfie khuôn mặt lên endpoint FPT.AI (`https://api.fpt.ai/dmp/checkface/v1`) để tính toán độ tương đồng sinh trắc học (ngưỡng chấp thuận $\ge 80\%$).
-  3. **Công tắc Sandbox Mode**: Cho phép chuyển đổi tức thì giữa chế độ dữ liệu kiểm thử chuẩn và Live API khi điền API Key thực tế.
-- **Cấu hình trong `appsettings.json`**:
+### 4.5. Xác minh danh tính thủ công & Khảo sát eKYC FPT.AI (Tương lai)
+- **Quy định kiến trúc Prototype**:
+  - Phiên bản Prototype hiện tại **thực hiện nhập liệu và xác minh danh tính hoàn toàn thủ công**, bỏ tích hợp API eKYC tự động ra khỏi phạm vi bắt buộc của đồ án để bảo đảm trách nhiệm pháp lý theo Điều 616, 624 Bộ luật Dân sự 2015.
+  - **Quy trình thẩm định 4 bước**:
+    1. Người dùng gửi thông tin cá nhân và tệp ảnh giấy tờ (CCCD gắn chip / Hộ chiếu).
+    2. Chuyên viên Thẩm định (Verifier) được phân quyền đối chiếu hồ sơ, yêu cầu bổ sung khi cần.
+    3. Ghi nhận kết quả: `Chờ duyệt (PENDING_VERIFICATION)` ➔ `Đã xác minh (VERIFIED)` hoặc `Bị từ chối (REJECTED)`, bắt buộc lưu kèm `verifier_id`, `verified_at` và `reason` vào Sổ kiểm toán (Audit Trail).
+    4. Hồ sơ chuyển giao di sản tiếp tục qua các bước: Thẩm định Giấy chứng tử, Chờ hết thời hạn Time-Lock (15–30 ngày), và Cấp quyết định chuyển giao (Grant).
+  - **Nguyên tắc bảo vệ dữ liệu & Pháp lý**:
+    - **Không tự động đánh dấu "Đã xác minh"** chỉ vì người dùng đã tải giấy tờ lên.
+    - **Xác minh danh tính đạt cũng CHƯA ĐỦ để nhận di sản** (phải thỏa mãn đủ 4 điều kiện).
+    - Giấy tờ danh tính chứa PII nhạy cảm chỉ cho người có quyền thẩm định xem, áp dụng thời hạn lưu trữ (tối đa 30 ngày) và tiêu hủy an toàn theo Nghị định 13/2023/NĐ-CP.
+- **Khảo sát eKYC FPT.AI / Tesseract / MediaPipe (Định hướng tương lai)**:
+  - Giữ lại các module kiểm thử eKYC (FPT.AI SDK v3.2 Sandbox, Tesseract.js WASM, MediaPipe Face Mesh) dưới dạng **Phòng thí nghiệm khảo sát PoC** nhằm định hướng tích hợp công nghệ AI/OCR hỗ trợ trích xuất thông tin tự động trong tương lai (không thay thế quyết định của con người).
+- **Cấu hình tham chiếu PoC trong `appsettings.json`**:
   ```json
   "Ekyc": {
     "FptAiApiKey": "YOUR_FPT_AI_API_KEY"
@@ -320,6 +324,6 @@ Hệ thống áp dụng thuật toán chia sẻ bí mật của Adi Shamir trên
    - **Tab 3 (Cloudflare R2)**: Thử nghiệm sinh Presigned PUT & GET URLs, upload ciphertext và tải về giải mã streaming RAM.
    - **Tab 4 (SePay VietQR)**: Chọn gói Di sản XS (199.000đ) $\rightarrow$ Xem mã VietQR 15 phút $\rightarrow$ Bấm *"Giả lập SePay gọi Webhook"* để xem đơn chuyển trạng thái `PAID` và kích hoạt dịch vụ.
    - **Tab 5 (MailKit SMTP)**: Bấm gửi email cảnh báo xâm phạm kho $\rightarrow$ Xem nội dung email HTML hiển thị trực tiếp trong nhật ký.
-   - **Tab 6 (eKYC)**: Thử nghiệm quét OCR CCCD và đối sánh khuôn mặt Liveness.
+   - **Tab 6 (Xác minh danh tính thủ công)**: Thử nghiệm luồng nộp hồ sơ CCCD, Chuyên viên đối chiếu thẩm định `Chờ duyệt` ➔ `Đã xác minh` / `Bị từ chối`, ghi sổ kiểm toán (Audit Trail) và khảo sát module OCR eKYC tương lai.
    - **Tab 7 (Time-Lock & Rescue)**: Xem đồng hồ đếm ngược Live $\rightarrow$ Bấm *"Bước 1: Chủ kho bấm TÔI CÒN SỐNG"* $\rightarrow$ Hồ sơ chuyển `RESCUE_PENDING` $\rightarrow$ Bấm *"Bước 2: Verifier chấp thuận cứu hộ"* $\rightarrow$ Hồ sơ chuyển `CANCELLED_ALIVE`.
    - **Tab 8 (Google OIDC)**: Xác thực ID Token và kiểm tra session RAM-Only.

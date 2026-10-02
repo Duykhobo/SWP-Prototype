@@ -310,6 +310,9 @@ export const ClientTesseractOcrPoc: React.FC = () => {
             </p>
             <ul className="list-disc pl-4 space-y-1 text-amber-900/90">
               <li>
+                <strong>Nguyên tắc cốt lõi của Prototype:</strong> Phiên bản prototype thực hiện nhập liệu và thẩm định hồ sơ thủ công. AI/OCR được định hướng bổ sung trong tương lai để hỗ trợ trích xuất thông tin; không thay thế quyết định của người thẩm định.
+              </li>
+              <li>
                 <strong>Không tuyệt đối hóa độ chính xác:</strong> Không khẳng định các tỷ lệ "gần như 100%" hay "98–99%" khi chưa đo đạc trên tập ảnh mẫu chuẩn hóa và thiết bị kiểm thử cụ thể.
               </li>
               <li>

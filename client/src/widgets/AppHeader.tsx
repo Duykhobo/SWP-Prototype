@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Shield, KeyRound, Clock, CreditCard, Mail, Scan, LogIn, ExternalLink, Cpu, Sparkles } from 'lucide-react';
+import { Shield, KeyRound, Clock, CreditCard, Mail, Scan, LogIn, ExternalLink, Cpu, Sparkles, UserCheck } from 'lucide-react';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
 
 interface AppHeaderProps {
@@ -27,10 +27,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     { id: 'r2', label: '3. Cloudflare R2', icon: <Shield className="w-4 h-4" /> },
     { id: 'sepay', label: '4. SePay VietQR', icon: <CreditCard className="w-4 h-4" /> },
     { id: 'mailkit', label: '5. MailKit SMTP', icon: <Mail className="w-4 h-4" /> },
-    { id: 'ekyc', label: '6. eKYC FPT.AI', icon: <Scan className="w-4 h-4" /> },
+    { id: 'ekyc', label: '6. Xác minh danh tính thủ công', icon: <UserCheck className="w-4 h-4" /> },
     { id: 'timelock', label: '7. Time-Lock & Rescue', icon: <Clock className="w-4 h-4" /> },
     { id: 'oidc', label: '8. Google OIDC', icon: <LogIn className="w-4 h-4" /> },
-    { id: 'fpt-marketplace', label: '9. FPT AI Marketplace', icon: <Cpu className="w-4 h-4" /> },
+    { id: 'fpt-marketplace', label: '9. AI Trích Xuất (Định hướng tương lai)', icon: <Cpu className="w-4 h-4" /> },
   ];
 
   const roles = ['OWNER', 'EXECUTOR', 'VERIFIER', 'BENEFICIARY', 'ADMIN'];

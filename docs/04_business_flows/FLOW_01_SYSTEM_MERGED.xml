@@ -1,312 +1,651 @@
-<mxfile host="Electron" agent="LegacyVault Architecture Engine">
-  <diagram id="flow01_authentication_jit" name="Flow 01 - Authentication, RBAC &amp; JIT Provisioning">
-    <mxGraphModel dx="2357" dy="1375" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="3200" math="0" shadow="0">
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="Electron">
+  <diagram name="Page-1" id="iBaHVOcXlh2-MOWNihGD">
+    <mxGraphModel dx="2090" dy="2730" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1780" pageHeight="3500" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-
-        <!-- Title Banner -->
-        <mxCell id="title" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#173F38;strokeColor=#173F38;fontColor=#FFFFFF;fontSize=15;fontFamily=Arial;fontStyle=1;" value="FLOW 01 · AUTHENTICATION, RBAC &amp; JUST-IN-TIME (JIT) AUTO-PROVISIONING ON SQL SERVER 2022" vertex="1">
-          <mxGeometry height="60" width="2060" x="50" y="30" as="geometry" />
+        <mxCell id="2" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fontSize=15;fontFamily=Arial;fontStyle=1;" value="FLOW 01 · SIGN-IN AND ACCOUNT REGISTRATION (CONVENTIONAL FLOWCHART SYSTEM)" vertex="1">
+          <mxGeometry height="55" width="2500" x="2230" y="3290" as="geometry" />
         </mxCell>
-
-        <!-- Intro Banner -->
-        <mxCell id="intro" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#E9F3EE;strokeColor=#C9DED2;fontColor=#225A4C;fontSize=13;fontFamily=Arial;" value="Complete End-to-End Flow: 6 dedicated lanes with explicit Exception Handling (E0.1 - E0.6), dashed corrective loop-back arrows indicating exact recovery paths, and strict Three-Person Separation (ASSIGN-06). Features Google OIDC GIS, SEC-02 Salted Hash Form Login, and Strict Zero-Trust RBAC." vertex="1">
-          <mxGeometry height="60" width="2060" x="50" y="100" as="geometry" />
+        <mxCell id="3" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fontSize=13;fontFamily=Arial;" value="Master swimlane architecture featuring two independent authentication modules (01A: Google OIDC with JIT Provisioning, 01B: Email/Password with SEC-02 Salted Hash) converging into a common session verification and token issuance engine. Uses conventional flowchart symbols." vertex="1">
+          <mxGeometry height="55" width="2500" x="2230" y="3355" as="geometry" />
         </mxCell>
-
-        <!-- Lane 0: User / Actor -->
-        <mxCell id="lane0" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#EEF5EF;swimlaneFillColor=#EEF5EF;strokeColor=#C9D5D0;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="USER / VISITOR&#xa;[Authenticated Client Actor]" vertex="1">
-          <mxGeometry height="2800" width="240" x="50" y="180" as="geometry" />
+        <mxCell id="4" parent="1" style="swimlane;horizontal=1;startSize=28;rounded=1;arcSize=6;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;strokeWidth=1.5;fontSize=12;fontStyle=1;align=left;spacingLeft=15;" value="PHẦN ĐẦU — KHỞI TẠO VÀ LỰA CHỌN PHƯƠNG THỨC XÁC THỰC (AUTHENTICATION SELECTION)" vertex="1">
+          <mxGeometry height="165" width="2500" x="2230" y="3425" as="geometry" />
         </mxCell>
-
-        <!-- Lane 1: Client React 19 Sandbox -->
-        <mxCell id="lane1" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#EDF3F7;swimlaneFillColor=#EDF3F7;strokeColor=#B8CBD8;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="CLIENT APPLICATION (REACT 19)&#xa;[Web Crypto API, Ephemeral Memory State]" vertex="1">
-          <mxGeometry height="2800" width="280" x="310" y="180" as="geometry" />
+        <mxCell id="5" parent="4" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;" value="START&lt;br/&gt;User accesses LegacyVault&lt;br/&gt;via Web Browser (HTTPS)" vertex="1">
+          <mxGeometry height="65" width="220" x="380" y="55" as="geometry" />
         </mxCell>
-
-        <!-- Lane 2: Google OIDC GIS Provider -->
-        <mxCell id="lane2" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#E6F7F5;swimlaneFillColor=#E6F7F5;strokeColor=#80D0C7;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="IDENTITY PROVIDER (GOOGLE GIS)&#xa;[RSA-256 Signed JWT, Discovery JWKS]" vertex="1">
-          <mxGeometry height="2800" width="250" x="610" y="180" as="geometry" />
+        <mxCell id="6" parent="4" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;" value="01 · Select Authentication Method&lt;br/&gt;User chooses [Sign in with Google]&lt;br/&gt;or [Email / Password Form]" vertex="1">
+          <mxGeometry height="65" width="280" x="880" y="55" as="geometry" />
         </mxCell>
-
-        <!-- Lane 3: Server .NET 8 WebApi -->
-        <mxCell id="lane3" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#F4F0E7;swimlaneFillColor=#F4F0E7;strokeColor=#D5C9B8;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="SERVER ENGINE (.NET 8 WEBAPI)&#xa;[AuthController, JWT Factory, JWKS Validator]" vertex="1">
-          <mxGeometry height="2800" width="310" x="880" y="180" as="geometry" />
+        <mxCell id="7" parent="4" style="rhombus;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Authentication&lt;br/&gt;Method?" vertex="1">
+          <mxGeometry height="75" width="200" x="1450" y="50" as="geometry" />
         </mxCell>
-
-        <!-- Lane 4: Microsoft SQL Server 2022 -->
-        <mxCell id="lane4" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#F1F2F7;swimlaneFillColor=#F1F2F7;strokeColor=#B8C0D8;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="DATABASE (SQL SERVER 2022)&#xa;[[dbo].[Persons] &amp; [dbo].[Users] ACID]" vertex="1">
-          <mxGeometry height="2800" width="290" x="1210" y="180" as="geometry" />
+        <mxCell id="8" parent="1" style="swimlane;horizontal=1;startSize=34;rounded=1;arcSize=4;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;strokeWidth=2;fontSize=13;fontStyle=1;align=center;collapsible=0;" value="KHỐI CON 01A · GOOGLE IDENTITY SERVICES (OIDC &amp;amp; JIT PROVISIONING)" vertex="1">
+          <mxGeometry height="1250" width="1380" x="2230" y="3610" as="geometry" />
         </mxCell>
-
-        <!-- Lane 5: Exception Handling & Rollback (E0.1 - E0.6) -->
-        <mxCell id="lane5" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;fillColor=#FFF7F1;swimlaneFillColor=#FFF7F1;strokeColor=#C9D5D0;fontColor=#233F38;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;" value="EXCEPTION HANDLING &amp; ROLLBACK&#xa;[Remediation &amp; Recovery E0.1 - E0.6]" vertex="1">
-          <mxGeometry height="2800" width="320" x="1520" y="180" as="geometry" />
+        <mxCell id="9" parent="8" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="USER / VISITOR" vertex="1">
+          <mxGeometry height="1216" width="190" y="34" as="geometry" />
         </mxCell>
-
-        <!-- START NODE -->
-        <mxCell id="start_node" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#1F5C51;strokeColor=#1F5C51;fontColor=#FFFFFF;fontSize=13;fontFamily=Arial;fontStyle=1;" value="START&#xa;User accesses LegacyVault&#xa;via HTTPS browser session" vertex="1">
-          <mxGeometry height="80" width="180" x="80" y="260" as="geometry" />
+        <mxCell id="10" parent="9" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="01.A.0 · Click Google Sign-in&lt;br/&gt;User clicks standard&lt;br/&gt;Google Sign-in button" vertex="1">
+          <mxGeometry height="70" width="165" x="12" y="50" as="geometry" />
         </mxCell>
-
-        <!-- STEP 01: Client UI Selection -->
-        <mxCell id="step01_user" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="01 · Select Authentication Strategy:&#xa;• Passwordless Google OIDC GIS&#xa;• Standard Form (Email / Password)" vertex="1">
-          <mxGeometry height="90" width="220" x="60" y="380" as="geometry" />
+        <mxCell id="11" parent="8" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="CLIENT · REACT WEB APP" vertex="1">
+          <mxGeometry height="1216" width="280" x="190" y="34" as="geometry" />
         </mxCell>
-
-        <mxCell id="step01_client" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="01.1 · Initialize Auth Handshake&#xa;• Generate 256-bit Cryptographic Nonce&#xa;• Initialize Google GIS Client SDK&#xa;• Secure in-memory Ephemeral State" vertex="1">
-          <mxGeometry height="90" width="240" x="330" y="380" as="geometry" />
+        <mxCell id="12" parent="11" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="01.A.1 · Initialize Google GIS&lt;br/&gt;Generate 256-bit Nonce / Challenge.&lt;br/&gt;Render standard Google Sign-in button." vertex="1">
+          <mxGeometry height="70" width="240" x="20" y="50" as="geometry" />
         </mxCell>
-
-        <mxCell id="dec_popup" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Network Online &amp;&#xa;Popup Allowed?" vertex="1">
-          <mxGeometry height="85" width="180" x="360" y="510" as="geometry" />
+        <mxCell id="13" parent="11" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="Popup &amp;amp; Network&lt;br/&gt;Available?" vertex="1">
+          <mxGeometry height="65" width="170" x="55" y="155" as="geometry" />
         </mxCell>
-
-        <mxCell id="e01" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.1 · Popup Blocked / Network Timeout:&#xa;Browser suppresses Google sign-in window.&#xa;[LOOP-BACK]: Automatically fallback to&#xa;Email/Password form or Demo Switcher." vertex="1">
-          <mxGeometry height="95" width="280" x="1540" y="505" as="geometry" />
+        <mxCell id="14" parent="11" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="E0.1A · Popup Blocked:&lt;br/&gt;Alert user; prompt unblock or select Form." vertex="1">
+          <mxGeometry height="50" width="240" x="20" y="250" as="geometry" />
         </mxCell>
-
-        <!-- STEP 02: Google GIS Credential -->
-        <mxCell id="step02_google" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="02 · Authenticate Identity &amp; Sign ID Token&#xa;• User consents with Google Account&#xa;• Google issues RS256-signed JWT Token&#xa;• Payload: sub, email_verified, name, pic" vertex="1">
-          <mxGeometry height="95" width="220" x="625" y="650" as="geometry" />
+        <mxCell id="15" parent="11" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="E0.1A · Network Offline:&lt;br/&gt;No internet connection; prompt retry." vertex="1">
+          <mxGeometry height="50" width="240" x="20" y="315" as="geometry" />
         </mxCell>
-
-        <mxCell id="dec_token" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="ID Token Intact&#xa;&amp; Active Expiry?" vertex="1">
-          <mxGeometry height="85" width="180" x="645" y="780" as="geometry" />
+        <mxCell id="16" parent="11" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="02.A.1 · Capture GIS Callback&lt;br/&gt;Receive Google ID Token (RS256 JWT).&lt;br/&gt;Forward token &amp;amp; nonce to backend." vertex="1">
+          <mxGeometry height="70" width="250" x="15" y="400" as="geometry" />
         </mxCell>
-
-        <mxCell id="e02" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.2 · Invalid Google ID Token:&#xa;Token tampered in transit or expired.&#xa;[LOOP-BACK]: Invalidate ephemeral state,&#xa;display error alert, and retry Step 01." vertex="1">
-          <mxGeometry height="95" width="280" x="1540" y="775" as="geometry" />
+        <mxCell id="17" parent="8" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="GOOGLE IDENTITY SERVICES" vertex="1">
+          <mxGeometry height="1216" width="240" x="470" y="34" as="geometry" />
         </mxCell>
-
-        <!-- STEP 03: Server Signature & DB Lookup -->
-        <mxCell id="step03_server" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="03 · Verify Google JWKS &amp; Query Database&#xa;• POST /api/v1/auth/google-oidc&#xa;• Validate RS256 signature via Google JWKS&#xa;• Relational query: [Users] JOIN [Persons]" vertex="1">
-          <mxGeometry height="95" width="270" x="900" y="920" as="geometry" />
+        <mxCell id="18" parent="17" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="02.A · Authenticate Google Account&lt;br/&gt;User authenticates via Google modal.&lt;br/&gt;Google signs ID Token (RS256 JWT):&lt;br/&gt;sub, email, name, picture, nonce." vertex="1">
+          <mxGeometry height="80" width="210" x="15" y="240" as="geometry" />
         </mxCell>
-
-        <mxCell id="dec_jwks" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="JWKS Signature&#xa;Valid?" vertex="1">
-          <mxGeometry height="85" width="180" x="945" y="1050" as="geometry" />
+        <mxCell id="19" parent="8" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="BACKEND · ASP.NET CORE 8" vertex="1">
+          <mxGeometry height="1216" width="350" x="710" y="34" as="geometry" />
         </mxCell>
-
-        <mxCell id="e03" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.3 · Google Signature Mismatch:&#xa;ID Token signature rejected by Google JWKS.&#xa;[LOOP-BACK]: Return HTTP 401 ERR_INVALID_OIDC,&#xa;record security audit event, and reject request." vertex="1">
-          <mxGeometry height="95" width="280" x="1540" y="1045" as="geometry" />
+        <mxCell id="20" parent="19" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="03.A · Validate Google ID Token&lt;br/&gt;Validate RS256 via Google JWKS keys.&lt;br/&gt;Verify: iss, aud, exp, and match nonce&lt;br/&gt;against registered session challenge." vertex="1">
+          <mxGeometry height="75" width="280" x="35" y="398" as="geometry" />
         </mxCell>
-
-        <mxCell id="step03_db" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="03.1 · T-SQL Relational Lookup&#xa;SELECT u.UserId, u.PersonId, u.Role, p.FullName&#xa;FROM [dbo].[Users] u&#xa;INNER JOIN [dbo].[Persons] p&#xa;ON u.PersonId = p.PersonId WHERE u.Email = @Email" vertex="1">
-          <mxGeometry height="95" width="260" x="1225" y="1190" as="geometry" />
+        <mxCell id="21" parent="19" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="Token &amp;amp; Nonce&lt;br/&gt;Valid?" vertex="1">
+          <mxGeometry height="65" width="180" x="85" y="505" as="geometry" />
         </mxCell>
-
-        <mxCell id="dec_user_exists" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="User Record&#xa;Exists in DB?" vertex="1">
-          <mxGeometry height="85" width="180" x="945" y="1320" as="geometry" />
+        <mxCell id="22" parent="19" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="E0.3 · Invalid Token / Expired (HTTP 401):&lt;br/&gt;Signature mismatch or expired nonce." vertex="1">
+          <mxGeometry height="45" width="280" x="35" y="595" as="geometry" />
         </mxCell>
-
-        <!-- STEP 04: JIT Provisioning Transaction -->
-        <mxCell id="step04_jit" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="04 · Just-In-Time (JIT) Auto-Provisioning&#xa;Execute ACID SqlTransaction in SQL Server:&#xa;1. INSERT INTO [dbo].[Persons] (Human Identity)&#xa;2. INSERT INTO [dbo].[Users] (System Login Account)" vertex="1">
-          <mxGeometry height="105" width="270" x="900" y="1450" as="geometry" />
+        <mxCell id="23" parent="19" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="03.A.1 · Find Account Linked to Sub&lt;br/&gt;Query account with AuthProvider=&#39;GOOGLE&#39;&lt;br/&gt;and ProviderKey = Google subject ID." vertex="1">
+          <mxGeometry height="65" width="280" x="35" y="660" as="geometry" />
         </mxCell>
-
-        <mxCell id="step04_sql" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="04.1 · Commit to SQL Server 2022&#xa;• Decouple PersonId (human) &amp; UserId (login)&#xa;• Enforce UNIQUE(Email) &amp; Foreign Key integrity&#xa;• COMMIT TRANSACTION confirms record" vertex="1">
-          <mxGeometry height="105" width="260" x="1225" y="1450" as="geometry" />
+        <mxCell id="24" parent="19" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="Linked Account&lt;br/&gt;Found?" vertex="1">
+          <mxGeometry height="65" width="180" x="85" y="750" as="geometry" />
         </mxCell>
-
-        <mxCell id="dec_transaction" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="SQL Transaction&#xa;Committed?" vertex="1">
-          <mxGeometry height="85" width="180" x="945" y="1590" as="geometry" />
+        <mxCell id="25" parent="19" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="04.A · JIT Auto-Provisioning&lt;br/&gt;Atomic SQL transaction:&lt;br/&gt;Create Person &amp;amp; User with default OWNER role.&lt;br/&gt;(Beneficiary role assigned later by Plan)." vertex="1">
+          <mxGeometry height="75" width="280" x="35" y="845" as="geometry" />
         </mxCell>
-
-        <mxCell id="e04" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.4 · Duplicate Email / Race Condition:&#xa;Concurrent registration conflict on same email.&#xa;[LOOP-BACK]: Execute ROLLBACK TRANSACTION,&#xa;switch to existing user credential session." vertex="1">
-          <mxGeometry height="95" width="280" x="1540" y="1585" as="geometry" />
+        <mxCell id="26" parent="19" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="Account Record&lt;br/&gt;Committed?" vertex="1">
+          <mxGeometry height="65" width="180" x="85" y="945" as="geometry" />
         </mxCell>
-
-        <!-- STEP 05: Issue JWT & Audit Log -->
-        <mxCell id="step05_jwt" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="05 · Issue Access Token &amp; Record Audit Log&#xa;• Sign HS256 Access Token via server secret&#xa;• Embed Claims: sub, person_id, roles, ASSIGN-06&#xa;• INSERT INTO [dbo].[AuditEvents] (AUDIT-01)" vertex="1">
-          <mxGeometry height="95" width="270" x="900" y="1730" as="geometry" />
+        <mxCell id="27" parent="19" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontFamily=Arial;" value="E0.4A · Sub Race Condition:&lt;br/&gt;Duplicate Google sub detected;&lt;br/&gt;Reload existing account." vertex="1">
+          <mxGeometry height="50" width="160" x="15" y="1025" as="geometry" />
         </mxCell>
-
-        <mxCell id="step05_audit" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="05.1 · Record Immutable Audit Event&#xa;INSERT INTO [dbo].[AuditEvents]&#xa;(Action = 'AUTH_LOGIN_SUCCESS',&#xa;UserId, PersonId, ClientIp, Timestamp)" vertex="1">
-          <mxGeometry height="95" width="260" x="1225" y="1730" as="geometry" />
+        <mxCell id="28" parent="19" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontFamily=Arial;" value="E0.4A · Database Error:&lt;br/&gt;SQL transaction error (HTTP 500);&lt;br/&gt;Rollback &amp;amp; alert retry." vertex="1">
+          <mxGeometry height="50" width="160" x="180" y="1025" as="geometry" />
         </mxCell>
-
-        <mxCell id="dec_signing" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="JWT Signed&#xa;Successfully?" vertex="1">
-          <mxGeometry height="85" width="180" x="945" y="1860" as="geometry" />
+        <mxCell id="29" parent="19" style="ellipse;aspect=fixed;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;align=center;verticalAlign=middle;" value="01A&lt;br/&gt;OK" vertex="1">
+          <mxGeometry height="42" width="42" x="154" y="1115" as="geometry" />
         </mxCell>
-
-        <mxCell id="e05" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.5 · Token Signing Key Missing:&#xa;Server environment missing JWT_SECRET.&#xa;[LOOP-BACK]: Return HTTP 500 server error,&#xa;trigger automated alert to DevOps/Admin." vertex="1">
-          <mxGeometry height="95" width="280" x="1540" y="1855" as="geometry" />
-        </mxCell>
-
-        <!-- STEP 06: Client Dashboard & Role-Based UI -->
-        <mxCell id="step06_client" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFFFFF;strokeColor=#37766D;fontColor=#133D37;fontSize=12;fontFamily=Arial;" value="06 · Establish RBAC Sandbox &amp; Render UI&#xa;• Receive Access Token in Ephemeral RAM Context&#xa;• Mount role-specific view &amp; permissions&#xa;• Route to designated user dashboard" vertex="1">
-          <mxGeometry height="100" width="250" x="325" y="2000" as="geometry" />
-        </mxCell>
-
-
-
-        <mxCell id="dec_tamper" parent="1" style="rhombus;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#FFF0C9;strokeColor=#B88930;fontColor=#483517;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Client-Side Role&#xa;Tampered in RAM?" vertex="1">
-          <mxGeometry height="85" width="180" x="360" y="2150" as="geometry" />
-        </mxCell>
-
-        <mxCell id="e06" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;spacingLeft=14;strokeWidth=1.5;fillColor=#FFF0EF;strokeColor=#BD5B52;fontColor=#632C2A;fontSize=12;fontFamily=Arial;" value="E0.6 · Role Tampering Detected:&#xa;User modified role value in browser RAM.&#xa;[LOOP-BACK]: Zero-Trust server blocks with&#xa;HTTP 403 Forbidden via backend claim check." vertex="1">
-          <mxGeometry height="95" width="280" x="1540" y="2145" as="geometry" />
-        </mxCell>
-
-        <!-- END NODE -->
-        <mxCell id="end_node" parent="1" style="ellipse;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.7;fillColor=#1F5C51;strokeColor=#1F5C51;fontColor=#FFFFFF;fontSize=13;fontFamily=Arial;fontStyle=1;" value="END&#xa;Authenticated Session Active&#xa;Ready to proceed to FLOW 02&#xa;(Estate Plan Setup &amp; Activation)" vertex="1">
-          <mxGeometry height="85" width="200" x="70" y="2300" as="geometry" />
-        </mxCell>
-
-        <!-- EDGES / CONNECTIONS -->
-        <mxCell id="edge_start" edge="1" parent="1" source="start_node" target="step01_user" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_step01_client" edge="1" parent="1" source="step01_user" target="step01_client" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_client_dec" edge="1" parent="1" source="step01_client" target="dec_popup" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_dec_popup_ok" edge="1" parent="1" source="dec_popup" target="step02_google" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Online &amp; Allowed">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_dec_popup_err" edge="1" parent="1" source="dec_popup" target="e01" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Blocked / Offline">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_google_token" edge="1" parent="1" source="step02_google" target="dec_token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_token_ok" edge="1" parent="1" source="dec_token" target="step03_server" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Valid ID Token">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_token_err" edge="1" parent="1" source="dec_token" target="e02" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Invalid / Expired">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_server_jwks" edge="1" parent="1" source="step03_server" target="dec_jwks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_jwks_ok" edge="1" parent="1" source="dec_jwks" target="step03_db" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Signature Valid">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_jwks_err" edge="1" parent="1" source="dec_jwks" target="e03" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Signature Mismatch">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_db_dec_user" edge="1" parent="1" source="step03_db" target="dec_user_exists" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_user_exists_no" edge="1" parent="1" source="dec_user_exists" target="step04_jit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="No Record (JIT Create)">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_user_exists_yes" edge="1" parent="1" source="dec_user_exists" target="step05_jwt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Record Found (Login)">
+        <mxCell id="30" edge="1" parent="19" source="26" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="29" value="Account created">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="840" y="1362.5" />
-              <mxPoint x="840" y="1777.5" />
+              <mxPoint x="-40" y="977.53" />
+              <mxPoint x="-40" y="1136" />
+            </Array>
+            <mxPoint x="30" y="977.5" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="31" parent="8" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="DATABASE · SQL SERVER 2022" vertex="1">
+          <mxGeometry height="1216" width="320" x="1060" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="32" parent="31" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="03.A.2 · Query Database by Sub&lt;br/&gt;SELECT u.*, p.FullName FROM [Users] u&lt;br/&gt;JOIN [Persons] p ON u.PersonId = p.PersonId&lt;br/&gt;WHERE u.ProviderKey = @sub" vertex="1">
+          <mxGeometry height="65" width="280" x="20" y="660" as="geometry" />
+        </mxCell>
+        <mxCell id="33" parent="31" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="04.A.1 · Commit ACID Transaction&lt;br/&gt;BEGIN TRANSACTION;&lt;br/&gt;INSERT INTO [Persons] (FullName, Email);&lt;br/&gt;INSERT INTO [Users] (ProviderKey=sub, Role=&#39;OWNER&#39;);&lt;br/&gt;COMMIT TRANSACTION;" vertex="1">
+          <mxGeometry height="75" width="280" x="20" y="845" as="geometry" />
+        </mxCell>
+        <mxCell id="34" parent="1" style="swimlane;horizontal=1;startSize=34;rounded=1;arcSize=4;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;strokeWidth=2;fontSize=13;fontStyle=1;align=center;collapsible=0;" value="KHỐI CON 01B · EMAIL / PASSWORD AUTHENTICATION (SEC-02 HASHING &amp;amp; REGISTRATION)" vertex="1">
+          <mxGeometry height="1250" width="1090" x="3640" y="3610" as="geometry" />
+        </mxCell>
+        <mxCell id="35" parent="34" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="USER / VISITOR" vertex="1">
+          <mxGeometry height="1216" width="190" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="36" parent="35" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="01.B.0 · Enter Credentials&lt;br/&gt;Input Email &amp;amp; Password.&lt;br/&gt;Select Sign In or Register." vertex="1">
+          <mxGeometry height="70" width="165" x="12" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="37" parent="34" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="CLIENT · REACT WEB APP" vertex="1">
+          <mxGeometry height="1216" width="280" x="190" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="38" parent="37" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="01.B.1 · Render Form UI&lt;br/&gt;Mount Email &amp;amp; Password inputs.&lt;br/&gt;Display [Sign In] and [Register] tabs." vertex="1">
+          <mxGeometry height="70" width="240" x="20" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="39" parent="37" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="01.B.1b · Client Validation&lt;br/&gt;Verify RFC 5322 Email regex,&lt;br/&gt;Password length &amp;gt;= 6 characters." vertex="1">
+          <mxGeometry height="65" width="240" x="20" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="40" parent="37" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="Action&lt;br/&gt;Mode?" vertex="1">
+          <mxGeometry height="65" width="160" x="60" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="41" parent="37" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="01.B.2 · Submit Login Form&lt;br/&gt;POST /api/v1/auth/password-login&lt;br/&gt;Transmit credentials over TLS 1.3" vertex="1">
+          <mxGeometry height="60" width="240" x="20" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="42" parent="37" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="01.B.3 · Submit Registration&lt;br/&gt;POST /api/v1/auth/register&lt;br/&gt;Transmit new account payload" vertex="1">
+          <mxGeometry height="60" width="240" x="20" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="43" parent="34" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="BACKEND · ASP.NET CORE 8" vertex="1">
+          <mxGeometry height="1216" width="330" x="470" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="44" parent="43" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="02.B.1 · Backend Validation &amp;amp; Hash Check&lt;br/&gt;Sanitize input; fetch record by Email.&lt;br/&gt;Verify hash via PasswordHasher (PBKDF2/Argon2)&lt;br/&gt;using stored 128-bit PasswordSalt." vertex="1">
+          <mxGeometry height="75" width="280" x="25" y="325" as="geometry" />
+        </mxCell>
+        <mxCell id="45" parent="43" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="Credentials&lt;br/&gt;Valid?" vertex="1">
+          <mxGeometry height="65" width="170" x="80" y="435" as="geometry" />
+        </mxCell>
+        <mxCell id="46" parent="43" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="E0.1B · Invalid Credentials (HTTP 401):&lt;br/&gt;Wrong email or password.&lt;br/&gt;Increment failed count (Lockout guard)." vertex="1">
+          <mxGeometry height="50" width="280" x="25" y="525" as="geometry" />
+        </mxCell>
+        <mxCell id="47" parent="43" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="02.B.2 · Backend Sanitize &amp;amp; Email Check&lt;br/&gt;Validate inputs; check Email uniqueness&lt;br/&gt;in [Users] table before creation." vertex="1">
+          <mxGeometry height="65" width="280" x="25" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="48" parent="43" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="Email Already&lt;br/&gt;Exists?" vertex="1">
+          <mxGeometry height="65" width="170" x="80" y="695" as="geometry" />
+        </mxCell>
+        <mxCell id="49" parent="43" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="E0.2B · Duplicate Email (HTTP 409):&lt;br/&gt;Email already registered.&lt;br/&gt;Prompt user to Sign In instead." vertex="1">
+          <mxGeometry height="45" width="280" x="25" y="785" as="geometry" />
+        </mxCell>
+        <mxCell id="50" parent="43" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="04.B · Provision New Account&lt;br/&gt;Generate 128-bit Salt; hash password.&lt;br/&gt;Create Person &amp;amp; User records (ACID).&lt;br/&gt;Assign default OWNER role (SEC-02)." vertex="1">
+          <mxGeometry height="75" width="280" x="25" y="855" as="geometry" />
+        </mxCell>
+        <mxCell id="51" parent="43" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="Account Record&lt;br/&gt;Committed?" vertex="1">
+          <mxGeometry height="65" width="170" x="80" y="950" as="geometry" />
+        </mxCell>
+        <mxCell id="52" parent="43" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontFamily=Arial;" value="E0.3B · Email Race Condition:&lt;br/&gt;Concurrent registration detected;&lt;br/&gt;Prompt user to Sign In." vertex="1">
+          <mxGeometry height="50" width="150" x="15" y="1025" as="geometry" />
+        </mxCell>
+        <mxCell id="53" parent="43" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontFamily=Arial;" value="E0.4B · Database Error:&lt;br/&gt;Transaction rollback (HTTP 500);&lt;br/&gt;Display system error." vertex="1">
+          <mxGeometry height="50" width="150" x="170" y="1025" as="geometry" />
+        </mxCell>
+        <mxCell id="54" parent="43" style="ellipse;aspect=fixed;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;align=center;verticalAlign=middle;" value="01B&lt;br/&gt;OK" vertex="1">
+          <mxGeometry height="42" width="42" x="144" y="1115" as="geometry" />
+        </mxCell>
+        <mxCell id="55" parent="34" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="DATABASE · SQL SERVER 2022" vertex="1">
+          <mxGeometry height="1216" width="290" x="800" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="56" parent="55" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="02.B.3 · Query User by Email&lt;br/&gt;SELECT UserId, PasswordHash, Salt,&lt;br/&gt;IsActive, IsLocked FROM [Users]&lt;br/&gt;WHERE Email = @Email" vertex="1">
+          <mxGeometry height="75" width="250" x="20" y="325" as="geometry" />
+        </mxCell>
+        <mxCell id="57" parent="55" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="02.B.4 · Check Existing Email&lt;br/&gt;SELECT COUNT(1) FROM [Users]&lt;br/&gt;WHERE Email = @Email" vertex="1">
+          <mxGeometry height="65" width="250" x="20" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="58" parent="55" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="04.B.1 · Commit New Entities&lt;br/&gt;INSERT INTO [Persons] (FullName, Email)&lt;br/&gt;INSERT INTO [Users] (Hash, Salt, Role=&#39;OWNER&#39;)&lt;br/&gt;Commit ACID transaction." vertex="1">
+          <mxGeometry height="75" width="250" x="20" y="855" as="geometry" />
+        </mxCell>
+        <mxCell id="59" parent="1" style="swimlane;horizontal=1;startSize=34;rounded=1;arcSize=4;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;strokeWidth=2;fontSize=13;fontStyle=1;align=center;collapsible=0;" value="PHẦN DƯỚI · XỬ LÝ CHUNG — KIỂM TRA TRẠNG THÁI TÀI KHOẢN, CẤP TOKEN VÀ THIẾT LẬP PHIÊN (COMMON SESSION ESTABLISHMENT)" vertex="1">
+          <mxGeometry height="460" width="2500" x="2230" y="4880" as="geometry" />
+        </mxCell>
+        <mxCell id="60" parent="59" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="USER / VISITOR" vertex="1">
+          <mxGeometry height="426" width="380" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="61" parent="60" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="07 · Display Authorized Dashboard&lt;br/&gt;Mount workspace for authenticated role&lt;br/&gt;(Owner, Admin, Verifier, Executor, Beneficiary)" vertex="1">
+          <mxGeometry height="70" width="260" x="60" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="62" parent="60" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="Owner Initiates&lt;br/&gt;Estate Plan?" vertex="1">
+          <mxGeometry height="65" width="170" x="105" y="295" as="geometry" />
+        </mxCell>
+        <mxCell id="63" parent="60" style="shape=offPageConnector;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="Proceed to&lt;br/&gt;FLOW 02 · Estate Plan" vertex="1">
+          <mxGeometry height="55" width="150" x="30" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="64" parent="60" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="END · Active Session&lt;br/&gt;in Current Workspace" vertex="1">
+          <mxGeometry height="55" width="160" x="200" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="65" parent="59" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="CLIENT · REACT WEB APP" vertex="1">
+          <mxGeometry height="426" width="540" x="380" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="66" parent="65" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="06 · Store Token in RAM Context&lt;br/&gt;Hold JWT in React Context RAM memory.&lt;br/&gt;Avoid Web Storage to reduce exposure.&lt;br/&gt;Mount role-specific workspace." vertex="1">
+          <mxGeometry height="75" width="280" x="130" y="295" as="geometry" />
+        </mxCell>
+        <mxCell id="67" parent="59" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="BACKEND · ASP.NET CORE 8" vertex="1">
+          <mxGeometry height="426" width="880" x="920" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="68" parent="67" style="ellipse;aspect=fixed;whiteSpace=wrap;html=1;fontSize=13;fontFamily=Arial;fontStyle=1;align=center;verticalAlign=middle;" value="A" vertex="1">
+          <mxGeometry height="40" width="40" x="420" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="69" parent="67" style="rhombus;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;" value="Account Active &amp;amp;&lt;br/&gt;Not Locked?" vertex="1">
+          <mxGeometry height="70" width="190" x="345" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="70" parent="67" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="E0.5 · Account Inactive / Locked:&lt;br/&gt;HTTP 403 Forbidden.&lt;br/&gt;Account disabled or locked by Admin." vertex="1">
+          <mxGeometry height="55" width="240" x="590" y="118" as="geometry" />
+        </mxCell>
+        <mxCell id="71" parent="67" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="END · Authentication Denied&lt;br/&gt;Session aborted; contact support." vertex="1">
+          <mxGeometry height="55" width="210" x="605" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="72" parent="67" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="05.1 · Generate Session Token&lt;br/&gt;Create HMAC-SHA256 JWT Access Token.&lt;br/&gt;Claims: sub, person_id, email, role." vertex="1">
+          <mxGeometry height="70" width="250" x="260" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="73" parent="67" style="rhombus;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;" value="Audit Record&lt;br/&gt;Written?" vertex="1">
+          <mxGeometry height="65" width="170" x="300" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="74" parent="67" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fontFamily=Arial;" value="E0.6 · Audit Trail Failure:&lt;br/&gt;Security policy violation;&lt;br/&gt;Abort token issuance." vertex="1">
+          <mxGeometry height="55" width="180" x="510" y="305" as="geometry" />
+        </mxCell>
+        <mxCell id="75" parent="67" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="05.3 · Transmit Session Response&lt;br/&gt;HTTP 200 OK: Return JWT Access Token&lt;br/&gt;and user persona to Client." vertex="1">
+          <mxGeometry height="65" width="210" x="50" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="76" parent="59" style="swimlane;horizontal=1;startSize=32;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;" value="DATABASE · SQL SERVER 2022" vertex="1">
+          <mxGeometry height="426" width="700" x="1800" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="77" parent="76" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;" value="05.2 · Append-Only Audit Trail&lt;br/&gt;INSERT INTO [dbo].[AuditEvents]&lt;br/&gt;(EventId, UserId, Action=&#39;AUTH_LOGIN_SUCCESS&#39;,&lt;br/&gt;IpAddress, Timestamp, Details)" vertex="1">
+          <mxGeometry height="70" width="290" x="40" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="78" edge="1" parent="1" source="5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="79" edge="1" parent="1" source="6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="80" edge="1" parent="1" source="7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="12" value="Google OIDC (01A)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3730" y="3575" />
+              <mxPoint x="2540" y="3575" />
             </Array>
           </mxGeometry>
         </mxCell>
-
-        <mxCell id="edge_jit_sql" edge="1" parent="1" source="step04_jit" target="step04_sql" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_sql_dec" edge="1" parent="1" source="step04_sql" target="dec_transaction" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_trans_ok" edge="1" parent="1" source="dec_transaction" target="step05_jwt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Committed">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_trans_err" edge="1" parent="1" source="dec_transaction" target="e04" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Conflict / Race">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_jwt_audit" edge="1" parent="1" source="step05_jwt" target="step05_audit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_audit_dec" edge="1" parent="1" source="step05_audit" target="dec_signing" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-
-        <mxCell id="edge_signing_ok" edge="1" parent="1" source="dec_signing" target="step06_client" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Issued HTTP 200">
+        <mxCell id="81" edge="1" parent="1" source="7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="38" value="Email / Password (01B)">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1035" y="1960" />
-              <mxPoint x="450" y="1960" />
+              <mxPoint x="3730" y="3575" />
+              <mxPoint x="3950" y="3575" />
             </Array>
           </mxGeometry>
         </mxCell>
-
-        <mxCell id="edge_signing_err" edge="1" parent="1" source="dec_signing" target="e05" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Key Missing">
+        <mxCell id="82" edge="1" parent="1" source="12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="10" value="Render Button">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2480" y="3680.02" />
+              <mxPoint x="2324.49" y="3680.02" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="83" edge="1" parent="1" source="10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="13">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2324.55" y="3780" />
+              <mxPoint x="2560" y="3780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="84" edge="1" parent="1" source="13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="18" value="Online &amp; Unblocked">
+          <mxGeometry relative="1" x="0.1867" y="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="85" edge="1" parent="1" source="13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" target="14" value="Popup Blocked">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-
-
-        <mxCell id="edge_client_tamper" edge="1" parent="1" source="step06_client" target="dec_tamper" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;">
+        <mxCell id="86" edge="1" parent="1" source="13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" target="15" value="Network Offline">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2390" y="3831.5" />
+              <mxPoint x="2390" y="3984" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="87" edge="1" parent="1" source="14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=6 3;" target="38" value="Choose Form">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2710" y="3919" />
+              <mxPoint x="2710" y="3790" />
+              <mxPoint x="3820" y="3790" />
+              <mxPoint x="3820" y="3710" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="88" edge="1" parent="1" source="15" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=6 3;" target="12" value="Retry Connection">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2690" y="3984" />
+              <mxPoint x="2690" y="3710" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="89" edge="1" parent="1" source="18" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="16" value="ID Token (RS256 JWT)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2820" y="4020" />
+              <mxPoint x="2560" y="4020" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="90" edge="1" parent="1" source="16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="20" value="Sign-in request">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <mxCell id="edge_tamper_ok" edge="1" parent="1" source="dec_tamper" target="end_node" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#427168;endArrow=block;endFill=1;" value="Claims Verified">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="450" y="2260" />
-              <mxPoint x="170" y="2260" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-
-        <mxCell id="edge_tamper_err" edge="1" parent="1" source="dec_tamper" target="e06" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#A85751;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" value="Tampering Detected">
+        <mxCell id="91" edge="1" parent="1" source="20" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="21">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-
-        <!-- CORRECTIVE LOOP-BACK ARROWS -->
-        <mxCell id="loop_e01" edge="1" parent="1" source="e01" target="step01_user" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#B88930;endArrow=block;endFill=1;fontColor=#5A4215;fontSize=11;dashed=1;dashPattern=6 3;" value="Switch to Standard Form (Email / Password)">
-          <mxGeometry relative="1" as="geometry">
+        <mxCell id="92" edge="1" parent="1" source="21" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="23" value="Token &amp; Nonce valid">
+          <mxGeometry relative="1" x="-0.4287" as="geometry">
+            <mxPoint as="offset" />
             <Array as="points">
-              <mxPoint x="1950" y="552.5" />
-              <mxPoint x="1950" y="350" />
-              <mxPoint x="170" y="350" />
+              <mxPoint x="3280.0299999999997" y="4181.49" />
+              <mxPoint x="3280.0299999999997" y="4300" />
+              <mxPoint x="3115" y="4300" />
             </Array>
           </mxGeometry>
         </mxCell>
-
-        <mxCell id="loop_e02" edge="1" parent="1" source="e02" target="step01_user" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#B88930;endArrow=block;endFill=1;fontColor=#5A4215;fontSize=11;dashed=1;dashPattern=6 3;" value="Prompt User to Re-authenticate from Step 01">
+        <mxCell id="93" edge="1" parent="1" source="21" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" target="22" value="Validation failed">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="94" edge="1" parent="1" source="22" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=6 3;" target="12" value="Retry sign-in">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1980" y="822.5" />
-              <mxPoint x="1980" y="330" />
-              <mxPoint x="190" y="330" />
+              <mxPoint x="2950.08" y="4261.54" />
+              <mxPoint x="2950.08" y="3750" />
             </Array>
           </mxGeometry>
         </mxCell>
-
-        <mxCell id="loop_e04" edge="1" parent="1" source="e04" target="step03_server" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;strokeColor=#B88930;endArrow=block;endFill=1;fontColor=#5A4215;fontSize=11;dashed=1;dashPattern=6 3;" value="Rollback JIT → Retrieve and Use Existing User">
+        <mxCell id="95" edge="1" parent="1" source="23" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="32">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="96" edge="1" parent="1" source="32" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="24">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="1950" y="1632.5" />
-              <mxPoint x="1950" y="900" />
-              <mxPoint x="1035" y="900" />
+              <mxPoint x="3430" y="4380.03" />
+              <mxPoint x="3114.9700000000003" y="4380.03" />
             </Array>
           </mxGeometry>
         </mxCell>
-
-        <!-- FOOTER LEGEND -->
-        <mxCell id="legend" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fillColor=#FFF6E2;strokeColor=#D8BD83;fontColor=#5A492C;fontSize=13;fontFamily=Arial;" value="SYSTEM GOVERNANCE &amp; SECURITY NOTES: Solid green lines = Happy Path. Red dashed lines = Rejection triggers (E0.1 - E0.6). Amber dashed lines = Corrective loop-backs returning user to remediation step. Enforces Three-Person Separation ASSIGN-06 (Owner != Executor != Verifier) and relational integrity in SQL Server 2022 ([Persons] + [Users])." vertex="1">
-          <mxGeometry height="70" width="2060" x="50" y="2700" as="geometry" />
+        <mxCell id="97" edge="1" parent="1" source="24" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="29" value="Linked account found">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3300" y="4426.5" />
+              <mxPoint x="3300" y="4780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="98" edge="1" parent="1" source="24" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="25" value="No account (JIT)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="99" edge="1" parent="1" source="25" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="33">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="100" edge="1" parent="1" source="33" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="26">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3430" y="4580.03" />
+              <mxPoint x="3110" y="4580.03" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="101" edge="1" parent="1" source="26" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="27" value="Sub Conflict">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3115" y="4660" />
+              <mxPoint x="3010" y="4660" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="102" edge="1" parent="1" source="26" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" target="28" value="Database Error">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3210" y="4621.48" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="103" edge="1" parent="1" source="27" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=6 3;" target="23" value="Reload account">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2930" y="4674.03" />
+              <mxPoint x="2930" y="4336.52" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="104" edge="1" parent="1" source="38" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="36" value="Display Inputs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="105" edge="1" parent="1" source="36" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="39">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3734.52" y="3826.52" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="106" edge="1" parent="1" source="39" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="40">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="107" edge="1" parent="1" source="40" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="41" value="Sign In">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="108" edge="1" parent="1" source="40" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="42" value="Register">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3840.02" y="3916.49" />
+              <mxPoint x="3840.02" y="4274.02" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="109" edge="1" parent="1" source="41" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="44" value="Submit credentials">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4010" y="3950" />
+              <mxPoint x="4270" y="3950" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="110" edge="1" parent="1" source="44" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="56">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="111" edge="1" parent="1" source="56" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="45">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4565.07" y="4060" />
+              <mxPoint x="4275.07" y="4060" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="112" edge="1" parent="1" source="45" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="54" value="Password valid">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4720" y="4110" />
+              <mxPoint x="4720" y="4780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="113" edge="1" parent="1" source="45" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" target="46" value="Invalid credentials">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="114" edge="1" parent="1" source="46" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=6 3;" target="38" value="Retry login">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3830" y="4190.04" />
+              <mxPoint x="3830" y="3750" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="115" edge="1" parent="1" source="42" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="47" value="Submit new account">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="116" edge="1" parent="1" source="47" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="57">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="117" edge="1" parent="1" source="57" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="48">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4565" y="4319.96" />
+              <mxPoint x="4275" y="4319.96" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="118" edge="1" parent="1" source="48" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" target="49" value="Email exists">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="119" edge="1" parent="1" source="49" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=6 3;" target="41" value="Prompt to Sign In">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4120" y="4450" />
+              <mxPoint x="4120" y="3990" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="120" edge="1" parent="1" source="48" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="50" value="New email">
+          <mxGeometry relative="1" x="0.3534" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="4430" y="4371.49" />
+              <mxPoint x="4430" y="4490" />
+              <mxPoint x="4275.030000000001" y="4490" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="121" edge="1" parent="1" source="50" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="58">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="122" edge="1" parent="1" source="58" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="51">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4565" y="4628" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="123" edge="1" parent="1" source="51" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="54" value="Account created">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4080" y="4626.5" />
+              <mxPoint x="4080" y="4780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="124" edge="1" parent="1" source="51" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" target="52" value="Race Conflict">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4130" y="4650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="125" edge="1" parent="1" source="51" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;exitX=1;exitY=1;exitDx=0;exitDy=0;" target="53" value="Database Error">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4360" y="4642.8" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="126" edge="1" parent="1" source="52" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=6 3;" target="41" value="Prompt Sign In">
+          <mxGeometry relative="1" x="-0.6854" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="4100" y="4690" />
+              <mxPoint x="4100" y="4020" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="127" edge="1" parent="1" source="29" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;endArrow=block;endFill=1;" target="68" value="01A Google Success">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3115" y="4850" />
+              <mxPoint x="3490" y="4850" />
+              <mxPoint x="3490" y="4979" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="128" edge="1" parent="1" source="54" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;endArrow=block;endFill=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="68" value="01B Email/Pwd Success">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4275" y="4850" />
+              <mxPoint x="3680" y="4850" />
+              <mxPoint x="3680" y="4979" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="129" edge="1" parent="1" source="68" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="69">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="130" edge="1" parent="1" source="69" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" target="70" value="Locked / Inactive">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="131" edge="1" parent="1" source="70" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="71">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="132" edge="1" parent="1" source="69" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="72" value="Active &amp; Allowed">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="133" edge="1" parent="1" source="72" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="77" value="Write Audit Trail">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3535" y="5200" />
+              <mxPoint x="4215" y="5200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="134" edge="1" parent="1" source="77" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="73">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="4165" y="5310" />
+              <mxPoint x="3535" y="5310" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="135" edge="1" parent="1" source="73" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;dashed=1;dashPattern=5 3;" target="74" value="Audit Failed">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="136" edge="1" parent="1" source="74" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="71">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="3860.05" y="5246.49" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="137" edge="1" parent="1" source="73" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="75" value="Audit Success">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="138" edge="1" parent="1" source="75" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="66" value="JWT Access Token">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="139" edge="1" parent="1" source="66" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="61" value="Mount UI">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2690.04" y="5246.52" />
+              <mxPoint x="2690.04" y="5100.04" />
+              <mxPoint x="2440.04" y="5100.04" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="140" edge="1" parent="1" source="61" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="62">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="141" edge="1" parent="1" source="62" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="63" value="Owner Initiates Plan">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2335" y="5260" />
+              <mxPoint x="2335" y="5260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="142" edge="1" parent="1" source="62" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1.8;endArrow=block;endFill=1;" target="64" value="Other Roles">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="2510" y="5241.49" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="143" parent="1" style="swimlane;startSize=28;rounded=1;arcSize=6;whiteSpace=wrap;html=1;swimlaneFillColor=#F8FAF9;strokeWidth=1.5;fontSize=12;fontStyle=1;align=left;spacingLeft=15;" value="TECHNICAL SPECIFICATION CALLOUT · AUTHENTICATION &amp; JIT PROVISIONING ARCHITECTURE" vertex="1">
+          <mxGeometry height="150" width="2500" x="2230" y="5370" as="geometry" />
+        </mxCell>
+        <mxCell id="144" parent="143" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.2;fontSize=11;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b&gt;1. GOOGLE IDENTITY &amp;amp; CLAIMS (01A)&lt;/b&gt;&lt;br/&gt;• Standard Google Sign-in button renders via GIS SDK.&lt;br/&gt;• Client binds 256-bit challenge nonce; backend validates against session TTL.&lt;br/&gt;• Google issues RS256-signed JWT with immutable subject ID (sub).&lt;br/&gt;• First-time login JIT auto-provisions citizen record with base OWNER role.&lt;br/&gt;• Beneficiary privileges assigned dynamically via estate plan relations." vertex="1">
+          <mxGeometry height="102" width="595" x="15" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="145" parent="143" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.2;fontSize=11;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b&gt;2. EMAIL / PASSWORD &amp;amp; SEC-02 HASHING (01B)&lt;/b&gt;&lt;br/&gt;• Form inputs sanitized &amp;amp; validated on both Client (RFC 5322) and Backend.&lt;br/&gt;• Passwords hashed with 128-bit cryptographic Salt using ASP.NET PasswordHasher.&lt;br/&gt;• Strictly separates login credentials from Master KEK and Shamir shares.&lt;br/&gt;• Registration enforces unique email constraint &amp;amp; atomic Person/User creation.&lt;br/&gt;• Rate limiting &amp;amp; lockout protection defend against brute-force attacks." vertex="1">
+          <mxGeometry height="102" width="595" x="635" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="146" parent="143" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.2;fontSize=11;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b&gt;3. SERVER-SIDE TOKEN VALIDATION &amp;amp; AUDIT&lt;/b&gt;&lt;br/&gt;• Backend validates RS256 signatures dynamically via Google JWKS endpoints.&lt;br/&gt;• Enforces active account verification (IsActive &amp;amp;&amp;amp; !IsLocked) prior to token grant.&lt;br/&gt;• Signs HMAC-SHA256 JWT Access Token with sub, person_id, email, and role.&lt;br/&gt;• Mandatory append-only audit trail: writes AUTH_LOGIN_SUCCESS before token release." vertex="1">
+          <mxGeometry height="102" width="595" x="1255" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="147" parent="143" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;strokeWidth=1.2;fontSize=11;align=left;spacingLeft=10;spacingRight=10;" value="&lt;b&gt;4. EPHEMERAL RAM TOKEN STORAGE &amp;amp; SESSIONS&lt;/b&gt;&lt;br/&gt;• Access Token held exclusively in React Context ephemeral RAM memory.&lt;br/&gt;• Not persisted in Web Storage (localStorage/sessionStorage) to limit exposure.&lt;br/&gt;• Note: Complete XSS mitigation requires strict CSP and input sanitization.&lt;br/&gt;• Authenticated session mounts role-specific dashboard with optional Flow 02 jump." vertex="1">
+          <mxGeometry height="102" width="605" x="1875" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="148" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fontSize=12;fontFamily=Arial;" value="USES CONVENTIONAL FLOWCHART SYMBOLS: [Green Oval] = Start/Stop | [Yellow Rect] = Action/Process | [Cyan Parallelogram] = Input/Output | [Orange Rhombus] = Decision (Yes/No) | [Purple Circle] = On-page Connector (Merge) | [Purple Pentagon] = Off-page Connector (To Flow 02) | [Red Box/Oval] = Exception &amp; Denied" vertex="1">
+          <mxGeometry height="55" width="2500" x="2230" y="5540" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

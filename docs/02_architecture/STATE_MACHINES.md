@@ -2,7 +2,7 @@
 
 ## DỰ ÁN: LEGACYVAULT — HỆ THỐNG LƯU GIỮ VÀ BÀN GIAO TÀI SẢN SỐ
 ### Phiên bản: Baseline 3.11.0 (26/09/2026) — Đồng Bộ Với SRS v3.11.0 & SAD
-### Công nghệ: SQL Server 2022 + Entity Framework Core 10 (.NET 10 LTS) + React 19
+### Công nghệ: SQL Server 2022 + Entity Framework Core 8 (.NET 8 LTS) + React 19
 
 ---
 

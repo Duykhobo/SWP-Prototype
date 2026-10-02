@@ -9,13 +9,13 @@
 ## MỤC LỤC
 1. [Tổng Quan Kiến Trúc & Các Tác Nhân (Actors)](#1-tổng-quan-kiến-trúc--các-tác-nhân-actors)
 2. [Main Flow 1: Xác Thực Định Danh Google OIDC & Đa Yếu Tố (MFA OTP)](#2-main-flow-1-xác-thực-định-danh-google-oidc--đa-yếu-tố-mfa-otp)
-3. [Main Flow 2: Định Danh Điện Tử Công Dân eKYC FPT.AI (OCR CCCD Gắn Chip & Sinh Trắc Học)](#3-main-flow-2-định-danh-điện-tử-công-dân-ekyc-fptai-ocr-cccd-gắn-chip--sinh-trắc-học)
+3. [Main Flow 2: Xác Minh Danh Tính Thủ Công (Manual Identity Verification)](#3-main-flow-2-xác-minh-danh-tính-thủ-công-manual-identity-verification)
 4. [Main Flow 3: Khởi Tạo Kho Di Sản, Phân Loại Dữ Liệu & Video Tuyên Thệ Minh Mẫn](#4-main-flow-3-khởi-tạo-kho-di-sản-phân-loại-dữ-liệu--video-tuyên-thệ-minh-mẫn)
 5. [Main Flow 4: Thiết Lập Người Thụ Hưởng & Chỉ Định Người Thi Hành (Executor)](#4-main-flow-4-thiết-lập-người-thụ-hưởng--chỉ-định-người-thi-hành-executor)
 6. [Main Flow 5: Mã Hóa Phong Bì (Envelope Encryption), Phân Mảnh Shamir & Lưu Trữ R2](#5-main-flow-5-mã-hóa-phong-bì-envelope-encryption-phân-mảnh-shamir--lưu-trữ-r2)
 7. [Main Flow 6: Kích Hoạt Kế Hoạch & Vận Hành Giám Sát Sự Sống (Dead Man's Switch)](#6-main-flow-6-kích-hoạt-kế-hoạch--vận-hành-giám-sát-sự-sống-dead-mans-switch)
 8. [Main Flow 7: Xử Lý Yêu Cầu Mở Kho Khẩn Cấp (Post-Mortem Claim) & Time-Lock Delay](#7-main-flow-7-xử-lý-yêu-cầu-mở-kho-khẩn-cấp-post-mortem-claim--time-lock-delay)
-9. [Main Flow 8: Giải Mã Hợp Nhất 2/3 Shamir, Xác Minh eKYC Người Nhận & Bàn Giao Di Sản](#8-main-flow-8-giải-mã-hợp-nhất-23-shamir-xác-minh-ekyc-người-nhận--bàn-giao-di-sản)
+9. [Main Flow 8: Giải Mã Hợp Nhất 2/3 Shamir, Xác Minh Danh Tính Thủ Công Người Nhận & Bàn Giao Di Sản](#9-main-flow-8-giải-mã-hợp-nhất-23-shamir-xác-minh-danh-tính-thủ-công-người-nhận--bàn-giao-di-sản)
 10. [Bảng Ma Trận Ngoại Lệ & Kế Hoạch Xử Lý Lỗi Toàn Hệ Thống](#10-bảng-ma-trận-ngoại-lệ--kế-hoạch-xử-lý-lỗi-toàn-hệ-thống)
 
 ---
@@ -80,49 +80,41 @@ Hệ thống LegacyVault điều phối tương tác giữa 4 tác nhân chính:
 
 ---
 
-## 3. MAIN FLOW 2: ĐỊNH DANH ĐIỆN TỬ CÔNG DÂN eKYC FPT.AI (OCR CCCD GẮN CHIP & SINH TRẮC HỌC)
+## 3. MAIN FLOW 2: XÁC MINH DANH TÍNH THỦ CÔNG (MANUAL IDENTITY VERIFICATION)
 
 ### 3.1. Mục tiêu & Ý nghĩa nghiệp vụ
-Xác lập danh tính pháp lý có chủ quyền của công dân Việt Nam trước khi cho phép khởi tạo kho di sản, chuyển hóa từ một tài khoản email thông thường sang một chủ thể pháp lý có đầy đủ năng lực hành vi dân sự. Đồng thời thiết lập chốt chặn sinh trắc học bắt buộc đối với Người thi hành (Executor) và Người thụ hưởng (Beneficiary) khi yêu cầu tiếp cận di sản.
+> [!IMPORTANT]
+> **Chốt kiến trúc Prototype:** LegacyVault áp dụng quy trình xác minh danh tính thủ công bởi nhân sự được phân quyền; bỏ tích hợp API eKYC tự động khỏi phạm vi prototype. eKYC tự động (FPT.AI / OCR / Liveness) được đưa vào hướng phát triển tương lai.
 
-* **Căn cứ pháp lý**:
-  * **Khoản 3 Điều 23 Luật Giao dịch điện tử 2023**: Quy định về phương thức định danh và xác thực điện tử cho cá nhân trong các giao dịch có giá trị tài sản.
-  * **Điều 117 Bộ luật Dân sự 2015**: Điều kiện có hiệu lực của giao dịch dân sự: *"Chủ thể có năng lực pháp luật dân sự, năng lực hành vi dân sự phù hợp với giao dịch dân sự được xác lập"*.
-  * **Quyết định 2345/QĐ-NHNN của Ngân hàng Nhà nước**: Chuẩn đối soát sinh trắc học khuôn mặt với dữ liệu CCCD gắn chip (độ tin cậy tối thiểu $\ge 80\%$) và kiểm tra thực thể sống (Liveness Detection).
+Bảo đảm xác minh tính hợp pháp của chủ thể tham gia quan hệ pháp lý di sản theo **Điều 117 Bộ luật Dân sự 2015** và **Khoản 3 Điều 23 Luật Giao dịch điện tử 2023** mà không phụ thuộc vào API bên thứ ba. Thiết lập quy trình con người kiểm soát (Human-in-the-loop) với đầy đủ trách nhiệm giải trình.
 
-### 3.2. Điều kiện tiên quyết (Pre-conditions)
-* Người dùng đã hoàn thành đăng nhập tài khoản (Main Flow 1).
-* Có sẵn thẻ Căn cước công dân (CCCD) gắn chip hợp pháp còn hạn sử dụng.
-* Thiết bị có camera để chụp ảnh selfie đối soát sinh trắc học trực tiếp.
-* Hệ thống backend kết nối với dịch vụ FPT.AI Vision eKYC (`LEGACYVAULT_FPT_API_KEY`) hoặc chế độ Sandbox Sandbox Preset bảo đảm kiểm thử liên tục.
+### 3.2. Quy trình xử lý 4 bước chuẩn
+1. **Bước 2.1 - Gửi thông tin và giấy tờ xác minh:**
+   * Người dùng nhập thông tin nhân thân (Họ tên, số CCCD/Hộ chiếu, ngày sinh, địa chỉ thường trú) và tải lên tệp ảnh/PDF giấy tờ xác minh hợp lệ.
+   * Hệ thống ghi nhận hồ sơ ở trạng thái ban đầu: `PENDING_VERIFICATION` (Chờ duyệt).
+   * **Nguyên tắc bất biến:** Tuyệt đối không tự đánh dấu *"Đã xác minh"* chỉ vì người dùng đã hoàn tất tải giấy tờ lên.
+2. **Bước 2.2 - Nhân sự được phân quyền đối chiếu & xử lý:**
+   * Chỉ nhân sự có thẩm quyền (Verifier / Compliance Officer) được cấp quyền xem hình ảnh giấy tờ xác minh.
+   * Người thẩm định đối chiếu từng trường thông tin giữa bản khai và hình ảnh giấy tờ thực tế.
+   * Nếu giấy tờ mờ, lóa sáng, thiếu góc, nghi ngờ giả mạo hoặc thông tin sai lệch: Verifier bấm yêu cầu bổ sung (`REQUEST_ADDITIONAL_INFO`) kèm lý do cụ thể gửi thông báo cho người dùng.
+3. **Bước 2.3 - Ghi nhận kết quả kiểm toán có trách nhiệm:**
+   * Sau khi đối chiếu đầy đủ, Verifier ra quyết định chuyển trạng thái:
+     * `VERIFIED` (Đã xác minh): Giấy tờ rõ ràng, thông tin trùng khớp hoàn toàn.
+     * `REJECTED` (Bị từ chối): Giấy tờ không hợp lệ, giả mạo hoặc người dùng không bổ sung đúng hạn.
+   * Hệ thống bắt buộc lưu trữ vết kiểm toán (Audit Trail) đầy đủ: `verifier_id` (người duyệt), `verified_at` (thời điểm duyệt theo UTC) và `decision_reason` (lý do phê duyệt/từ chối).
+4. **Bước 2.4 - Chuyển tiếp quy trình di sản:**
+   * **Nguyên tắc an toàn:** Xác minh danh tính đạt **chưa đủ điều kiện để nhận di sản**.
+   * Để nhận bàn giao tài sản, hồ sơ tiếp tục phải trải qua:
+     * Thẩm định giấy chứng tử độc lập (Luồng chính 3).
+     * Thời gian chờ bảo vệ an toàn (Time-lock Delay / Dead Man's Switch).
+     * Được cấp quyền truy cập hợp lệ (`AccessGrant`).
 
-### 3.3. Các bước thực hiện chi tiết (Step-by-Step)
-1. **Bước 2.1 - Chụp & Tải ảnh CCCD gắn chip (Mặt trước)**:
-   * Người dùng tải ảnh chụp thẻ CCCD lên hệ thống.
-   * Frontend gửi ảnh dạng `multipart/form-data` về API: `POST /api/v1/ekyc/ocr`.
-2. **Bước 2.2 - Trích xuất OCR & Phát hiện can thiệp giả mạo (FPT.AI Vision IDR)**:
-   * Backend .NET 8 gửi ảnh tới máy chủ FPT.AI qua endpoint nhận dạng thẻ CCCD Việt Nam (`https://api.fpt.ai/vision/idr/vnm`).
-   * Động cơ AI phân tích hình ảnh và trả về:
-     * **Thông tin cá nhân**: Họ và tên, Số CCCD (12 chữ số), Ngày sinh, Giới tính, Quốc tịch, Quê quán, Nơi thường trú, Ngày hết hạn.
-     * **Chỉ số tin cậy (Confidence Score)**: Điểm tin cậy tổng thể từ 0.0 đến 1.0 (chuẩn đạt $\ge 0.85$).
-     * **Phát hiện gian lận (Tamper / Fraud Detection)**: Tự động rà quét các dấu hiệu thẻ bị cắt góc (thẻ đã bị thu hồi/hết giá trị), thẻ bị dán đè số, tẩy xóa cơ học, hoặc ảnh chụp màn hình máy tính (`isTampered: true/false`).
-3. **Bước 2.3 - Chụp ảnh chân dung sinh trắc học (Selfie Liveness)**:
-   * Người dùng kích hoạt camera chụp ảnh chân dung chính diện khuôn mặt thực tế.
-   * Frontend gửi ảnh selfie về API: `POST /api/v1/ekyc/match-face`.
-4. **Bước 2.4 - Đối soát khuôn mặt & Thực thể sống (FPT.AI Face Matching)**:
-   * Backend gửi đồng thời ảnh chân dung cắt từ thẻ CCCD và ảnh selfie tới FPT.AI Face Matching Engine (`https://api.fpt.ai/dmp/checkface/v1`).
-   * Thuật toán trích xuất đặc trưng hình học khuôn mặt (Deep Facial Feature Vectors) và tính toán điểm tương đồng (`matchScore` từ 0% đến 100%).
-   * **Điều kiện vượt qua**:
-     * `isLive == true`: Xác nhận người thật đang ngồi trước máy, loại trừ tấn công giả mạo bằng ảnh in, video phát lại hoặc Deepfake.
-     * `matchScore >= 80%`: Xác nhận khuôn mặt selfie trùng khớp với người trên thẻ CCCD theo chuẩn tài chính ngân hàng.
-5. **Bước 2.5 - Cấp chứng thư định danh phiên làm việc**:
-   * Khi OCR và Face Matching đều đạt chuẩn, hệ thống gắn nhãn `eKYC_Verified: true` vào hồ sơ phiên, lưu trữ mã băm SHA-256 của số CCCD và cấp quyền khởi tạo kho di sản.
+### 3.3. Kiểm soát quyền truy cập & Thời hạn lưu trữ giấy tờ
+* **Phân quyền truy cập nghiêm ngặt:** Hình ảnh giấy tờ chỉ mở cho Verifier được phân công xử lý hồ sơ đó. Admin kỹ thuật, Executor khác hoặc Beneficiary khác tuyệt đối không được xem.
+* **Thời hạn lưu trữ rõ ràng (Data Retention Policy):** Sau khi hoàn thành kỳ thẩm định và hồ sơ di sản kết thúc thời hạn lưu trữ theo quy định pháp lý (hoặc khi tài khoản bị xóa), các tệp ảnh giấy tờ tùy thân sẽ được tiêu hủy bền vững (Durable Deletion / Crypto-shredding) để bảo vệ quyền riêng tư cá nhân theo Nghị định 13/2023/NĐ-CP.
 
-### 3.4. Xử lý lỗi & Ngoại lệ (Exception Handling)
-* **Lỗi 2.1: Ảnh CCCD bị lóa sáng, mất góc hoặc quá mờ**: FPT.AI trả về điểm tin cậy `confidence < 0.75` $\rightarrow$ Hệ thống cảnh báo cụ thể: *"Ảnh thẻ bị chói sáng hoặc không đủ 4 góc, vui lòng chụp lại dưới ánh sáng tự nhiên"*.
-* **Lỗi 2.2: Phát hiện thẻ CCCD cắt góc hoặc có dấu hiệu chỉnh sửa giả mạo (`isTampered: true`)**: Hệ thống lập tức từ chối, khóa tiến trình định danh, hiển thị cảnh báo đỏ và ghi nhận vết kiểm toán an ninh (Audit Trail).
-* **Lỗi 2.3: Khuôn mặt đối soát không khớp (`matchScore < 80%`)**: Hệ thống yêu cầu chụp lại selfie chính diện, tháo kính râm, khẩu trang hoặc đổi môi trường đủ sáng. Cho phép thử lại tối đa 3 lần.
-* **Lỗi 2.4: Chính sách FPT Smart Cloud chuyển đổi B2B (Mã lỗi 401 trên API Key Marketplace)**: Theo thông cáo FPT Smart Cloud, các API Key loại `sk-...` chỉ kích hoạt cho dịch vụ hạ tầng FPT Cloud Marketplace. Backend LegacyVault đã tích hợp sẵn cơ chế **Sandbox Demo Preset** (Thẻ hợp lệ vs Thẻ giả mạo) giúp buổi nghiệm thu và bảo vệ đồ án luôn chạy ổn định mượt mà 100% không phụ thuộc hợp đồng doanh nghiệp viễn thông.
+### 3.4. Định hướng tương lai: Tích hợp eKYC & AI/OCR tự động
+* Các giải pháp eKYC tự động (FPT.AI Vision SDK, OCR trích xuất tự động, Face Matching 1:1, Liveness Detection) được xếp vào **Lộ trình phát triển tương lai (Future Roadmap)** nhằm hỗ trợ tăng tốc độ trích xuất thông tin biểu mẫu cho người dùng. Khi được bổ sung, AI/OCR vẫn chỉ đóng vai trò trợ lý gợi ý thông tin, không bao giờ thay thế quyền phán quyết của người thẩm định.
 
 ---
 
@@ -259,7 +251,7 @@ Xử lý khi biến cố tử tuất xảy ra, bảo đảm tính xác thực c�
 1. **Khởi tạo Claim từ Executor**:
    * Khi Chủ sở hữu qua đời, Executor truy cập cổng tiếp nhận của LegacyVault, nộp **Yêu cầu mở kho (Emergency Death Claim)**.
    * Executor phải tải lên hồ sơ pháp lý chứng minh biến cố (Bản trích lục Giấy chứng tử, giấy báo tử hoặc phán quyết của Tòa án tuyên bố đã chết).
-   * **Bắt buộc eKYC Executor**: Executor phải thực hiện quét CCCD gắn chip và quét khuôn mặt để chứng minh đúng danh tính người được ủy quyền ban đầu.
+   * **Xác minh danh tính thủ công của Executor**: Người thực thi (Executor) phải hoàn thành bước Xác minh danh tính thủ công (được Verifier đối chiếu giấy tờ và phê duyệt đạt) trước khi nộp hồ sơ yêu cầu mở kho.
 2. **Kích hoạt Cơ Chế Khóa Thời Gian (Time-Lock Delay 14 - 30 ngày)**:
    * Hệ thống đưa kho vào trạng thái báo động khẩn cấp: `Pending_Claim_Verification`.
    * Bộ đếm thời gian hoãn hủy kích hoạt: Bắt buộc đếm ngược từ 14 đến 30 ngày (tùy cài đặt bảo vệ ban đầu của Chủ kho).
@@ -276,10 +268,10 @@ Xử lý khi biến cố tử tuất xảy ra, bảo đảm tính xác thực c�
 
 ---
 
-## 9. MAIN FLOW 8: GIẢI MÃ HỢP NHẤT 2/3 SHAMIR, XÁC MINH eKYC NGƯỜI NHẬN & BÀN GIAO DI SẢN
+## 9. MAIN FLOW 8: GIẢI MÃ HỢP NHẤT 2/3 SHAMIR, XÁC MINH DANH TÍNH THỦ CÔNG NGƯỜI NHẬN & BÀN GIAO DI SẢN
 
 ### 9.1. Mục tiêu & Ý nghĩa nghiệp vụ
-Khôi phục khóa mã hóa hợp pháp và bàn giao tài sản, kỷ vật số đúng người, đúng phần, đúng ý chí định đoạt của người đã khuất, có chốt chặn xác thực danh tính sinh trắc học người thụ hưởng.
+Khôi phục khóa mã hóa hợp pháp và bàn giao tài sản, kỷ vật số đúng người, đúng phần, đúng ý chí định đoạt của người đã khuất, có chốt chặn xác minh danh tính thủ công của người thụ hưởng trước khi cấp Grant.
 
 ### 9.2. Các bước thực hiện chi tiết (Step-by-Step)
 1. **Thu thập 2/3 mảnh khóa Shamir**:
@@ -293,12 +285,11 @@ Khôi phục khóa mã hóa hợp pháp và bàn giao tài sản, kỷ vật s�
    * Kiểm tra thẻ xác thực `Authentication Tag`. Nếu khớp hoàn toàn, giải mã tệp dữ liệu về trạng thái nguyên bản gốc.
 4. **Thực hiện lệnh Tiêu hủy bí mật đời tư (Secure Erase)**:
    * Đối với các tệp thuộc **Nhóm 3 (Bí mật đời tư)**: Hệ thống thực hiện lệnh ghi đè và xóa vĩnh viễn khỏi Cloudflare R2 và cơ sở dữ liệu, không giao cho bất kỳ ai, bảo đảm sự riêng tư theo đúng nguyện vọng của người quá cố (**Điều 25, 38 BLDS 2015**).
-5. **Xác minh eKYC Người thụ hưởng trước khi trao quyền truy cập**:
+5. **Xác minh danh tính thủ công của Người thụ hưởng & Cấp Grant bàn giao**:
    * MailKit gửi liên kết bảo mật (Single-Use Time-Expiring Secure Link) tới từng Người thụ hưởng tương ứng.
-   * Khi Người thụ hưởng truy cập liên kết, hệ thống bắt buộc Người thụ hưởng phải thực hiện **eKYC FPT.AI (Quét CCCD gắn chip & Khuôn mặt)**.
-   * Hệ thống đối soát số CCCD vừa quét với số CCCD mà Chủ kho đã cấu hình khi chỉ định quyền thụ hưởng:
-     * **Nếu trùng khớp & Match Score $\ge 80\%$**: Hệ thống cấp quyền tải tài sản/kỷ vật tương ứng.
-     * **Nếu sai lệch danh tính**: Khóa liên kết truy cập ngay lập tức để phòng ngừa nguy cơ lộ link email hoặc bị người lạ chiếm đoạt.
+   * Người thụ hưởng gửi thông tin và ảnh giấy tờ tùy thân. Nhân sự phân quyền (Verifier) đối chiếu thủ công và ghi nhận kết quả `VERIFIED`.
+   * **Nguyên tắc an toàn:** Không tự đánh dấu "Đã xác minh" chỉ vì đã tải giấy tờ lên; đồng thời, xác minh danh tính đạt cũng chưa đủ để nhận di sản.
+   * Chỉ khi đủ 3 điều kiện: (1) Danh tính đã xác minh đạt, (2) Hồ sơ chứng tử đã được Verifier phê duyệt hợp lệ, (3) Hết thời gian chờ an toàn Time-lock và hệ thống đã cấp `AccessGrant` $\rightarrow$ Người thụ hưởng mới được tải tài sản. Giấy tờ xác minh chỉ mở cho người có quyền thẩm định xem và có thời hạn lưu trữ rõ ràng.
 
 ---
 

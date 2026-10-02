@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LegacyVault - Flow 01: Đăng Nhập, Xác Thực OIDC & JIT Provisioning Graph</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+  <style>
+    body { background-color: #080D1A; color: #F1F5F9; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+    .node text { pointer-events: none; font-size: 11px; font-weight: 600; fill: #F8FAFC; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
+    .link { stroke: #334155; stroke-opacity: 0.6; stroke-width: 1.5px; transition: all 0.25s ease; }
+    .link.highlight { stroke: #10B981; stroke-opacity: 1; stroke-width: 3.5px; }
+    .link.error { stroke: #EF4444; stroke-dasharray: 4,4; stroke-width: 2px; }
+    .link.flow { stroke: #38BDF8; stroke-dasharray: 6,6; animation: dash 1s linear infinite; }
+    @keyframes dash { to { stroke-dashoffset: -12; } }
+    pre[class*="language-"] { margin: 0; padding: 12px; border-radius: 8px; font-size: 11px; background: #0B1120 !important; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+  <!-- Top Navigation Header -->
+  <header class="bg-[#0D1527] border-b border-slate-800 px-6 py-2.5 flex flex-wrap items-center justify-between z-20 shadow-xl gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-linear-to-br from-blue-400 via-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white text-lg shadow-lg shadow-indigo-500/20">
+        🔑
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base font-bold text-white tracking-wide">
+            FLOW 01 · Đăng Nhập, Xác Thực OIDC & JIT Provisioning
+          </h1>
+          <span class="text-[10px] font-mono bg-indigo-950 text-indigo-400 px-2.5 py-0.5 rounded-full border border-indigo-500/30 font-bold">
+            SWIMLANE GRAPH
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">
+          5 Làn bơi • Tam quyền phân lập ASSIGN-06 • Google GIS Token RS256 • SQL Server 2022 ACID
+        </p>
+      </div>
+    </div>
+    
+    <!-- Controls & Suite Links -->
+    <div class="flex items-center gap-3">
+      <!-- Cross Navigation -->
+      <nav class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+        <a href="flow-01.html" class="px-2.5 py-1 rounded-lg font-bold bg-indigo-600 text-white">Flow 01 (Auth)</a>
+        <a href="flow-02.html" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-white transition">Flow 02 (Vault Setup)</a>
+        <a href="envelope-encryption.html" class="px-2.5 py-1 rounded-lg font-bold text-slate-400 hover:text-white transition">Mã Hóa AES-GCM</a>
+      </nav>
+
+      <!-- Step Walkthrough -->
+      <div class="flex items-center bg-slate-900/90 px-3 py-1 rounded-xl border border-slate-700/80 text-xs gap-2">
+        <span class="text-slate-400 font-medium">Bước:</span>
+        <button onclick="prevStep()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold cursor-pointer">◀</button>
+        <span id="step-label" class="font-mono text-indigo-400 font-bold px-1 min-w-[130px] text-center">B1: Chọn OIDC / Form</span>
+        <button onclick="nextStep()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-white font-bold cursor-pointer">▶</button>
+      </div>
+
+      <button onclick="resetZoom()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition cursor-pointer">
+        Zoom
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Viewport -->
+  <div class="flex-1 flex overflow-hidden relative">
+    <!-- Graph Canvas SVG -->
+    <div class="flex-1 relative h-full" id="canvas-container">
+      <svg id="graph-svg" class="w-full h-full cursor-grab active:cursor-grabbing"></svg>
+      
+      <!-- Principle Badge Floating Box -->
+      <div class="absolute top-4 left-4 bg-[#0D1527]/95 backdrop-blur-md border border-slate-800 p-3.5 rounded-2xl text-xs space-y-2 shadow-2xl pointer-events-auto max-w-sm">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-1">
+          <span class="font-bold text-indigo-400 font-mono flex items-center gap-1.5">
+            <span>⚖️</span> Tam Quyền Phân Lập (ASSIGN-06)
+          </span>
+          <span class="text-[10px] text-emerald-400 font-mono">BẮT BUỘC</span>
+        </div>
+        <p class="text-[11px] text-slate-300 leading-relaxed">
+          Chủ tài sản (<code class="text-amber-300">Owner</code>), Người thực thi (<code class="text-blue-300">Executor</code>), và Người thẩm định độc lập (<code class="text-purple-300">Verifier</code>) bắt buộc là <strong>3 PersonId khác nhau</strong>. Cấm Executor/Verifier đứng tên Beneficiary trong cùng hồ sơ.
+        </p>
+      </div>
+
+      <!-- Legend floating box -->
+      <div class="absolute bottom-5 left-5 bg-[#0D1527]/90 backdrop-blur-md border border-slate-800 p-3 rounded-2xl text-xs space-y-2 shadow-2xl pointer-events-auto">
+        <div class="font-bold text-slate-200 border-b border-slate-800 pb-1 flex items-center justify-between">
+          <span>Phân loại Làn Bơi (Swimlanes)</span>
+        </div>
+        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#38BDF8]"></span><span class="text-slate-300">1. Người Dùng (Personas)</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#6366F1]"></span><span class="text-slate-300">2. Client React 19 UI</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#EC4899]"></span><span class="text-slate-300">3. Google GIS OIDC</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span><span class="text-slate-300">4. Backend .NET 8 WebAPI</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></span><span class="text-slate-300">5. SQL Server 2022 DB</span></div>
+          <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span><span class="text-slate-300">Nhánh Lỗi (E0.1 - E0.4)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Inspector Panel -->
+    <aside id="inspector" class="w-[450px] bg-[#0D1527] border-l border-slate-800 p-5 overflow-y-auto space-y-4 shadow-2xl z-10 transition-all flex flex-col justify-between">
+      <div class="space-y-4">
+        <!-- Node Title Header -->
+        <div class="border-b border-slate-800 pb-3">
+          <div class="flex items-center justify-between">
+            <span id="node-type" class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-indigo-400 font-bold">
+              SWIMLANE NODE
+            </span>
+            <span id="node-lane" class="text-[10px] font-mono text-slate-400">
+              LÀN BƠI: CLIENT UI
+            </span>
+          </div>
+          <h2 id="node-title" class="text-lg font-bold text-white mt-1">
+            GoogleOidcTestbench.tsx
+          </h2>
+          <p id="node-file" class="text-xs font-mono text-slate-400 break-all mt-0.5">
+            client/src/features/auth-oidc/GoogleOidcTestbench.tsx
+          </p>
+        </div>
+
+        <!-- Description & Technical Details -->
+        <div class="space-y-3 text-xs leading-relaxed text-slate-300">
+          <div class="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+            <div class="font-semibold text-white flex items-center gap-1.5">
+              <span>📌 Đặc tả Nghiệp vụ Bước:</span>
+            </div>
+            <p id="node-desc">
+              Giao diện kích hoạt Google Identity Services (GIS). Sinh Nonce 256-bit trong RAM máy khách chống tấn công phát lại (Replay Attack), render nút đăng nhập 1 chạm an toàn không cần mật khẩu.
+            </p>
+          </div>
+
+          <!-- Code Viewer -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-[11px] font-bold text-slate-300">
+              <span>Mã nguồn triển khai thực tế:</span>
+              <span id="code-lang" class="text-slate-500 font-mono text-[10px]">TypeScript</span>
+            </div>
+            <div class="rounded-xl overflow-hidden border border-slate-800 max-h-56 overflow-y-auto">
+              <pre><code id="code-snippet" class="language-typescript">// Click node để xem code</code></pre>
+            </div>
+          </div>
+
+          <!-- Direct Connected Links -->
+          <div class="space-y-1.5">
+            <div class="font-bold text-slate-200 text-[11px]">Dòng chuyển dữ liệu liên quan:</div>
+            <ul id="node-links" class="space-y-1.5 text-[11px]"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-[11px] text-slate-400 space-y-0.5">
+        <div class="font-semibold text-slate-300">📋 Nhật ký Kiểm toán (AUDIT-01):</div>
+        <p>Mỗi lượt đăng nhập thành công hay thất bại bắt buộc được ghi vết nguyên tử vào bảng <code>[dbo].[AuditEvents]</code>.</p>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const codeSnippets = {
+      GoogleOidcTestbench: `// client/src/features/auth-oidc/GoogleOidcTestbench.tsx
+const handleGoogleCredentialResponse = async (response: any) => {
+  const idToken = response.credential;
+  // Gửi ID Token lên Backend thẩm định chữ ký RS256
+  const res = await fetch('/api/v1/auth/google-oidc', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken, clientNonce })
+  });
+  const data = await res.json();
+  if (data.isSuccess) {
+    setAccessToken(data.token);
+    setUserRole(data.user.role);
+  }
+};`,
+      GoogleOidcValidationService: `// server/.../GoogleOidcValidationService.cs
+public async Task<OidcUserInfo> ValidateGoogleIdTokenAsync(string idToken)
+{
+    var settings = new GoogleJsonWebSignature.ValidationSettings
+    {
+        Audience = new[] { _config["GoogleOidc:ClientId"] }
+    };
+    // Xác thực chữ ký số Google qua JWKS endpoint
+    var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+    if (!payload.EmailVerified || string.IsNullOrWhiteSpace(payload.Subject))
+        return new OidcUserInfo { IsValid = false };
+
+    return new OidcUserInfo {
+        IsValid = true,
+        Subject = payload.Subject,
+        Email = payload.Email,
+        Name = payload.Name
+    };
+}`,
+      JIT_Provisioning_SQL: `-- Giao dịch JIT tạo tài khoản trong SQL Server 2022
+BEGIN TRANSACTION;
+BEGIN TRY
+    -- 1. Tạo hồ sơ công dân PersonId nếu chưa tồn tại
+    IF NOT EXISTS (SELECT 1 FROM [dbo].[Persons] WHERE Email = @Email)
+    BEGIN
+        INSERT INTO [dbo].[Persons] (PersonId, FullName, Email, CreatedAt)
+        VALUES (@NewPersonId, @FullName, @Email, SYSUTCDATETIME());
+    END
+
+    -- 2. Tự động liên kết tài khoản User theo Google sub
+    INSERT INTO [dbo].[Users] (UserId, PersonId, Email, AuthProvider, ProviderSubjectId, Role)
+    VALUES (NEWID(), @PersonId, @Email, 'GOOGLE', @GoogleSub, 'OWNER');
+
+    -- 3. Ghi vết Audit Log (AUDIT-01)
+    INSERT INTO [dbo].[AuditEvents] (EventId, UserId, EventType, TimestampUtc)
+    VALUES (NEWID(), @UserId, 'USER_JIT_REGISTERED', SYSUTCDATETIME());
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    ROLLBACK TRANSACTION;
+    THROW;
+END CATCH;`,
+      PersonaSwitcher: `// 1-Click Persona Switcher phục vụ Hội đồng bảo vệ đồ án
+const PERSONAS = [
+  { id: 'p_owner', name: 'Nguyễn Văn An', role: 'OWNER', desc: 'Chủ di sản (Khai thác kho, nạp KEK)' },
+  { id: 'p_exec', name: 'Trần Thị Bình', role: 'EXECUTOR', desc: 'Người thừa hành (Kích hoạt mở di chúc)' },
+  { id: 'p_ben1', name: 'Nguyễn Quốc Cường', role: 'BENEFICIARY', desc: 'Con trai thừa kế (Nhận ví lạnh)' },
+  { id: 'p_ben2', name: 'Lê Thị Duyên', role: 'BENEFICIARY', desc: 'Con gái thừa kế (Nhận tài liệu đất đai)' },
+  { id: 'p_verif', name: 'Hoàng Nam', role: 'VERIFIER', desc: 'Chuyên viên pháp lý độc lập' }
+];`
+    };
+
+    const allData = {
+      nodes: [
+        // Lane 1: Người Dùng (Personas)
+        { id: "User_Persona", lane: "user", group: "user", radius: 22, label: "Người Dùng / 5 Persona", file: "5 Vai diễn mẫu đồ án", desc: "Người dùng truy cập cổng. Có thể chọn 1 trong 5 Persona mẫu (Owner, Executor, 2 Beneficiaries, Verifier)." },
+        { id: "PersonaSwitcher", lane: "user", group: "user", radius: 16, label: "1-Click Persona Switcher", file: "client/.../PersonaSelector.tsx", desc: "Công cụ đổi vai diễn tức thì phục vụ Giảng viên & Hội đồng chấm thi kiểm thử quyền." },
+
+        // Lane 2: Client UI (React 19)
+        { id: "GoogleOidcTestbench", lane: "client", group: "client", radius: 24, label: "GoogleOidcTestbench.tsx", file: "client/.../GoogleOidcTestbench.tsx", desc: "Màn hình đăng nhập OIDC: Render nút Google GIS, sinh Nonce 256-bit chống Replay Attack." },
+        { id: "FormPasswordAuth", lane: "client", group: "client", radius: 18, label: "Form Email/Password", file: "client/.../LoginForm.tsx", desc: "Phương thức truyền thống với Salted Password Hash (SEC-02), độc lập hoàn toàn khỏi Master KEK." },
+        
+        // Lane 3: Google GIS Provider
+        { id: "GoogleGIS", lane: "google", group: "google", radius: 22, label: "Google Identity Services", file: "accounts.google.com", desc: "Máy chủ xác thực Google: Ký số ID Token định dạng JWT bằng thuật toán bất đối xứng RS256." },
+        { id: "GoogleIdToken", lane: "google", group: "google", radius: 16, label: "Google ID Token (RS256)", file: "Header + Payload + Sig", desc: "Gói tin JWT chứa email, name, sub (Google unique ID), audience, issuer và expiry time." },
+
+        // Lane 4: Backend .NET 8 WebAPI
+        { id: "AuthController", lane: "server", group: "server", radius: 20, label: "AuthController.cs", file: "server/.../AuthController.cs", desc: "Endpoint [HttpPost('google-oidc')] điều phối xác thực và cấp phát JWT phiên truy cập." },
+        { id: "GoogleOidcValidationService", lane: "server", group: "server", radius: 24, label: "GoogleOidcValidationService", file: "server/.../GoogleOidcValidationService.cs", desc: "Xác minh chữ ký số Google JWKS, đối chiếu ClientId bí mật từ Server config, kiểm tra email_verified." },
+
+        // Lane 5: SQL Server 2022 DB
+        { id: "Sql_CheckUser", lane: "db", group: "db", radius: 18, label: "SELECT [dbo].[Users]", file: "SQL Server 2022", desc: "Truy vấn người dùng theo ProviderSubjectId = GoogleSub và IsDeleted = 0." },
+        { id: "JIT_Provisioning_SQL", lane: "db", group: "db", radius: 22, label: "JIT Auto-Provisioning", file: "SqlTransaction ACID", desc: "Tự động tạo đồng thời [dbo].[Persons] và [dbo].[Users] trong 1 Transaction nếu là người mới." },
+        { id: "AuditLog_AUDIT01", lane: "db", group: "db", radius: 17, label: "[dbo].[AuditEvents]", file: "Bảng kiểm toán pháp lý", desc: "Ghi nhận sự kiện đăng nhập, IP, Timestamp, trạng thái phục vụ thanh tra và truy vết theo AUDIT-01." },
+
+        // Error Nodes
+        { id: "Err_PopupBlocked", lane: "client", group: "error", radius: 14, label: "Lỗi E0.1: Popup Blocked", file: "Client Exception", desc: "Trình duyệt chặn popup Google GIS -> Tự động gợi ý chuyển sang Form Email/Password." },
+        { id: "Err_TokenInvalid", lane: "server", group: "error", radius: 14, label: "Lỗi E0.3: Token Invalid", file: "HTTP 401 Unauthorized", desc: "Token bị can thiệp trên đường truyền hoặc hết hạn -> Từ chối đăng nhập, hủy phiên." },
+        { id: "Err_RoleConflict", lane: "server", group: "error", radius: 14, label: "Lỗi E0.4: Role Conflict", file: "ASSIGN-06 Enforce", desc: "Phát hiện Owner trùng Executor hoặc Verifier -> Từ chối gán quyền theo Tam quyền phân lập." }
+      ],
+      links: [
+        { source: "User_Persona", target: "GoogleOidcTestbench", type: "clicks_sign_in", isFlow: true },
+        { source: "User_Persona", target: "PersonaSwitcher", type: "selects_role" },
+        { source: "User_Persona", target: "FormPasswordAuth", type: "fallback_form" },
+        { source: "GoogleOidcTestbench", target: "GoogleGIS", type: "requests_auth", isFlow: true },
+        { source: "GoogleOidcTestbench", target: "Err_PopupBlocked", type: "triggers_on_fail", isError: true },
+        { source: "GoogleGIS", target: "GoogleIdToken", type: "issues_jwt", isFlow: true },
+        { source: "GoogleIdToken", target: "AuthController", type: "posts_to_api", isFlow: true },
+        { source: "AuthController", target: "GoogleOidcValidationService", type: "validates_token" },
+        { source: "GoogleOidcValidationService", target: "Err_TokenInvalid", type: "fails_sig", isError: true },
+        { source: "GoogleOidcValidationService", target: "Sql_CheckUser", type: "queries_subject", isFlow: true },
+        { source: "Sql_CheckUser", target: "JIT_Provisioning_SQL", type: "user_not_found_create", isFlow: true },
+        { source: "JIT_Provisioning_SQL", target: "AuditLog_AUDIT01", type: "logs_audit" },
+        { source: "AuthController", target: "Err_RoleConflict", type: "validates_assign06", isError: true }
+      ]
+    };
+
+    const colors = {
+      user: "#38BDF8",       // Sky
+      client: "#6366F1",     // Indigo
+      google: "#EC4899",     // Pink
+      server: "#10B981",     // Emerald
+      db: "#F59E0B",         // Amber
+      error: "#EF4444"       // Red
+    };
+
+    const steps = [
+      { label: "B1: Chọn OIDC / Form", node: "GoogleOidcTestbench" },
+      { label: "B2: Google GIS Ký JWT", node: "GoogleIdToken" },
+      { label: "B3: Server Thẩm định RS256", node: "GoogleOidcValidationService" },
+      { label: "B4: Đối soát CSDL Users", node: "Sql_CheckUser" },
+      { label: "B5: JIT Auto-Provisioning", node: "JIT_Provisioning_SQL" },
+      { label: "B6: Ghi Audit Log AUDIT-01", node: "AuditLog_AUDIT01" }
+    ];
+    let currentStepIdx = 0;
+
+    const container = document.getElementById('canvas-container');
+    let width = container.clientWidth;
+    let height = container.clientHeight;
+
+    const svg = d3.select("#graph-svg").attr("viewBox", [0, 0, width, height]);
+    const g = svg.append("g");
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.3, 3])
+      .on("zoom", (event) => g.attr("transform", event.transform));
+    svg.call(zoom);
+
+    function resetZoom() {
+      svg.transition().duration(750).call(
+        zoom.transform,
+        d3.zoomIdentity.translate(width / 2, height / 2).scale(0.85).translate(-width / 2, -height / 2)
+      );
+    }
+
+    const simulation = d3.forceSimulation(allData.nodes)
+      .force("link", d3.forceLink(allData.links).id(d => d.id).distance(125))
+      .force("charge", d3.forceManyBody().strength(-400))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("collision", d3.forceCollide().radius(d => d.radius + 20));
+
+    const linkElements = g.append("g")
+      .selectAll("line")
+      .data(allData.links)
+      .join("line")
+      .attr("class", d => `link ${d.isFlow ? 'flow' : ''} ${d.isError ? 'error' : ''}`);
+
+    const nodeElements = g.append("g")
+      .selectAll("g")
+      .data(allData.nodes)
+      .join("g")
+      .attr("class", "node cursor-pointer")
+      .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
+
+    nodeElements.append("circle")
+      .attr("r", d => d.radius)
+      .attr("fill", d => colors[d.group])
+      .attr("stroke", "#0D1527")
+      .attr("stroke-width", 2.5)
+      .attr("filter", "drop-shadow(0px 4px 8px rgba(0,0,0,0.6))");
+
+    nodeElements.append("text")
+      .attr("dy", d => d.radius + 15)
+      .attr("text-anchor", "middle")
+      .text(d => d.label);
+
+    nodeElements.on("click", (event, d) => selectNode(d));
+
+    simulation.on("tick", () => {
+      linkElements
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+
+      nodeElements.attr("transform", d => `translate(${d.x},${d.y})`);
+    });
+
+    function selectNode(d) {
+      document.getElementById("node-type").textContent = d.group.toUpperCase();
+      document.getElementById("node-lane").textContent = `LÀN BƠI: ${d.lane.toUpperCase()}`;
+      document.getElementById("node-title").textContent = d.label;
+      document.getElementById("node-file").textContent = d.file;
+      document.getElementById("node-desc").textContent = d.desc;
+
+      const snippet = codeSnippets[d.id] || `// Thực thể: ${d.label}\n// Làn bơi: ${d.lane}\n// Trách nhiệm: ${d.desc}`;
+      const codeEl = document.getElementById("code-snippet");
+      codeEl.textContent = snippet;
+      document.getElementById("code-lang").textContent = d.id.includes('SQL') ? 'SQL' : (d.lane === 'server' ? 'C#' : 'TypeScript');
+      codeEl.className = d.id.includes('SQL') ? 'language-sql' : (d.lane === 'server' ? 'language-csharp' : 'language-typescript');
+      Prism.highlightElement(codeEl);
+
+      linkElements.classed("highlight", l => l.source.id === d.id || l.target.id === d.id);
+      nodeElements.select("circle")
+        .attr("stroke", n => n.id === d.id ? "#FFFFFF" : "#0D1527")
+        .attr("stroke-width", n => n.id === d.id ? 4 : 2.5);
+
+      const connected = allData.links.filter(l => l.source.id === d.id || l.target.id === d.id);
+      const listEl = document.getElementById("node-links");
+      listEl.innerHTML = "";
+      connected.forEach(l => {
+        const isOut = l.source.id === d.id;
+        const otherNode = isOut ? l.target : l.source;
+        const li = document.createElement("li");
+        li.className = "bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 flex justify-between items-center";
+        li.innerHTML = `<span class="${l.isError ? 'text-red-400' : 'text-slate-400'}">${isOut ? '→ ' + l.type : '← ' + l.type}</span> <strong class="text-indigo-400 font-mono">${otherNode.label}</strong>`;
+        listEl.appendChild(li);
+      });
+    }
+
+    function nextStep() {
+      currentStepIdx = (currentStepIdx + 1) % steps.length;
+      updateStep();
+    }
+    function prevStep() {
+      currentStepIdx = (currentStepIdx - 1 + steps.length) % steps.length;
+      updateStep();
+    }
+    function updateStep() {
+      const step = steps[currentStepIdx];
+      document.getElementById('step-label').textContent = step.label;
+      const targetNode = allData.nodes.find(n => n.id === step.node);
+      if (targetNode) selectNode(targetNode);
+    }
+
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x; d.fy = d.y;
+    }
+    function dragged(event, d) {
+      d.fx = event.x; d.fy = event.y;
+    }
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null; d.fy = null;
+    }
+
+    window.addEventListener("resize", () => {
+      width = container.clientWidth; height = container.clientHeight;
+      svg.attr("viewBox", [0, 0, width, height]);
+      simulation.force("center", d3.forceCenter(width / 2, height / 2)).restart();
+    });
+
+    resetZoom();
+    setTimeout(() => {
+      const initial = allData.nodes.find(n => n.id === "GoogleOidcValidationService");
+      if (initial) selectNode(initial);
+    }, 400);
+  </script>
+</body>
+</html>

@@ -76,7 +76,7 @@ export const TestbenchPage: React.FC = () => {
             Dự án Tốt nghiệp Kỹ thuật phần mềm: LegacyVault (SWP391 - Fall 2026)
           </p>
           <p>
-            Mã hóa Phong bì AES-256-GCM • Shamir SSS (2/3) • Cloudflare R2 • SePay VietQR • MailKit SMTP • FPT.AI eKYC • Google OIDC
+            Mã hóa Phong bì AES-256-GCM • Shamir SSS (2/3) • Cloudflare R2 • SePay VietQR • MailKit SMTP • Thẩm định hồ sơ thủ công • Google OIDC
           </p>
         </div>
       </footer>

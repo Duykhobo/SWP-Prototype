@@ -204,8 +204,9 @@ export const FptMarketplaceTestbench: React.FC = () => {
         <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
         <div>
           <strong className="text-amber-300 font-semibold block mb-0.5">
-            Nguyên Tắc Bảo Mật Zero-Knowledge & An Toàn Dữ Liệu
+            Nguyên Tắc Kiến Trúc: Nhập Liệu & Thẩm Định Thủ Công (AI Hỗ Trợ Trích Xuất Tương Lai)
           </strong>
+          Phiên bản prototype thực hiện nhập liệu và thẩm định hồ sơ thủ công. AI/OCR được định hướng bổ sung trong tương lai để hỗ trợ trích xuất thông tin; không thay thế quyết định của người thẩm định.
           Tài sản và nội dung di chúc trong kho lưu trữ LegacyVault luôn được mã hóa phong bì (Envelope Encryption) và 
           <strong> không bao giờ tự động giải mã gửi ra dịch vụ AI bên ngoài</strong>. Bản demo này 
           <strong> chỉ chấp nhận kịch bản mẫu giả lập (Synthetic Presets)</strong>. Mọi tác vụ AI chỉ mang tính chất 

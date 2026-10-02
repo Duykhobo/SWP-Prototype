@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="Electron">
+  <diagram name="Page-1" id="_2wH0EikQRLuZOk32nq9">
+    <mxGraphModel dx="7740" dy="5460" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1780" pageHeight="3500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fontSize=15;fontFamily=Arial;fontStyle=1;fontColor=default;" value="FLOW 03 · DEAD MAN&#39;S SWITCH (DMS) · HEARTBEAT, SUSPENSION &amp;amp; SAFE FREEZE" vertex="1">
+          <mxGeometry height="60" width="1590" x="50" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="3" parent="1" style="rounded=1;arcSize=13;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=1.6;fontSize=13;fontFamily=Arial;fontColor=default;" value="Swimlane workflow for survival check-ins, grace periods, independent 90-day suspension countdowns, executor wellbeing alerts, and safe data freezing. Architecture: Server Process -&amp;gt; DB Commit -&amp;gt; Client Response. Legal reference: Art. 120 Civil Code 2015 &amp;amp; LegacyVault SRS v3.11.0 product policies." vertex="1">
+          <mxGeometry height="60" width="1590" x="50" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="4" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;fontColor=default;" value="OWNER · ASSET OWNER" vertex="1">
+          <mxGeometry height="3280" width="250" x="50" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="5" parent="4" style="shape=offPageConnector;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=default;" value="From FLOW 02&lt;br&gt;(Plan ACTIVE)" vertex="1">
+          <mxGeometry height="50" width="130" x="60" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="6" parent="4" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="START" vertex="1">
+          <mxGeometry height="65" width="200" x="25" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="7" parent="4" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="01 · Configure DMS Settings&lt;br&gt;Select check-in cycle (30/60/90d)&lt;br&gt;&amp;amp; grace period (7/14/30d)" vertex="1">
+          <mxGeometry height="75" width="220" x="15" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="8" parent="4" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="06 · Check-in: Click &#39;I Am Alive&#39;&lt;br&gt;Confirm safety via Web Dashboard&lt;br&gt;or via secure Email web page" vertex="1">
+          <mxGeometry height="75" width="220" x="15" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="9" parent="4" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="11 · Late Check-in Request&lt;br&gt;Owner signs in &amp;amp; pings alive&lt;br&gt;while SUSPENDED or FROZEN" vertex="1">
+          <mxGeometry height="75" width="220" x="15" y="2600" as="geometry" />
+        </mxCell>
+        <mxCell id="10" parent="4" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="SAFE DATA FREEZE&lt;br&gt;Read-only; No auto-wipe from DMS;&lt;br&gt;Ready for recovery or claim" vertex="1">
+          <mxGeometry height="75" width="200" x="25" y="2480" as="geometry" />
+        </mxCell>
+        <mxCell id="11" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;fontColor=default;" value="CLIENT · REACT WEB APP" vertex="1">
+          <mxGeometry height="3280" width="260" x="300" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="12" parent="11" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="02 · Submit Settings Form&lt;br&gt;POST /api/v1/dms/settings&lt;br&gt;Payload: {cycleDays, graceDays}" vertex="1">
+          <mxGeometry height="75" width="220" x="20" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="13" parent="11" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="04 · Render Heartbeat Card&lt;br&gt;Display confirmed NextDue&lt;br&gt;&amp;amp; active pulse indicator" vertex="1">
+          <mxGeometry height="75" width="220" x="20" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="14" parent="11" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="07 · POST /api/v1/dms/check-in&lt;br&gt;Attach Bearer JWT in RAM&lt;br&gt;or Email CheckInToken" vertex="1">
+          <mxGeometry height="75" width="220" x="20" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="15" parent="11" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="Display Check-in Error (400/401)&lt;br&gt;Token invalid / expired / already used;&lt;br&gt;Prompt user to re-authenticate" vertex="1">
+          <mxGeometry height="65" width="220" x="20" y="900" as="geometry" />
+        </mxCell>
+        <mxCell id="16" parent="11" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="09 · Update UI: Active Pulse&lt;br&gt;Display green pulse animation;&lt;br&gt;Display new NextDue from Server" vertex="1">
+          <mxGeometry height="70" width="220" x="20" y="1130" as="geometry" />
+        </mxCell>
+        <mxCell id="17" parent="11" style="ellipse;aspect=fixed;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;align=center;verticalAlign=middle;fontColor=default;" value="A" vertex="1">
+          <mxGeometry height="40" width="40" x="110" y="1225" as="geometry" />
+        </mxCell>
+        <mxCell id="18" parent="11" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="10 · Display Suspension Banner&lt;br&gt;Show days remaining to FreezeAt;&lt;br&gt;1-click recovery check-in button" vertex="1">
+          <mxGeometry height="75" width="220" x="20" y="1450" as="geometry" />
+        </mxCell>
+        <mxCell id="19" parent="11" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="16 · Display Frozen State UI&lt;br&gt;Lock asset mutation features;&lt;br&gt;Preserve all data per OPLAN-05" vertex="1">
+          <mxGeometry height="75" width="220" x="20" y="2480" as="geometry" />
+        </mxCell>
+        <mxCell id="20" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;fontColor=default;" value="SERVER · ASP.NET CORE 8 &amp;amp; DMS WORKER" vertex="1">
+          <mxGeometry height="3280" width="340" x="560" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="21" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="03 · Process Initial Schedule&lt;br&gt;NextCheckInDue = now + CycleDays;&lt;br&gt;Settings changes apply next cycle" vertex="1">
+          <mxGeometry height="75" width="260" x="40" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="22" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="Return HTTP 200 OK&lt;br&gt;Include confirmed NextDue &amp;amp; Schedule" vertex="1">
+          <mxGeometry height="65" width="260" x="40" y="325" as="geometry" />
+        </mxCell>
+        <mxCell id="23" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="DmsHeartbeatWorker (HostedService)&lt;br&gt;Hourly autonomous background audit&lt;br&gt;for all system vaults" vertex="1">
+          <mxGeometry height="65" width="260" x="40" y="420" as="geometry" />
+        </mxCell>
+        <mxCell id="24" parent="20" style="rhombus;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Status == &#39;ACTIVE&#39;&lt;br&gt;AND now &amp;gt;= NextDue?" vertex="1">
+          <mxGeometry height="85" width="210" x="65" y="515" as="geometry" />
+        </mxCell>
+        <mxCell id="25" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="05 · Transition to CHECKIN_PENDING&lt;br&gt;GraceExpiresAt = NextDue + GraceDays;&lt;br&gt;Queue check-in reminder email (DMS-03)" vertex="1">
+          <mxGeometry height="75" width="260" x="40" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="26" parent="20" style="rhombus;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Check-in Validation:&lt;br&gt;Token valid &amp;amp; no death claim&lt;br&gt;approved or under review?" vertex="1">
+          <mxGeometry height="95" width="220" x="60" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="27" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="Flag Status = RESCUE_PENDING&lt;br&gt;Alive check-in conflicts with claim;&lt;br&gt;Notify Verifier for urgent review" vertex="1">
+          <mxGeometry height="75" width="260" x="40" y="900" as="geometry" />
+        </mxCell>
+        <mxCell id="28" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="08 · ACID Check-in Process&lt;br&gt;Insert CheckInLogs (with Method);&lt;br&gt;Status = &#39;ACTIVE&#39;; NextDue = now+Cycle;&lt;br&gt;Close alert task: OWNER_CHECKED_IN" vertex="1">
+          <mxGeometry height="85" width="260" x="40" y="1010" as="geometry" />
+        </mxCell>
+        <mxCell id="29" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="Return HTTP 200 OK&lt;br&gt;New NextDue returned by Server" vertex="1">
+          <mxGeometry height="55" width="260" x="40" y="1135" as="geometry" />
+        </mxCell>
+        <mxCell id="30" parent="20" style="rhombus;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Status == &#39;CHECKIN_PENDING&#39;&lt;br&gt;AND now &amp;gt;= GraceExpiresAt?" vertex="1">
+          <mxGeometry height="85" width="220" x="60" y="1320" as="geometry" />
+        </mxCell>
+        <mxCell id="31" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="10 · Transition to CHECKIN_SUSPENDED&lt;br&gt;Record suspended_at = now;&lt;br&gt;FreezeAt = GraceExpiresAt + 90 days;&lt;br&gt;Pause regular check-in countdown" vertex="1">
+          <mxGeometry height="85" width="260" x="40" y="1445" as="geometry" />
+        </mxCell>
+        <mxCell id="32" parent="20" style="rhombus;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Check qualified Executor&lt;br&gt;assigned (XS/XSMax)?" vertex="1">
+          <mxGeometry height="85" width="210" x="65" y="1575" as="geometry" />
+        </mxCell>
+        <mxCell id="33" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="Dispatch ExecutorAlertTasks in DB&lt;br&gt;Remind after 48h; 72h SLA response window;&lt;br&gt;Does not control 90-day freeze timer" vertex="1">
+          <mxGeometry height="75" width="260" x="40" y="1695" as="geometry" />
+        </mxCell>
+        <mxCell id="34" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="Validate Executor Response&lt;br&gt;Verify TaskId &amp;amp; authorization token" vertex="1">
+          <mxGeometry height="65" width="260" x="40" y="1935" as="geometry" />
+        </mxCell>
+        <mxCell id="35" parent="20" style="rhombus;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Status == &#39;CHECKIN_SUSPENDED&#39;&lt;br&gt;Worker autonomous audit scan" vertex="1">
+          <mxGeometry height="85" width="220" x="60" y="2100" as="geometry" />
+        </mxCell>
+        <mxCell id="36" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="12 · Send Staged Reminders&lt;br&gt;Countdown: Start, 30d, 7d, 24h&lt;br&gt;(Deduplicated email dispatch)" vertex="1">
+          <mxGeometry height="75" width="260" x="40" y="2220" as="geometry" />
+        </mxCell>
+        <mxCell id="37" parent="20" style="rhombus;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Status == &#39;CHECKIN_SUSPENDED&#39;&lt;br&gt;AND now &amp;gt;= FreezeAt&lt;br&gt;(90 days elapsed)?" vertex="1">
+          <mxGeometry height="85" width="220" x="60" y="2340" as="geometry" />
+        </mxCell>
+        <mxCell id="38" parent="20" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="15 · Safe Freeze Transaction&lt;br&gt;Status = FROZEN_INACTIVITY;&lt;br&gt;Write AuditEvents per vault;&lt;br&gt;Lock mutations, preserve all data" vertex="1">
+          <mxGeometry height="85" width="260" x="40" y="2475" as="geometry" />
+        </mxCell>
+        <mxCell id="39" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;fontColor=default;" value="DATABASE · SQL SERVER 2022" vertex="1">
+          <mxGeometry height="3280" width="250" x="900" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="40" parent="39" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;UPDATE [Vaults] SET NextCheckInDue&lt;br&gt;&amp;amp; DmsSettings; Write [AuditEvents]" vertex="1">
+          <mxGeometry height="75" width="210" x="20" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="41" parent="39" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;UPDATE Status=&#39;CHECKIN_PENDING&#39;,&lt;br&gt;GraceExpiresAt; Queue Reminder Email" vertex="1">
+          <mxGeometry height="75" width="210" x="20" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="42" parent="39" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;INSERT INTO [CheckInLogs];&lt;br&gt;UPDATE Status=&#39;ACTIVE&#39;, LastCheckIn=now;&lt;br&gt;UPDATE Tasks=&#39;OWNER_CHECKED_IN&#39;" vertex="1">
+          <mxGeometry height="85" width="210" x="20" y="1010" as="geometry" />
+        </mxCell>
+        <mxCell id="43" parent="39" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;UPDATE Status=&#39;CHECKIN_SUSPENDED&#39;,&lt;br&gt;SuspendedAt=now, FreezeAt=due+90d" vertex="1">
+          <mxGeometry height="85" width="210" x="20" y="1445" as="geometry" />
+        </mxCell>
+        <mxCell id="44" parent="39" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="INSERT INTO [ExecutorAlertTasks]&lt;br&gt;(TaskId, VaultId, ExecutorId, PENDING);&lt;br&gt;Queue Outbox Warning Email" vertex="1">
+          <mxGeometry height="75" width="210" x="20" y="1695" as="geometry" />
+        </mxCell>
+        <mxCell id="45" parent="39" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;UPDATE [ExecutorAlertTasks]&lt;br&gt;SET Status=&#39;NO_CERTIFICATE_AVAILABLE&#39;,&lt;br&gt;CompletedAt=now" vertex="1">
+          <mxGeometry height="75" width="210" x="20" y="1930" as="geometry" />
+        </mxCell>
+        <mxCell id="46" parent="39" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;UPDATE Status=&#39;FROZEN_INACTIVITY&#39;;&lt;br&gt;Write [AuditEvents] (Per Vault);&lt;br&gt;Queue Freeze Notification Email" vertex="1">
+          <mxGeometry height="85" width="210" x="20" y="2475" as="geometry" />
+        </mxCell>
+        <mxCell id="47" parent="39" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;fontColor=default;" value="DATABASE · SQL SERVER 2022" vertex="1">
+          <mxGeometry height="3280" width="250" as="geometry" />
+        </mxCell>
+        <mxCell id="48" parent="47" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;UPDATE [Vaults] SET NextCheckInDue&lt;br&gt;&amp;amp; DmsSettings; Write [AuditEvents]" vertex="1">
+          <mxGeometry height="75" width="210" x="20" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="49" parent="47" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;UPDATE Status=&#39;CHECKIN_PENDING&#39;,&lt;br&gt;GraceExpiresAt; Queue Reminder Email" vertex="1">
+          <mxGeometry height="75" width="210" x="20" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="50" parent="47" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;INSERT INTO [CheckInLogs];&lt;br&gt;UPDATE Status=&#39;ACTIVE&#39;, LastCheckIn=now;&lt;br&gt;UPDATE Tasks=&#39;OWNER_CHECKED_IN&#39;" vertex="1">
+          <mxGeometry height="85" width="210" x="20" y="1010" as="geometry" />
+        </mxCell>
+        <mxCell id="51" parent="47" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;UPDATE Status=&#39;CHECKIN_SUSPENDED&#39;,&lt;br&gt;SuspendedAt=now, FreezeAt=due+90d" vertex="1">
+          <mxGeometry height="85" width="210" x="20" y="1445" as="geometry" />
+        </mxCell>
+        <mxCell id="52" parent="47" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="INSERT INTO [ExecutorAlertTasks]&lt;br&gt;(TaskId, VaultId, ExecutorId, PENDING);&lt;br&gt;Queue Outbox Warning Email" vertex="1">
+          <mxGeometry height="75" width="210" x="20" y="1695" as="geometry" />
+        </mxCell>
+        <mxCell id="53" parent="47" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;UPDATE [ExecutorAlertTasks]&lt;br&gt;SET Status=&#39;NO_CERTIFICATE_AVAILABLE&#39;,&lt;br&gt;CompletedAt=now" vertex="1">
+          <mxGeometry height="75" width="210" x="20" y="1930" as="geometry" />
+        </mxCell>
+        <mxCell id="54" parent="47" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontColor=default;" value="COMMIT TRANSACTION:&lt;br&gt;UPDATE Status=&#39;FROZEN_INACTIVITY&#39;;&lt;br&gt;Write [AuditEvents] (Per Vault);&lt;br&gt;Queue Freeze Notification Email" vertex="1">
+          <mxGeometry height="85" width="210" x="20" y="2475" as="geometry" />
+        </mxCell>
+        <mxCell id="55" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;fontColor=default;" value="GMAIL SMTP · EMAIL SERVICE" vertex="1">
+          <mxGeometry height="3280" width="240" x="1150" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="56" parent="55" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Send Check-in Reminder Email&lt;br&gt;Link opens web check-in page&lt;br&gt;(Prevents bot scanner clicks)" vertex="1">
+          <mxGeometry height="75" width="210" x="15" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="57" parent="55" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Send Suspension Notice&lt;br&gt;Alert 90-day countdown to freeze&lt;br&gt;and recovery instructions" vertex="1">
+          <mxGeometry height="85" width="210" x="15" y="1445" as="geometry" />
+        </mxCell>
+        <mxCell id="58" parent="55" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Send Executor Alert&lt;br&gt;Action required: Check on Owner;&lt;br&gt;Death NOT presumed" vertex="1">
+          <mxGeometry height="75" width="210" x="15" y="1695" as="geometry" />
+        </mxCell>
+        <mxCell id="59" parent="55" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Deliver Staged Warning Email&lt;br&gt;Notice of remaining days to FreezeAt&lt;br&gt;(Impending data freeze)" vertex="1">
+          <mxGeometry height="75" width="210" x="15" y="2220" as="geometry" />
+        </mxCell>
+        <mxCell id="60" parent="55" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Send Freeze Notification&lt;br&gt;Vault is safely frozen;&lt;br&gt;Data preserved, never deleted" vertex="1">
+          <mxGeometry height="85" width="210" x="15" y="2475" as="geometry" />
+        </mxCell>
+        <mxCell id="61" parent="1" style="swimlane;horizontal=1;startSize=54;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;verticalAlign=middle;fontColor=default;" value="EXECUTOR · HANDOVER EXECUTOR" vertex="1">
+          <mxGeometry height="3280" width="250" x="1390" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="62" parent="61" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Receive Wellbeing Alert&lt;br&gt;Check real-world status of Owner;&lt;br&gt;Handover NOT triggered" vertex="1">
+          <mxGeometry height="75" width="220" x="15" y="1695" as="geometry" />
+        </mxCell>
+        <mxCell id="63" parent="61" style="rhombus;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="Actual verification&lt;br&gt;findings?" vertex="1">
+          <mxGeometry height="85" width="190" x="30" y="1810" as="geometry" />
+        </mxCell>
+        <mxCell id="64" parent="61" style="shape=parallelogram;perimeter=parallelogramPerimeter;fixedSize=1;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=default;" value="14a · Submit Status to Server&lt;br&gt;Record NO_CERTIFICATE_AVAILABLE;&lt;br&gt;90-day timer continues running" vertex="1">
+          <mxGeometry height="75" width="220" x="15" y="1930" as="geometry" />
+        </mxCell>
+        <mxCell id="65" parent="61" style="shape=offPageConnector;whiteSpace=wrap;html=1;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=default;" value="14b · Submit Death Claim&lt;br&gt;To FLOW 04&lt;br&gt;(Legal Verification)" vertex="1">
+          <mxGeometry height="60" width="130" x="60" y="2040" as="geometry" />
+        </mxCell>
+        <mxCell id="66" edge="1" parent="1" source="5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="6" value="Plan activated">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="67" edge="1" parent="1" source="6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="7" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="68" edge="1" parent="1" source="7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="12" value="Enter settings">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="69" edge="1" parent="1" source="12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="21" value="POST settings">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="70" edge="1" parent="1" source="21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="40" value="Commit DB">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="71" edge="1" parent="1" source="40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="22" value="Schedule saved">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1005" y="490" />
+              <mxPoint x="750" y="490" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="72" edge="1" parent="1" source="22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="13" value="HTTP 200 OK (Schedule)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="73" edge="1" parent="1" source="22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="23" value="Start recurring background audit">
+          <mxGeometry relative="1" x="0.2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="74" edge="1" parent="1" source="23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="24" value="Hourly audit scan">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="75" edge="1" parent="1" source="24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;dashed=1;fontSize=11;fontColor=default;" target="23" value="now &amp;lt; NextDue -&amp;gt; Wait for next scan">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="880" y="737.52" />
+              <mxPoint x="880" y="650" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="76" edge="1" parent="1" source="24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="25" value="ACTIVE AND now &amp;gt;= NextDue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="77" edge="1" parent="1" source="25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="41" value="Commit CHECKIN_PENDING">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="78" edge="1" parent="1" source="41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="56" value="Queue reminder email">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="79" edge="1" parent="1" source="56" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="8" value="Deliver email with secure web link">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1255" y="930" />
+              <mxPoint x="125" y="930" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="80" edge="1" parent="1" source="8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="14" value="Click confirm check-in">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="81" edge="1" parent="1" source="14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="26" value="POST check-in">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="82" edge="1" parent="1" source="26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="15" value="Token invalid / expired / used">
+          <mxGeometry relative="1" x="0.5821" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="730" y="1050" />
+              <mxPoint x="430" y="1050" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="83" edge="1" parent="1" source="26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="27" value="Claim under review exists">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="850" y="997.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="84" edge="1" parent="1" source="26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="28" value="Token valid &amp;amp; no active claim">
+          <mxGeometry relative="1" x="0.6647" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="730.01" y="1070" />
+              <mxPoint x="590.01" y="1070" />
+              <mxPoint x="590.01" y="1232.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="85" edge="1" parent="1" source="28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="42" value="ACID transaction">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="86" edge="1" parent="1" source="42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="29" value="DB committed">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1005.03" y="1290.03" />
+              <mxPoint x="730" y="1290.03" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="87" edge="1" parent="1" source="29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="16" value="HTTP 200 OK (New NextDue)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="88" edge="1" parent="1" source="16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="17" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="89" edge="1" parent="1" source="17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;dashed=1;fontSize=11;fontColor=default;" target="23" value="Connector A: Continue ACTIVE cycle">
+          <mxGeometry relative="1" x="-0.8957" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="430" y="1470" />
+              <mxPoint x="550.04" y="1470" />
+              <mxPoint x="550.04" y="610.04" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="90" edge="1" parent="1" source="23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="30" value="Worker checks grace expiration">
+          <mxGeometry relative="1" x="0.7669" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="630" y="670" />
+              <mxPoint x="575.05" y="670" />
+              <mxPoint x="575.05" y="1420.05" />
+              <mxPoint x="730.05" y="1420.05" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="91" edge="1" parent="1" source="30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;dashed=1;fontSize=11;fontColor=default;" target="23" value="now &amp;lt; GraceExpiresAt -&amp;gt; Continue monitoring">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="890" y="1542.5" />
+              <mxPoint x="890" y="630" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="92" edge="1" parent="1" source="30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="31" value="CHECKIN_PENDING AND now &amp;gt;= GraceExpiresAt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="93" edge="1" parent="1" source="31" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="43" value="Commit CHECKIN_SUSPENDED (+90d)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="94" edge="1" parent="1" source="43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="57" value="Queue suspension notice email">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="95" edge="1" parent="1" source="43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="18" value="Update Client UI to SUSPENDED">
+          <mxGeometry relative="1" x="-0.0161" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="950" y="1730.03" />
+              <mxPoint x="430" y="1730.03" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="96" edge="1" parent="1" source="43" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="32" value="Evaluate executor assignment">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1005.03" y="1797.51" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="97" edge="1" parent="1" source="32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="33" value="Qualified Executor assigned">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="98" edge="1" parent="1" source="33" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="44" value="Save ExecutorAlertTasks">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="99" edge="1" parent="1" source="44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="58" value="Dispatch alert email">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="100" edge="1" parent="1" source="58" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="62" value="Deliver alert to Executor">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="101" edge="1" parent="1" source="62" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="63" value="Inquire into Owner status">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="102" edge="1" parent="1" source="63" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="64" value="No certificate / Owner still alive">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="103" edge="1" parent="1" source="64" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="34" value="POST /api/v1/executor/respond">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1400.03" y="2147.48" />
+              <mxPoint x="1400.03" y="2020.03" />
+              <mxPoint x="730.03" y="2020.03" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="104" edge="1" parent="1" source="34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="45" value="Record response in DB">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="105" edge="1" parent="1" source="63" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="65" value="Death confirmed with cert">
+          <mxGeometry relative="1" x="0.3043" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="1630" y="2032.5" />
+              <mxPoint x="1630" y="2250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="106" edge="1" parent="1" source="23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="35" value="Worker audits suspended vaults">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="560" y="632.49" />
+              <mxPoint x="560" y="2322.54" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="107" edge="1" parent="1" source="35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="36" value="Staged reminder milestone reached">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="850" y="2322.52" />
+              <mxPoint x="850" y="2385" />
+              <mxPoint x="730" y="2385" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="108" edge="1" parent="1" source="36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="59" value="Queue warning email">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="109" edge="1" parent="1" source="35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="37" value="Evaluate freeze milestone">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="730" y="2370.03" />
+              <mxPoint x="590" y="2370.03" />
+              <mxPoint x="590" y="2562.49" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="110" edge="1" parent="1" source="37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;dashed=1;fontSize=11;fontColor=default;" target="23" value="now &amp;lt; FreezeAt -&amp;gt; Continue countdown">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="910" y="2562.5" />
+              <mxPoint x="910" y="610" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="111" edge="1" parent="1" source="37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="38" value="now &amp;gt;= FreezeAt (90 days elapsed)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="112" edge="1" parent="1" source="38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="46" value="Commit FROZEN_INACTIVITY">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="113" edge="1" parent="1" source="46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="60" value="Queue freeze notification email">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="114" edge="1" parent="1" source="46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="19" value="Update Client UI to Read-only">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1005" y="2770.03" />
+              <mxPoint x="430.03" y="2770.03" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="115" edge="1" parent="1" source="19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="10" value="Data safely preserved">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="116" edge="1" parent="1" source="10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;dashed=1;fontSize=11;fontColor=default;" target="9" value="Recovery permitted anytime post-freeze">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="117" edge="1" parent="1" source="9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1.5;fontSize=11;fontColor=default;" target="14" value="Owner submits check-in">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="2817.5" />
+              <mxPoint x="290" y="940" />
+              <mxPoint x="430" y="940" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

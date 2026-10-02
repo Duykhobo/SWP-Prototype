@@ -16,26 +16,15 @@
 
 ## 2. BẢNG ĐẶC TẢ CHI TIẾT TỪNG BƯỚC CHO LẬP TRÌNH VIÊN (DEV IMPLEMENTATION MATRIX)
 
-### BƯỚC 01 $\rightarrow$ 02: CHỌN GÓI VÀ KIỂM TRA THANH TOÁN (DECISION 13 & LỖI E1)
+### BƯỚC 01 $\rightarrow$ 02: CHỌN GÓI CƯỚC LƯU TRỮ VÀ NÂNG CẤP THANH TOÁN (SEPAY VIETQR)
 
 | Thành phần | Chi tiết kỹ thuật triển khai |
 | :--- | :--- |
-| **Làn bơi (Lanes)** | `OWNER · CHỦ KHO` (Node 11) $\rightarrow$ `BACKEND LEGACYVAULT` (Node 12 & 13) |
-| **Frontend Code** | `client/src/features/payment-sepay/SePayTestbench.tsx`<br/>• Component chọn gói: `Free` (0đ), `XS` (199.000đ), `XS Max` (499.000đ).<br/>• Gọi API: `POST /api/v1/plans/select-tier` |
-| **Backend API** | `server/LegacyVault.Prototype.WebApi/Controllers/PlanController.cs`<br/>• `[HttpPost("select-tier")]`<br/>• `[HttpGet("current-subscription")]` |
-| **Logic nghiệp vụ (Code Check)** | ```csharp
-var subscription = await _planService.GetActiveSubscriptionAsync(ownerId);
-if (subscription == null || subscription.IsExpired || subscription.Tier == PlanTier.Free)
-{
-    // RƠI VÀO NHÁNH E1 (Node 32)
-    return BadRequest(new ErrorResponse {
-        ErrorCode = "E1_SUBSCRIPTION_INVALID",
-        Message = "Gói Free chỉ được lưu tài sản cá nhân, không thể thiết lập di sản. Vui lòng mua hoặc gia hạn gói XS / XS Max.",
-        ActionRequired = "REDIRECT_TO_PAYMENT"
-    });
-}
-``` |
-| **Xử lý nhánh lỗi E1** | • Giữ kế hoạch ở trạng thái chưa kích hoạt (`PlanState = INACTIVE`).<br/>• Gói Free không lưu nháp Người thụ hưởng và Executor.<br/>• Điều hướng sang màn hình thanh toán SePay QR Code (`/api/v1/payment/sepay-qr`). |
+| **Làn bơi (Lanes)** | `OWNER` (Bước 1) $\rightarrow$ `CLIENT` $\rightarrow$ `SEPAY` (Bất đồng bộ) $\rightarrow$ `BACKEND` |
+| **Bảng giá 3 Gói cước** | • **Free (0đ)**: Dung lượng 100 MB. Cho phép upload lưu trữ cá nhân an toàn, nhưng **không có quyền kích hoạt Kế hoạch Di sản**.<br/>• **XS (199.000đ)**: Dung lượng 1 GB, mở khóa đầy đủ tính năng lập kế hoạch di sản, gán Executor, Dead Man's Switch 30 ngày.<br/>• **XSMax (399.000đ)**: Dung lượng 10 GB, không giới hạn số tài sản, thẩm định pháp lý Verifier ưu tiên. |
+| **Frontend Code** | `client/src/features/payment-sepay/SePayTestbench.tsx`<br/>• Component chọn gói: `Free`, `XS` (199k), `XSMax` (399k).<br/>• Nếu chọn XS / XSMax: Hiển thị Dynamic VietQR, lắng nghe webhook thanh toán. |
+| **Backend API** | `server/LegacyVault.Prototype.WebApi/Controllers/PlanController.cs`<br/>• `[HttpPost("select-tier")]`<br/>• `[HttpPost("sepay-webhook")]` xử lý callback thanh toán tự động kích hoạt gói. |
+| **Tách bạch quyền của gói** | • **Quyền Upload tài sản**: Mọi gói (kể cả Free) đều được phép tải file và mã hóa nếu còn Quota dung lượng.<br/>• **Quyền Kích hoạt Di sản**: Bắt buộc gói **`XS`** hoặc **`XSMax`**. Kiểm tra tại Bước 11 (SETUP-01 Checklist). Nếu đang ở Free mà bấm kích hoạt $\rightarrow$ Báo lỗi `E1_SUBSCRIPTION_INELIGIBLE` và điều hướng sang thanh toán SePay. |
 
 ---
 
@@ -88,17 +77,31 @@ byte[] encryptedDek = KekService.Encrypt(dek);
 
 ---
 
-### BƯỚC 10 $\rightarrow$ 13: XÁC NHẬN CHÍNH SÁCH, CHECKLIST VÀ KÍCH HOẠT KẾ HOẠCH (DECISION 29, LỖI E6 & KẾT THÚC)
+### BƯỚC 10 $\rightarrow$ 10.1: NỘP HỒ SƠ & THẨM ĐỊNH DANH TÍNH THỦ CÔNG (DECISION 10.1 & LỖI E5.1)
+
+| Thành phần | Chi tiết kỹ thuật triển khai |
+| :--- | :--- |
+| **Làn bơi (Lanes)** | `OWNER` (Bước 10) $\rightarrow$ `VERIFIER / COMPLIANCE` (Bước 10.1) $\rightarrow$ `NHÁNH LỖI / LOOP-BACK` (E5.1) |
+| **Bước 10 (Owner Action)** | Owner tải ảnh 2 mặt CCCD/Hộ chiếu và nhập số định danh: `POST /api/identity/verify-dossier`. Trạng thái chuyển thành `PENDING_VERIFICATION`. |
+| **Bước 10.1 (Verifier Action)** | Nhân sự thẩm định (Verifier) kiểm tra tính hợp lệ của giấy tờ: đối chiếu ảnh, ngày hết hạn, họ tên, số CCCD trên giao diện thẩm định nội bộ. |
+| **Hình thoi quyết định (Decision 10.1)** | **"Hồ sơ danh tính được duyệt (VERIFIED)?"** |
+| **Nhánh YES (Đạt)** | Cập nhật `IdentityStatus = VERIFIED`, lưu vết `verifier_id`, `verified_at`, `audit_notes`. Tiếp tục sang Bước 11 (Review Checklist & Bấm kích hoạt). |
+| **Nhánh NO / EXCEPTION HANDLING (E5.1)** | • **Mã lỗi**: `E5.1_IDENTITY_VERIFICATION_REJECTED` (hoặc `REQUEST_SUPPLEMENT`).<br/>• **Hành động Verifier**: Ghi nhận lý do từ chối (ảnh mờ, sai lệch số định danh, CCCD hết hạn...).<br/>• **Xử lý hệ thống**: Ghi log audit, gửi email/thông báo thông báo lý do không đạt tới Owner.<br/>• **ĐIỂM QUAY LẠI (LOOP-BACK)**: **Quay trở lại Bước 10 (Submit Identity Documents)** để Owner nộp lại hoặc bổ sung tài liệu hợp lệ. |
+
+---
+
+### BƯỚC 11 $\rightarrow$ 13: CHECKLIST SETUP-01 VÀ KÍCH HOẠT KẾ HOẠCH NGUYÊN TỬ (DECISION 29, LỖI E6 & KẾT THÚC)
 
 | Thành phần | Chi tiết kỹ thuật triển khai |
 | :--- | :--- |
 | **Làn bơi (Lanes)** | `OWNER` (Node 26, 27) $\rightarrow$ `BACKEND` (Node 28, 29, 30) $\rightarrow$ `KẾT THÚC` (Node 31) |
-| **Frontend Code** | Màn hình Review tổng quan (Bảng đối soát: Tên gói, số tài sản, danh sách phân bổ, Executor đã đồng ý).<br/>• Người dùng tích chọn: *"Tôi đã đọc, hiểu và đồng ý với cam kết pháp lý"* $\rightarrow$ Bấm nút **"Kích hoạt kế hoạch (Activate Plan)"**. |
+| **Frontend Code** | Màn hình Review tổng quan (Bảng đối soát: Tên gói, số tài sản, danh sách phân bổ, Executor đã đồng ý, Trạng thái xác minh danh tính thủ công).<br/>• Người dùng tích chọn: *"Tôi đã đọc, hiểu và đồng ý với cam kết pháp lý"* $\rightarrow$ Bấm nút **"Kích hoạt kế hoạch (Activate Plan)"**. |
 | **Backend API** | `server/LegacyVault.Prototype.WebApi/Controllers/PlanController.cs`<br/>• `[HttpPost("activate")]`<br/>• Thực hiện kiểm tra toàn diện **SETUP-01 Checklist**: |
 | **SETUP-01 Checklist (Decision 29)** | ```csharp
 var checklist = new SetupChecklist {
     HasActiveSubscription = (plan.Tier == PlanTier.XS || plan.Tier == PlanTier.XSMax) && plan.ExpiryDate > DateTime.UtcNow,
     IsOwnerMfaVerified = session.IsMfaVerified,
+    IsOwnerIdentityVerified = plan.IsOwnerIdentityVerified, // Verifier đã đối chiếu CCCD & phê duyệt VERIFIED (ADR-06)
     IsExecutorAccepted = plan.Executors.Any(e => e.Status == ExecutorStatus.Accepted),
     HasValidAssets = plan.Assets.Count(a => a.State == AssetState.EncryptedR2) >= 1,
     IsManifestValid = plan.Manifest != null && plan.Manifest.Allocations.Count > 0
@@ -110,7 +113,7 @@ if (!checklist.AllPassed)
     return UnprocessableEntity(new {
         ErrorCode = "E6_SETUP_CHECKLIST_FAILED",
         Checklist = checklist,
-        Message = "Kế hoạch chưa đủ điều kiện kích hoạt. Vui lòng hoàn thành các mục chưa đạt trong Checklist."
+        Message = "Kế hoạch chưa đủ điều kiện kích hoạt. Vui lòng hoàn thành các mục chưa đạt trong Checklist (Bao gồm thẩm định danh tính bởi Verifier)."
     });
 }
 ``` |
@@ -149,4 +152,5 @@ try {
 | **E3** | `CRYPTO_STORAGE_FAILURE` | `502 Bad Gateway` | Giữ Draft; retry có Idempotency key; dọn dẹp file rác trên Cloudflare R2. |
 | **E4** | `INVALID_RECIPIENT_MAPPING` | `400 Bad Request` | Giữ chỉ định cũ; đánh dấu tài sản chưa gán là `NOT_IN_ESTATE_PLAN`. |
 | **E5** | `EXECUTOR_DECLINED_OR_TIMEOUT` | `200 OK (Business Warning)` | Ghi log audit; tự động gửi email mời Executor dự phòng kế tiếp. |
+| **E5.1** | `IDENTITY_VERIFICATION_REJECTED` | `422 Unprocessable` | Verifier ghi nhận lý do từ chối/yêu cầu bổ sung; gửi thông báo; Loop-back quay lại Bước 10 để nộp lại CCCD. |
 | **E6** | `SETUP_CHECKLIST_INCOMPLETE` | `422 Unprocessable` | Trả chi tiết checklist 5 điều kiện; giữ trạng thái Draft cho đến khi đủ. |

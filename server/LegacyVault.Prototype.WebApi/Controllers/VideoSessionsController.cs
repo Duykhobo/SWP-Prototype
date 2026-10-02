@@ -54,14 +54,22 @@ public class VideoSessionsController : ControllerBase
     [HttpPost("{sessionId}/join-token")]
     public async Task<IActionResult> GetJoinToken(
         [FromRoute] Guid sessionId, 
-        [FromQuery] Guid? userId = null)
+        [FromQuery] Guid? userId = null,
+        [FromQuery] string? participantName = null,
+        [FromQuery] string? guestToken = null,
+        [FromQuery] string? role = null)
     {
         // Chống lưu cache token bảo mật
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
         Response.Headers.Append("Pragma", "no-cache");
 
         var currentUserId = GetCurrentUserId(userId);
-        var tokenResponse = await _videoSessionService.GetJoinTokenAsync(sessionId, currentUserId);
+        var tokenResponse = await _videoSessionService.GetJoinTokenAsync(
+            sessionId, 
+            currentUserId, 
+            participantName, 
+            guestToken, 
+            role);
         return Ok(tokenResponse);
     }
 

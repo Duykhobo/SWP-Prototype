@@ -87,24 +87,61 @@ public class VideoSessionService : IVideoSessionService
         return Task.FromResult(MapToScheduleResponse(session));
     }
 
-    public Task<JoinTokenResponse> GetJoinTokenAsync(Guid sessionId, Guid currentUserId)
+    public Task<JoinTokenResponse> GetJoinTokenAsync(
+        Guid sessionId, 
+        Guid currentUserId, 
+        string? customParticipantName = null, 
+        string? guestToken = null, 
+        string? requestedRole = null)
     {
         if (!_sessions.TryGetValue(sessionId, out var session))
             throw new KeyNotFoundException($"Không tìm thấy phiên gọi {sessionId}.");
 
-        // 1. Kiểm tra quyền truy cập nghiêm ngặt
+        // 1. Phân quyền và xác định tên hiển thị
         ParticipantRoleInCall role;
         string participantName;
 
-        if (session.AssignedVerifierId == currentUserId)
+        if (session.AssignedVerifierId == currentUserId || requestedRole == "EXECUTOR" || requestedRole == "VERIFIER")
         {
             role = ParticipantRoleInCall.HOST_VERIFIER;
-            participantName = "Thẩm định viên (Verifier)";
+            participantName = !string.IsNullOrWhiteSpace(customParticipantName)
+                ? customParticipantName
+                : (requestedRole == "EXECUTOR" ? "Người thực thi (Host Executor)" : "Thẩm định viên (Verifier)");
         }
-        else if (session.SubjectUserId == currentUserId)
+        else if (session.SubjectUserId == currentUserId && string.IsNullOrEmpty(guestToken) && (requestedRole == "OWNER" || requestedRole == null))
         {
             role = ParticipantRoleInCall.SUBJECT_USER;
-            participantName = session.Purpose == VideoSessionPurpose.OWNER_RESCUE ? "Chủ kho (Owner)" : "Người thi hành (Executor)";
+            participantName = !string.IsNullOrWhiteSpace(customParticipantName)
+                ? customParticipantName
+                : (session.Purpose == VideoSessionPurpose.OWNER_RESCUE ? "Chủ kho (Owner)" : "Đương sự / Người thụ hưởng");
+        }
+        else if (!string.IsNullOrEmpty(guestToken) && _guestSessions.TryGetValue(guestToken, out var guestSession) && guestSession.Status != GuestSessionStatus.REVOKED)
+        {
+            role = ParticipantRoleInCall.SUBJECT_USER;
+            participantName = !string.IsNullOrWhiteSpace(customParticipantName)
+                ? customParticipantName
+                : guestSession.BeneficiaryName;
+        }
+        else if (requestedRole is "CO_BENEFICIARY" or "NOTARY_OBSERVER" or "OBSERVER" or "BENEFICIARY_GUEST")
+        {
+            // Cho phép phòng họp nhiều người (Multi-party): Đồng thừa kế / Luật sư công chứng / Người giám sát / Khách mời
+            role = requestedRole switch
+            {
+                "CO_BENEFICIARY" => ParticipantRoleInCall.CO_BENEFICIARY,
+                "NOTARY_OBSERVER" => ParticipantRoleInCall.NOTARY_OBSERVER,
+                "BENEFICIARY_GUEST" => ParticipantRoleInCall.SUBJECT_USER,
+                _ => ParticipantRoleInCall.OBSERVER
+            };
+
+            participantName = !string.IsNullOrWhiteSpace(customParticipantName)
+                ? customParticipantName
+                : requestedRole switch
+                {
+                    "CO_BENEFICIARY" => "Đồng thừa kế (Co-Beneficiary)",
+                    "NOTARY_OBSERVER" => "Công chứng viên / Luật sư giám sát",
+                    "BENEFICIARY_GUEST" => "Người thụ hưởng (Guest)",
+                    _ => $"Người tham dự #{currentUserId.ToString()[..4]}"
+                };
         }
         else
         {
@@ -134,11 +171,13 @@ public class VideoSessionService : IVideoSessionService
             session.Status = VideoSessionStatus.WAITING;
         }
 
-        // 3. TTL ngắn: 5 phút để hoàn tất Handshake
+        // 3. Đảm bảo identity duy nhất cho mỗi kết nối/thiết bị vào phòng LiveKit
+        var uniqueIdentity = $"{currentUserId:N}_{Guid.NewGuid().ToString()[..6]}";
+
         var ttl = TimeSpan.FromMinutes(5);
         var token = _liveKitService.GenerateJoinToken(
             roomName: session.ProviderRoomId,
-            participantIdentity: currentUserId.ToString(),
+            participantIdentity: uniqueIdentity,
             participantName: participantName,
             ttl: ttl);
 
@@ -146,7 +185,7 @@ public class VideoSessionService : IVideoSessionService
         {
             LiveKitUrl = _liveKitUrl,
             RoomName = session.ProviderRoomId,
-            ParticipantIdentity = currentUserId.ToString(),
+            ParticipantIdentity = uniqueIdentity,
             ParticipantName = participantName,
             Token = token,
             ExpiresInSeconds = (int)ttl.TotalSeconds

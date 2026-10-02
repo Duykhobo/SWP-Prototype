@@ -99,7 +99,10 @@ public enum VerificationOutcome
 public enum ParticipantRoleInCall
 {
     HOST_VERIFIER,
-    SUBJECT_USER
+    SUBJECT_USER,
+    CO_BENEFICIARY,
+    NOTARY_OBSERVER,
+    OBSERVER
 }
 
 public enum AccessGrantStatus

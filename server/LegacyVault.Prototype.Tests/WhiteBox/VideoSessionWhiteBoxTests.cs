@@ -477,4 +477,65 @@ public class VideoSessionWhiteBoxTests
         var validatedGuest = await videoSessionService.ValidateGuestSessionAsync(guestSession.GuestToken);
         Assert.Null(validatedGuest); // Đã COMPLETED -> null
     }
+
+    [Fact]
+    public async Task GetJoinToken_MultiParty_AllowsExecutor_CoBeneficiary_Notary_AndAssignsUniqueIdentities()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var executorId = Guid.NewGuid();
+        var primaryBeneficiaryId = Guid.NewGuid();
+        var coBeneficiaryId = Guid.NewGuid();
+        var notaryId = Guid.NewGuid();
+
+        var sessionResp = await videoSessionService.RequestSessionAsync(new CreateVideoSessionRequest
+        {
+            CaseId = caseId,
+            Purpose = VideoSessionPurpose.HANDOVER_VERIFICATION,
+            SubjectUserId = primaryBeneficiaryId,
+            AssignedVerifierId = executorId
+        }, executorId);
+
+        // Act 1: Executor tham gia
+        var execToken = await videoSessionService.GetJoinTokenAsync(
+            sessionResp.SessionId, executorId, "Người thực thi Trần Văn A", null, "EXECUTOR");
+
+        // Act 2: Người thụ hưởng chính tham gia
+        var benToken = await videoSessionService.GetJoinTokenAsync(
+            sessionResp.SessionId, primaryBeneficiaryId, "Người thụ hưởng Nguyễn Văn B", null, "BENEFICIARY_GUEST");
+
+        // Act 3: Đồng thừa kế thứ 2 tham gia
+        var coBenToken = await videoSessionService.GetJoinTokenAsync(
+            sessionResp.SessionId, coBeneficiaryId, "Đồng thừa kế Lê Thị C", null, "CO_BENEFICIARY");
+
+        // Act 4: Luật sư / Công chứng viên giám sát tham gia
+        var notaryToken = await videoSessionService.GetJoinTokenAsync(
+            sessionResp.SessionId, notaryId, "Công chứng viên Hoàng Văn D", null, "NOTARY_OBSERVER");
+
+        // Assert: Cả 4 bên đều được cấp token thành công và có ParticipantIdentity duy nhất
+        Assert.NotNull(execToken.Token);
+        Assert.NotNull(benToken.Token);
+        Assert.NotNull(coBenToken.Token);
+        Assert.NotNull(notaryToken.Token);
+
+        Assert.Equal("Người thực thi Trần Văn A", execToken.ParticipantName);
+        Assert.Equal("Người thụ hưởng Nguyễn Văn B", benToken.ParticipantName);
+        Assert.Equal("Đồng thừa kế Lê Thị C", coBenToken.ParticipantName);
+        Assert.Equal("Công chứng viên Hoàng Văn D", notaryToken.ParticipantName);
+
+        // Đảm bảo không ai bị trùng identity (tránh bị LiveKit disconnect khi vào chung phòng)
+        var identities = new HashSet<string>
+        {
+            execToken.ParticipantIdentity,
+            benToken.ParticipantIdentity,
+            coBenToken.ParticipantIdentity,
+            notaryToken.ParticipantIdentity
+        };
+        Assert.Equal(4, identities.Count);
+    }
 }

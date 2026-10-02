@@ -3354,9 +3354,9 @@
     "semantic_hash": ""
   },
   "client/src/features/video-verification/VideoVerificationTestbench.tsx": {
-    "mtime": 1790951594.773844,
-    "seen": 1790951710.2910113,
-    "ast_hash": "7f6126bf86101b79a58db450da120afe",
+    "mtime": 1790952457.6273131,
+    "seen": 1790952540.159557,
+    "ast_hash": "925a663514f2cd678e464b5711b6059e",
     "semantic_hash": ""
   },
   "scratch/build_from_template.js": {
@@ -3432,9 +3432,9 @@
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Application/Interfaces/IVideoSessionService.cs": {
-    "mtime": 1790950971.200989,
-    "seen": 1790951710.3085961,
-    "ast_hash": "34076925d4c94eccb8ef5a36c76105b1",
+    "mtime": 1790951873.5960395,
+    "seen": 1790952540.1793633,
+    "ast_hash": "bcb7b736e037b8f39143df040dd5e68c",
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Domain/Models/VideoSessionModels.cs": {
@@ -3450,15 +3450,15 @@
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Infrastructure/Services/VideoSessionService.cs": {
-    "mtime": 1790951448.628719,
-    "seen": 1790951710.3131354,
-    "ast_hash": "a3f9bebf06c29ae3d3bc701bbbca4ff5",
+    "mtime": 1790951834.6191747,
+    "seen": 1790952540.184875,
+    "ast_hash": "af5e3075cc133681811cf9272a07ae62",
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Tests/WhiteBox/VideoSessionWhiteBoxTests.cs": {
-    "mtime": 1790951412.837669,
-    "seen": 1790951710.3141348,
-    "ast_hash": "36bca692f4ee81f3fd876e163d9bb05a",
+    "mtime": 1790951912.7401893,
+    "seen": 1790952540.187391,
+    "ast_hash": "57b8e90ec2c01fe54444f59fffed1eba",
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.WebApi/Controllers/VideoSessionsController.cs": {
@@ -3480,21 +3480,21 @@
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Application/DTOs/HandoverDtos.cs": {
-    "mtime": 1790951070.2918005,
-    "seen": 1790951710.307093,
-    "ast_hash": "1f1b9decb3948a6144611746260787b2",
+    "mtime": 1790951764.9841483,
+    "seen": 1790952540.1763513,
+    "ast_hash": "e4af7b3d20565d2fb46d4394fafc04f0",
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.Domain/Models/HandoverModels.cs": {
-    "mtime": 1790950961.0690756,
-    "seen": 1790951710.3111212,
-    "ast_hash": "3e6aed7cd3f399c10471f1dbaf933962",
+    "mtime": 1790951742.206252,
+    "seen": 1790952540.1813629,
+    "ast_hash": "593a3cf6d0913aefcf301d3ebcdf0313",
     "semantic_hash": ""
   },
   "server/LegacyVault.Prototype.WebApi/Controllers/CaseBundlesController.cs": {
-    "mtime": 1790951024.2394557,
-    "seen": 1790951710.3141348,
-    "ast_hash": "e922cb6926c12b44ea6fea8f73e1b523",
+    "mtime": 1790951849.8158276,
+    "seen": 1790952540.1884155,
+    "ast_hash": "d2231c1845f6fee4f8498a84d066221c",
     "semantic_hash": ""
   }
 }

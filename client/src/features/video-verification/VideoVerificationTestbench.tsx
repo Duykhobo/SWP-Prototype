@@ -29,6 +29,7 @@ import {
   Mic,
   PhoneCall,
   PhoneOff,
+  Plus,
   QrCode,
   RefreshCw,
   Share2,
@@ -52,20 +53,36 @@ interface JoinTokenData {
   expiresInSeconds: number;
 }
 
+export type ExtendedUserRole =
+  | "EXECUTOR"
+  | "BENEFICIARY_GUEST"
+  | "CO_BENEFICIARY"
+  | "NOTARY_OBSERVER"
+  | "VERIFIER"
+  | "OWNER";
+
 export const VideoVerificationTestbench: React.FC = () => {
   // Navigation Steps: 'prejoin' | 'call' | 'verdict'
   const [activeStep, setActiveStep] = useState<"prejoin" | "call" | "verdict">("prejoin");
 
   // Scenarios & Roles
-  // Scenarios & Roles
   const [purpose, setPurpose] = useState<"OWNER_RESCUE" | "HANDOVER_VERIFICATION">("HANDOVER_VERIFICATION");
-  const [userRole, setUserRole] = useState<"EXECUTOR" | "BENEFICIARY_GUEST" | "OWNER" | "VERIFIER">(() => {
+  const [userRole, setUserRole] = useState<ExtendedUserRole>(() => {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
-      const r = p.get("role");
-      if (r === "EXECUTOR" || r === "BENEFICIARY_GUEST" || r === "VERIFIER" || r === "OWNER") return r as any;
+      const r = p.get("role") as ExtendedUserRole;
+      if (r) return r;
     }
     return "EXECUTOR";
+  });
+
+  // Tên hiển thị của người tham gia trong cuộc họp
+  const [participantDisplayName, setParticipantDisplayName] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search);
+      return p.get("name") || "";
+    }
+    return "";
   });
 
   // Guest Token nếu là người nhận truy cập qua link mời
@@ -78,7 +95,7 @@ export const VideoVerificationTestbench: React.FC = () => {
   });
 
   // Case & Session IDs
-  const [caseId] = useState<string>("c83f9872-4d2a-4318-b2a8-123456789abc");
+  const [caseId, setCaseId] = useState<string>("c83f9872-4d2a-4318-b2a8-123456789abc");
   const [sessionId, setSessionId] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
       const p = new URLSearchParams(window.location.search);
@@ -88,6 +105,7 @@ export const VideoVerificationTestbench: React.FC = () => {
   });
 
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedRoleText, setCopiedRoleText] = useState<string | null>(null);
 
   // Dynamic Challenge Code for live interaction
   const [challengeCode] = useState<string>("LV-8492");
@@ -415,20 +433,105 @@ export const VideoVerificationTestbench: React.FC = () => {
     return res.data.sessionId;
   };
 
-  // 4. Lấy Token & Vào cuộc gọi
+  // 3.1. Tạo thêm phòng họp mới hoàn toàn (Hội đồng di sản / Nhiều người)
+  const handleCreateNewRoom = async (customPurpose?: "OWNER_RESCUE" | "HANDOVER_VERIFICATION") => {
+    const p = customPurpose || purpose;
+    const newCaseId = `case-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+    try {
+      const res = await axios.post(`${API_BASE}/api/video-sessions/request`, {
+        caseId: newCaseId,
+        purpose: p,
+        subjectUserId: "11111111-1111-1111-1111-111111111111",
+        assignedVerifierId: "22222222-2222-2222-2222-222222222222",
+      });
+      setCaseId(newCaseId);
+      setSessionId(res.data.sessionId);
+      setGuestToken(null);
+      setJoinTokenData(null);
+      setInCall(false);
+      setDownloadedAssetIds([]);
+      setDecryptedFiles({});
+      setFinalReceipt(null);
+      setShowReceiptModal(false);
+      setAcceptResponse(null);
+      setVerifierSavedPass(false);
+      setActiveStep("prejoin");
+      alert(`Đã khởi tạo phòng họp mới thành công!\nMã phòng: ${res.data.sessionId.slice(0, 8)}...`);
+    } catch (err: any) {
+      alert("Lỗi tạo phòng họp mới: " + (err.response?.data?.message || err.message));
+    }
+  };
+
+  // 3.2. Sao chép link mời theo từng vai trò cụ thể trong cuộc họp
+  const copyInviteLink = async (role: ExtendedUserRole, defaultName: string, label: string) => {
+    let sid = sessionId;
+    if (!sid) {
+      sid = await ensureSessionCreated();
+    }
+    let token = guestToken;
+    if (!token && (role === "BENEFICIARY_GUEST" || role === "CO_BENEFICIARY")) {
+      try {
+        const gRes = await axios.post(`${API_BASE}/api/case-bundles/${caseId}/guest-session?sessionId=${sid}`);
+        token = gRes.data.guestToken;
+        setGuestToken(token);
+      } catch (e) {
+        console.error("Lỗi tạo guest session:", e);
+      }
+    }
+    const params = new URLSearchParams();
+    params.set("session", sid);
+    params.set("role", role);
+    if (token) params.set("guestToken", token);
+    params.set("name", defaultName);
+
+    const link = `${window.location.origin}/?${params.toString()}`;
+    navigator.clipboard.writeText(link);
+    setCopiedRoleText(label);
+    setTimeout(() => setCopiedRoleText(null), 3000);
+  };
+
+  // 4. Lấy Token & Vào cuộc gọi (Hỗ trợ nhiều bên tham gia cùng lúc)
   const handleJoinCall = async () => {
     setIsConnecting(true);
     setConnectionError(null);
     try {
       stopLocalPreview();
       const currentSessionId = await ensureSessionCreated();
-      const effectiveUserId =
-        userRole === "VERIFIER" || userRole === "EXECUTOR"
-          ? "22222222-2222-2222-2222-222222222222"
-          : "11111111-1111-1111-1111-111111111111";
+
+      let effectiveUserId = "11111111-1111-1111-1111-111111111111";
+      if (userRole === "VERIFIER" || userRole === "EXECUTOR") {
+        effectiveUserId = "22222222-2222-2222-2222-222222222222";
+      } else if (userRole === "CO_BENEFICIARY") {
+        effectiveUserId = "33333333-3333-3333-3333-333333333333";
+      } else if (userRole === "NOTARY_OBSERVER") {
+        effectiveUserId = "44444444-4444-4444-4444-444444444444";
+      }
+
+      const defaultName =
+        userRole === "EXECUTOR"
+          ? "Người thực thi (Host Executor)"
+          : userRole === "BENEFICIARY_GUEST"
+          ? "Người thụ hưởng 1 (Chính)"
+          : userRole === "CO_BENEFICIARY"
+          ? "Đồng thừa kế 2"
+          : userRole === "NOTARY_OBSERVER"
+          ? "Công chứng viên / Luật sư"
+          : userRole === "VERIFIER"
+          ? "Thẩm định viên (Verifier)"
+          : "Chủ kho (Owner)";
+
+      const effectiveName = participantDisplayName.trim() || defaultName;
+
+      const params = new URLSearchParams();
+      params.set("userId", effectiveUserId);
+      params.set("role", userRole);
+      params.set("participantName", effectiveName);
+      if (guestToken) {
+        params.set("guestToken", guestToken);
+      }
 
       const res = await axios.post(
-        `${API_BASE}/api/video-sessions/${currentSessionId}/join-token?userId=${effectiveUserId}`,
+        `${API_BASE}/api/video-sessions/${currentSessionId}/join-token?${params.toString()}`,
       );
 
       setJoinTokenData(res.data);
@@ -524,7 +627,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                 className="bg-white border-0 font-bold text-[#B88E4C] focus:ring-0 cursor-pointer"
               >
                 <option value="EXECUTOR">Người thực thi (Executor - Host)</option>
-                <option value="BENEFICIARY_GUEST">Người thụ hưởng (Guest - Không cần Login)</option>
+                <option value="BENEFICIARY_GUEST">Người thụ hưởng 1 (Guest)</option>
+                <option value="CO_BENEFICIARY">Đồng thừa kế (Co-Beneficiary)</option>
+                <option value="NOTARY_OBSERVER">Công chứng viên / Luật sư</option>
                 <option value="VERIFIER">Thẩm định viên (Verifier)</option>
                 <option value="OWNER">Chủ kho di sản (Owner / Subject)</option>
               </select>
@@ -576,66 +681,80 @@ export const VideoVerificationTestbench: React.FC = () => {
         </div>
       </div>
 
-      {/* 1.1. INVITE LINK BAR FOR 2ND PERSON */}
-      <div className="bg-[#FAF9F5] border-b border-[#DCD9D0] px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
-        <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-[#B88E4C] shrink-0" />
-          <span className="font-bold text-[#0B291E]">Mời người thứ 2 vào phòng:</span>
-          {sessionId ? (
-            <span className="text-[#66786E]">
-              Mã phòng: <code className="bg-white border border-[#DCD9D0] px-1.5 py-0.5 rounded text-[#0B291E] font-mono font-bold">{sessionId.slice(0, 8)}...</code>
-            </span>
-          ) : (
-            <span className="text-[#66786E] italic">(Chưa có phòng, bấm tạo để lấy link mời)</span>
-          )}
+      {/* 1.1. MULTI-PARTY ROOM MANAGEMENT & MULTI-ROLE INVITE HUB */}
+      <div className="bg-[#FAF9F5] border-b border-[#DCD9D0] px-6 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <Users className="w-4 h-4 text-[#B88E4C] shrink-0" />
+            <span className="font-bold text-[#0B291E]">Phòng họp LiveKit:</span>
+            {sessionId ? (
+              <code className="bg-white border border-[#DCD9D0] px-2 py-0.5 rounded text-[#0B291E] font-mono font-bold">
+                {sessionId.slice(0, 8)}...
+              </code>
+            ) : (
+              <span className="text-[#66786E] italic">(Chưa khởi tạo phòng)</span>
+            )}
+          </div>
+
+          {/* Nút Tạo Thêm Phòng Mới */}
+          <button
+            onClick={() => handleCreateNewRoom()}
+            className="px-2.5 py-1 bg-white hover:bg-[#EFECE6] border border-[#DCD9D0] text-[#0B291E] font-bold text-[11px] rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+            title="Khởi tạo một phòng họp video LiveKit mới hoàn toàn"
+          >
+            <Plus className="w-3.5 h-3.5 text-[#B88E4C]" />
+            <span>Tạo Thêm Phòng Mới</span>
+          </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          {sessionId ? (
-            <button
-              onClick={async () => {
-                let token = guestToken;
-                if (!token) {
-                  try {
-                    const gRes = await axios.post(`${API_BASE}/api/case-bundles/${caseId}/guest-session?sessionId=${sessionId}`);
-                    token = gRes.data.guestToken;
-                    setGuestToken(token);
-                  } catch (e) {
-                    console.error("Lỗi tạo guest session:", e);
-                  }
-                }
-                const link = `${window.location.origin}/?session=${sessionId}&role=BENEFICIARY_GUEST${token ? `&guestToken=${token}` : ""}`;
-                navigator.clipboard.writeText(link);
-                setCopiedLink(true);
-                setTimeout(() => setCopiedLink(false), 2500);
-              }}
-              className="px-3 py-1.5 bg-[#0B291E] hover:bg-[#14241C] text-white font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
-            >
-              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[#B88E4C]" />}
-              <span>{copiedLink ? "Đã chép link khách mời!" : "Sao Chép Link Người Nhận (Khách không cần Login)"}</span>
-            </button>
-          ) : (
-            <button
-              onClick={async () => {
-                const sid = await ensureSessionCreated();
-                let token = "";
-                try {
-                  const gRes = await axios.post(`${API_BASE}/api/case-bundles/${caseId}/guest-session?sessionId=${sid}`);
-                  token = gRes.data.guestToken;
-                  setGuestToken(token);
-                } catch (e) {
-                  console.error("Lỗi tạo guest session:", e);
-                }
-                const link = `${window.location.origin}/?session=${sid}&role=BENEFICIARY_GUEST${token ? `&guestToken=${token}` : ""}`;
-                navigator.clipboard.writeText(link);
-                setCopiedLink(true);
-                setTimeout(() => setCopiedLink(false), 2500);
-              }}
-              className="px-3 py-1.5 bg-[#B88E4C] hover:bg-[#A07839] text-[#0B291E] font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>{copiedLink ? "Đã chép link!" : "Tạo & Chép Link Khách Mời"}</span>
-            </button>
+        {/* Multi-party Invite Links */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[11px] text-[#66786E] font-medium hidden sm:inline mr-1">Mời vào phòng:</span>
+
+          {/* 1. Link Người thụ hưởng chính */}
+          <button
+            onClick={() => copyInviteLink("BENEFICIARY_GUEST", "Người Thụ Hưởng 1", "Người Thụ Hưởng 1")}
+            className="px-2.5 py-1 bg-[#0B291E] hover:bg-[#14241C] text-white font-bold text-[11px] rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-xs whitespace-nowrap"
+            title="Link khách mời cho người nhận chính (Không cần đăng nhập)"
+          >
+            <Copy className="w-3 h-3 text-[#B88E4C]" />
+            <span>+ Người Nhận 1</span>
+          </button>
+
+          {/* 2. Link Đồng thừa kế (Người nhận 2) */}
+          <button
+            onClick={() => copyInviteLink("CO_BENEFICIARY", "Đồng Thừa Kế 2", "Đồng Thừa Kế 2")}
+            className="px-2.5 py-1 bg-white hover:bg-[#EFECE6] border border-[#DCD9D0] text-[#0B291E] font-bold text-[11px] rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
+            title="Link cho người nhận di sản thứ 2 / thành viên thừa kế"
+          >
+            <Users className="w-3 h-3 text-blue-600" />
+            <span>+ Đồng Thừa Kế 2</span>
+          </button>
+
+          {/* 3. Link Công chứng viên / Luật sư */}
+          <button
+            onClick={() => copyInviteLink("NOTARY_OBSERVER", "Công Chứng Viên", "Công Chứng Viên")}
+            className="px-2.5 py-1 bg-white hover:bg-[#EFECE6] border border-[#DCD9D0] text-[#0B291E] font-bold text-[11px] rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
+            title="Link cho luật sư / công chứng viên giám sát"
+          >
+            <ShieldCheck className="w-3 h-3 text-purple-600" />
+            <span>+ Luật Sư / Công Chứng</span>
+          </button>
+
+          {/* 4. Link Người thực thi */}
+          <button
+            onClick={() => copyInviteLink("EXECUTOR", "Người Thực Thi", "Người Thực Thi")}
+            className="px-2.5 py-1 bg-white hover:bg-[#EFECE6] border border-[#DCD9D0] text-[#0B291E] font-bold text-[11px] rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-2xs whitespace-nowrap"
+            title="Link cho Người thực thi (Host Executor)"
+          >
+            <ShieldAlert className="w-3 h-3 text-amber-600" />
+            <span>+ Executor</span>
+          </button>
+
+          {copiedRoleText && (
+            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-md animate-in fade-in flex items-center gap-1">
+              <Check className="w-3 h-3 text-emerald-700" /> Đã chép link {copiedRoleText}!
+            </span>
           )}
         </div>
       </div>
@@ -738,7 +857,22 @@ export const VideoVerificationTestbench: React.FC = () => {
                   </li>
                 </ul>
 
-                <div className="pt-2 border-t border-[#EFECE6]">
+                {/* Tên hiển thị người tham gia trong phòng gọi */}
+                <div className="space-y-1.5 pt-2 border-t border-[#EFECE6]">
+                  <label className="text-[11px] font-bold text-[#0B291E] flex items-center justify-between">
+                    <span>Tên của bạn trong phòng họp:</span>
+                    <span className="text-[10px] text-[#66786E] font-normal">Hiển thị trên khung LiveKit</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={participantDisplayName}
+                    onChange={(e) => setParticipantDisplayName(e.target.value)}
+                    placeholder="Ví dụ: Nguyễn Văn A (Người thụ hưởng)"
+                    className="w-full bg-[#FAF9F5] border border-[#DCD9D0] rounded-xl px-3 py-2 text-xs font-semibold text-[#0B291E] focus:ring-1 focus:ring-[#B88E4C]"
+                  />
+                </div>
+
+                <div className="pt-1">
                   <button
                     onClick={handleJoinCall}
                     disabled={isConnecting}
@@ -768,8 +902,23 @@ export const VideoVerificationTestbench: React.FC = () => {
                     <HeritageBadge variant="gold">LỄ BÀN GIAO TRONG PHÒNG GỌI</HeritageBadge>
                   </h4>
                   <p className="text-[11px] text-[#66786E]">
-                    Vai trò hiện tại:{" "}
-                    <strong>{userRole === "VERIFIER" ? "Thẩm định viên (Host Verifier)" : "Đương sự / Người thụ hưởng (Beneficiary)"}</strong>
+                    Vai trò:{" "}
+                    <strong className="text-[#0B291E]">
+                      {userRole === "EXECUTOR"
+                        ? "Người thực thi (Host Executor)"
+                        : userRole === "VERIFIER"
+                        ? "Thẩm định viên (Host Verifier)"
+                        : userRole === "BENEFICIARY_GUEST"
+                        ? "Người thụ hưởng 1 (Chính)"
+                        : userRole === "CO_BENEFICIARY"
+                        ? "Đồng thừa kế 2"
+                        : userRole === "NOTARY_OBSERVER"
+                        ? "Công chứng viên / Luật sư giám sát"
+                        : "Chủ kho di sản (Owner)"}
+                    </strong>
+                    {participantDisplayName && (
+                      <span className="ml-1.5 font-bold text-[#B88E4C]">({participantDisplayName})</span>
+                    )}
                   </p>
                 </div>
               </div>

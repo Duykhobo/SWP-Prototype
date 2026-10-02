@@ -1,17 +1,17 @@
 # Graph Report - SWP-Prototype  (2026-10-02)
 
 ## Corpus Check
-- 561 files · ~1,921,797 words
+- 561 files · ~1,922,859 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 68 file(s) not represented in the graph (top: .csv 53, .xml 6, (none) 3)
 
 ## Summary
-- 8018 nodes · 13402 edges · 500 communities (420 shown, 80 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 466 edges (avg confidence: 0.86)
+- 8023 nodes · 13416 edges · 475 communities (396 shown, 79 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 472 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4cb97ad3`
+- Built from commit: `ce54add8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -27,7 +27,7 @@
 - test_design_system_mode.py
 - geometry.mjs
 - gray
-- VideoSessionDetailDto
+- IVideoSessionService
 - render-architecture.mjs
 - engineering-profile.test.mjs
 - scripts/core.py
@@ -41,17 +41,17 @@
 - properties
 - properties
 - check-update.mjs
-- react
+- lucide-react
 - render-lifecycle.mjs
 - diagnostics.mjs
-- icon/generate.py
+- generate_icon
 - probe.mjs
 - output-path.test.mjs
 - update-notifier.test.mjs
 - client/package.json
 - v1-compatibility.test.mjs
-- test_text_layout_resilience.py
-- FptMarketplaceTestbench.tsx
+- ordinary-model-floor.test.mjs
+- route-share-card.test.mjs
 - HandoverEligibilityDto
 - properties
 - ref_node_path
@@ -94,7 +94,7 @@
 - properties
 - $ref
 - properties
-- finder-browser.test.mjs
+- ref_node_assert
 - Canvas Design System
 - compilerOptions
 - OidcUserInfo
@@ -103,9 +103,9 @@
 - archify/package.json
 - properties
 - LegacyVault.Prototype.Application.Interfaces
-- ControllerBase
+- 3. TEST ITEMS (Các thành phần kiểm thử)
 - Prerequisites
-- ErrorCodes.cs
+- story-carrier.test.mjs
 - properties
 - golden.mjs
 - ref_node_fs
@@ -137,7 +137,7 @@
 - temp_check.js
 - ProblemDetailsResponse
 - EstatePlanActivationRequest
-- test_core.py
+- TestTokenizer
 - items
 - generate-brand-marks.mjs
 - architecture-delta-markers.test.mjs
@@ -158,12 +158,12 @@
 - Tailwind CSS Responsive Design
 - design-tokens-starter.json
 - TestDomainDetection
-- viewer-camera-browser.test.mjs
+- story-moment-link.test.mjs
 - IEstatePlanRulesService
 - .ValidateThreePersonRule
 - Typography Specifications
-- generate-slide.py
-- HandoverReceiptDto
+- chapter-rail.test.mjs
+- FinalizeHandoverResponse
 - items
 - validate-tokens.cjs
 - card
@@ -191,7 +191,7 @@
 - FptVisionExtractResponse
 - SmtpConfigOverride
 - SubscriptionTier
-- CaseRescueHold
+- finder.test.mjs
 - entries
 - items
 - entries
@@ -202,11 +202,11 @@
 - AssetEnvelopeMetadata
 - generate-tokens.cjs
 - button
-- duration
+- primitive
 - VideoSessionService
 - lint-skill.mjs
 - diffLayoutAnchors
-- logo/core.py
+- motion-governor.test.mjs
 - HandoverReceipt
 - items
 - Bố cục màn hình trong app
@@ -216,12 +216,12 @@
 - TestGeneratedConfigIsValidJs
 - collectLayoutAnchors
 - LegacyVault.Prototype.WebApi.Middlewares
-- story-director-strip.test.mjs
+- relationship-pulse.test.mjs
 - .ExtractVisionDocument
 - wraps
 - VideoSessionsController
 - guided-views.test.mjs
-- ref_node_assert
+- ref_node_test
 - relationship-direct-explorer.test.mjs
 - relationship-lens.test.mjs
 - StorageController
@@ -233,7 +233,7 @@
 - Color Palette Management
 - CIP Deliverable Guide
 - Archify
-- ref_node_url
+- landing.test.mjs
 - ClientTesseractOcrPoc.tsx
 - input
 - .HandleExceptionAsync
@@ -246,7 +246,7 @@
 - ĐẶC TẢ CHI TIẾT CÁC LUỒNG NGHIỆP VỤ CHÍNH (MAIN FLOWS SPECIFICATION)
 - Workflow
 - visual-check.test.mjs
-- guided-views-browser.test.mjs
+- repository-evidence-replacement.test.mjs
 - 5. 🏛️ BỘ 5 THÀNH PHẦN NGHIỆP VỤ ĐẶC THÙ (DOMAIN-SPECIFIC PROTOCOLS)
 - offline-font-browser.test.mjs
 - readme-showcase.test.mjs
@@ -254,7 +254,7 @@
 - Design System
 - DispatchedEmailRecord
 - .EP03_DeletionEligibility_TierPartitions
-- TestNativeDesktopStackFreshness
+- DecryptionKeyMaterialDto
 - size
 - viewBox
 - point
@@ -269,14 +269,11 @@
 - .ExtractSyntheticDocumentAsync
 - devDependencies
 - focus
-- $type
-- radius
-- render-html.py
+- TestBm25CoreBehavior
+- logo/search.py
 - baseService.ts
 - build_perfect_viewer.js
-- WebhookProcessResult
 - Routing by Task Type
-- VideoSessionParticipant
 - common.schema.json
 - via
 - width
@@ -286,8 +283,7 @@
 - col
 - fromCol
 - toCol
-- padding-y
-- RescueDecisionRequest
+- VideoSessionDetailDto
 - CaseBundlesController
 - col
 - labelSegment
@@ -309,19 +305,13 @@
 - chapter-delta-preview.test.mjs
 - TestSearchDomains
 - build_from_template.js
-- destructive
-- destructive-foreground
-- muted
-- primary-foreground
-- ring
-- secondary-foreground
 - env.ts
 - httpStatus.ts
 - tsconfig.json
 - fromSide
 - labelAt
 - step
-- TestStyleTaxonomy
+- test_style_taxonomy.py
 - HƯỚNG DẪN TÍCH HỢP & PHÁT TRIỂN DÀNH CHO BACKEND (BE INTEGRATION GUIDE)
 - BÁO CÁO TỔNG KẾT THỰC THI KIỂM THỬ (TEST EXECUTION REPORT)
 - ErrorBoundary.tsx
@@ -329,12 +319,9 @@
 - Primary Color Meanings
 - preset-tryon.test.mjs
 - JoinTokenResponse
-- index.ts
 - diagram-guide.test.mjs
 - HandoverAssetItem
 - story-horizon.test.mjs
-- lg
-- sm
 - messages.ts
 - Core Logo Types
 - 2. MA TRẬN ĐỐI SOÁT CÔNG NGHỆ $\leftrightarrow$ PHÁP LUẬT VIỆT NAM (CORE GROUNDING)
@@ -363,13 +350,12 @@
 - Tailwind Integration
 - Layout Patterns
 - Bố cục khối nổi
-- InteractiveWorkflowVisualizer.tsx
+- react
 - 2. CHI TIẾT CÁC THỰC THỂ CSDL (.NET 10 / SQL SERVER 2022)
 - 2. DANH MỤC TRƯỜNG HỢP KIỂM THỬ CHI TIẾT (TEST CASES)
 - Authoring contract
 - update.md
 - Logo Design Reference
-- xl
 - Token Architecture
 - Màu — luật M
 - Từng phong cách
@@ -390,7 +376,6 @@
 - 2. BẢNG TRA CỨU CODE CHI TIẾT TỪNG BƯỚC (STEP-BY-STEP DEV CHEATSHEET)
 - Delivery contract
 - Viewer Runtime reference
-- none
 - Archify JSON IR Schemas
 - entries
 - Brand
@@ -403,14 +388,11 @@
 - 2.4. Luồng chính 4 – Thông báo, chốt ngày và bàn giao theo kho tự gom
 - QUY CHUẨN VÒNG ĐỜI TRẠNG THÁI NGHIỆP VỤ (STATE MACHINES)
 - 3. MA TRẬN 6 BƯỚC TRIỂN KHAI KỸ THUẬT (STEP-BY-STEP IMPLEMENTATION MATRIX)
-- 16
 - 3. BẢNG TỔNG HỢP KẾT QUẢ ĐO ĐẠC THỰC TẾ (COVERLET REPORT)
 - LegacyVault · Digital Estate & Post-Mortem Asset Handover Platform
-- relationship-permalink.test.mjs
 - Đường dẫn (breadcrumb)
 - Bảng giá
 - SƠ ĐỒ LUỒNG BƠI KIẾN TRÚC (SWIMLANE WORKFLOW ARCHITECTURE)
-- 1
 - route-journey.test.mjs
 - Thiết kế từ đầu như một designer — luật U
 - Hình khối và bố cục — luật F
@@ -418,7 +400,6 @@
 - 2.3. Luồng chính 3 – Nộp và xác minh giấy chứng tử
 - MA TRẬN TRUY VẾT YÊU CẦU 2 CHIỀU (BIDIRECTIONAL TRACEABILITY MATRIX)
 - Sequence Renderer
-- 3
 - Slides Reference
 - HTML Slide Template
 - HTML Slide Template
@@ -458,8 +439,6 @@
 - brand-marks/README.md
 - slides-create.md
 - create.md
-- 8
-- HandoverVaultSnapshot
 - comment-thread.md
 - description-list.md
 - list-row.md
@@ -472,11 +451,8 @@
 - workflows/graphify.md
 - repair-receipt.test.mjs
 - share-card-export.test.mjs
-- vertical-edge.test.mjs
 - THƯ VIỆN TÀI LIỆU DỰ ÁN LEGACYVAULT (SWP391 - SRS v3.11.0)
-- .ProcessTransferChoice
-- chapter-handoff.test.mjs
-- route-probe.test.mjs
+- .ConsolidateVaults
 - 4. THIẾT KẾ CÁC KHỐI THÀNH PHẦN CỐT LÕI (CORE COMPONENTS DESIGN)
 - 8. MODULE 6: GÓI DỊCH VỤ & THANH TOÁN SEPAY VIETQR (LUỒNG 1A & 4G)
 - VaultStatus
@@ -487,7 +463,7 @@
 1. `compileWorkflowInternal()` - 175 edges
 2. `TailwindConfigGenerator` - 58 edges
 3. `asArray()` - 54 edges
-4. `VideoSessionService` - 43 edges
+4. `VideoSessionService` - 44 edges
 5. `HeritageBadge()` - 40 edges
 6. `textUnits()` - 38 edges
 7. `react` - 38 edges
@@ -510,23 +486,23 @@
 ## Import Cycles
 - None detected.
 
-## Communities (500 total, 80 thin omitted)
+## Communities (475 total, 79 thin omitted)
 
 ### Community 0 - "compileWorkflowInternal"
 Cohesion: 0.06
 Nodes (105): withDiagnosticRecordingSuppressed(), pointInBox(), rectsOverlap(), segmentIntersectsRect(), variantAccent(), relationshipLegendObstacles(), compileWorkflowInternal(), acceptsFix() (+97 more)
 
 ### Community 1 - "design_system.py"
-Cohesion: 0.05
-Nodes (17): ansi_ljust(), _detect_page_type(), format_ascii_box(), format_master_md(), format_page_override_md(), _generate_intelligent_overrides(), hex_to_ansi(), persist_design_system() (+9 more)
+Cohesion: 0.07
+Nodes (15): ansi_ljust(), _detect_page_type(), format_ascii_box(), format_markdown(), format_master_md(), format_page_override_md(), generate_design_system(), _generate_intelligent_overrides() (+7 more)
 
 ### Community 2 - "focus-browser.test.mjs"
-Cohesion: 0.05
-Nodes (53): __dirname, packagedHtmlExamples, skillRoot, click(), load(), record(), run(), skillRoot (+45 more)
+Cohesion: 0.08
+Nodes (40): click(), focus(), key(), load(), move(), point(), run(), select() (+32 more)
 
 ### Community 3 - "DesignSystemGenerator"
-Cohesion: 0.06
-Nodes (10): DesignSystemGenerator, _resolve_dial(), TestReasoningMatch, read_rows(), split_values(), style_identities(), TestGeneratedCatalogContract, TestLandingAndStackContract (+2 more)
+Cohesion: 0.05
+Nodes (15): DesignSystemGenerator, _resolve_dial(), apply_decision_rules(), _object_without_duplicates(), parse_decision_rules(), _validate_action(), TestReasoningMatch, read_rows() (+7 more)
 
 ### Community 4 - "validate_data.py"
 Cohesion: 0.07
@@ -556,9 +532,9 @@ Nodes (56): connectionSides(), pathFor(), routeVia(), flowSides(), pathFor(), au
 Cohesion: 0.05
 Nodes (53): $type, $value, $type, $value, $type, $value, $type, $value (+45 more)
 
-### Community 11 - "VideoSessionDetailDto"
-Cohesion: 0.09
-Nodes (18): VideoSessionDetailDto, AssignedVerifierId, CaseId, ChecklistJson, EndedAt, EvaluatedAt, Participants, ProviderRoomId (+10 more)
+### Community 11 - "IVideoSessionService"
+Cohesion: 0.17
+Nodes (7): RescueHoldResultDto, CaseId, HoldId, Message, Status, VideoSessionId, IVideoSessionService
 
 ### Community 12 - "render-architecture.mjs"
 Cohesion: 0.06
@@ -573,16 +549,16 @@ Cohesion: 0.06
 Nodes (31): BM25, _contains_phrase(), detect_domain(), _domain_keywords(), _exact_match_diagnostic(), _exact_row_identity(), _exact_stack_identifier(), _file_signature() (+23 more)
 
 ### Community 15 - "pathlib"
-Cohesion: 0.08
-Nodes (4): main(), _run(), test_flags_hardcoded_hex_sharing_line_with_token(), test_token_only_line_reports_no_violation()
+Cohesion: 0.03
+Nodes (29): generate_html(), get_deliverable_info(), get_image_base64(), main(), format_brief(), format_results(), main(), load_env() (+21 more)
 
 ### Community 16 - "brand-marks.mjs"
 Cohesion: 0.12
 Nodes (29): asUrl(), attribute(), beforeDeadline(), captureBrandReference(), captureRemoteBrand(), captureTimeoutMilliseconds(), checkedFetch(), COLLECTIONS (+21 more)
 
 ### Community 17 - "EkycOcrResult"
-Cohesion: 0.06
-Nodes (26): 3. TEST ITEMS (Các thành phần kiểm thử), IEkycService, EkycLivenessResult, IsFaceMatched, IsLive, MatchScore, Message, Provider (+18 more)
+Cohesion: 0.07
+Nodes (24): IEkycService, EkycLivenessResult, IsFaceMatched, IsLive, MatchScore, Message, Provider, ReviewRequired (+16 more)
 
 ### Community 18 - "generated-validators.mjs"
 Cohesion: 0.06
@@ -612,9 +588,9 @@ Nodes (42): $ref, type, type, maximum, minimum, type, $ref, minimum (+34 more)
 Cohesion: 0.11
 Nodes (37): acknowledgeUpdate(), assertBoundedRegularFile(), assertSafeRegularFile(), cancelOperation(), cancelResponseBody(), canonicalizeTrustedDirectoryPrefix(), checkForUpdate(), commitOperation() (+29 more)
 
-### Community 25 - "react"
+### Community 25 - "lucide-react"
 Cohesion: 0.14
-Nodes (23): App(), AssetItem, NewAssetModal(), NewAssetModalProps, SePayPaymentModal(), SePayPaymentModalProps, MainNavbar(), MainNavbarProps (+15 more)
+Nodes (22): App(), AssetItem, NewAssetModal(), NewAssetModalProps, SePayPaymentModal(), SePayPaymentModalProps, MainNavbar(), MainNavbarProps (+14 more)
 
 ### Community 26 - "render-lifecycle.mjs"
 Cohesion: 0.05
@@ -624,16 +600,16 @@ Nodes (111): componentContext(), renderBoundaryFrame(), renderBoundaryLabel(), r
 Cohesion: 0.10
 Nodes (30): loadDiagram(), validateGuidedViews(), validateRelationshipIds(), boundaryKey, fallbackDiagnostic(), installRendererDiagnosticBoundary(), normalizedDiagnostic(), plainObject() (+22 more)
 
-### Community 28 - "icon/generate.py"
-Cohesion: 0.08
-Nodes (13): apply_color(), apply_viewbox_size(), extract_svgs(), generate_batch(), generate_icon(), generate_sizes(), load_env(), main() (+5 more)
+### Community 28 - "generate_icon"
+Cohesion: 0.19
+Nodes (7): apply_color(), apply_viewbox_size(), extract_svgs(), generate_batch(), generate_icon(), generate_sizes(), main()
 
 ### Community 29 - "probe.mjs"
 Cohesion: 0.10
 Nodes (37): colorDistance(), defaultSweep, defaultWidths, describePaint(), expandCollapsedBlocks(), findBrokenImages(), findCheckedHoverChanges(), findDrawnFocusRings() (+29 more)
 
 ### Community 30 - "output-path.test.mjs"
-Cohesion: 0.06
+Cohesion: 0.05
 Nodes (21): architecture, base, cli, head, root, workflow, baseFixture, cli (+13 more)
 
 ### Community 31 - "update-notifier.test.mjs"
@@ -642,23 +618,23 @@ Nodes (25): assertUnsafeCacheStateIsIgnored(), baseTime, checkerPath, committedS
 
 ### Community 32 - "client/package.json"
 Cohesion: 0.05
-Nodes (42): name, private, type, version, JoinTokenData, axios, @base-ui/react, class-variance-authority (+34 more)
+Nodes (43): name, private, type, version, ExtendedUserRole, JoinTokenData, axios, @base-ui/react (+35 more)
 
 ### Community 33 - "v1-compatibility.test.mjs"
 Cohesion: 0.20
 Nodes (4): __dirname, OFFICIAL_V1_EXAMPLES, skillRoot, tmp
 
-### Community 34 - "test_text_layout_resilience.py"
-Cohesion: 0.18
-Nodes (3): read_rows(), TestTextLayoutDataContracts, TestTextLayoutRetrieval
+### Community 34 - "ordinary-model-floor.test.mjs"
+Cohesion: 0.20
+Nodes (5): benchmark, here, repoRoot, skillRoot, tmp
 
-### Community 35 - "FptMarketplaceTestbench.tsx"
-Cohesion: 0.29
-Nodes (6): CLAUSE_PRESETS, ClauseReviewResponse, FptModelDto, FptModelListResponse, SyntheticClausePreset, VisionExtractResponse
+### Community 35 - "route-share-card.test.mjs"
+Cohesion: 0.25
+Nodes (5): CASES, __dirname, repoRoot, skillRoot, tmp
 
 ### Community 36 - "HandoverEligibilityDto"
 Cohesion: 0.03
-Nodes (59): AcceptHandoverResponse, Assets, CommitmentId, DecryptionKeyMaterial, DefenseInDepthAuditTrail, DownloadToken, ExpiresAt, GrantId (+51 more)
+Nodes (64): AcceptHandoverResponse, Assets, CommitmentId, DecryptionKeyMaterial, DefenseInDepthAuditTrail, DownloadToken, ExpiresAt, GrantId (+56 more)
 
 ### Community 37 - "properties"
 Cohesion: 0.08
@@ -666,7 +642,7 @@ Nodes (24): enum, $ref, properties, type, animation, locale, output, quality_pro
 
 ### Community 38 - "ref_node_path"
 Cohesion: 0.03
-Nodes (37): workflow, authoringContract, __dirname, schemaReadme, skill, skillRoot, here, repoRoot (+29 more)
+Nodes (41): workflow, CASES, __dirname, NODE_COLLECTION, skillRoot, tmp, CASES, __dirname (+33 more)
 
 ### Community 39 - "reach-share-card.test.mjs"
 Cohesion: 0.25
@@ -678,7 +654,7 @@ Nodes (43): Arbitrary Values, Aspect Ratio, Background Colors, Border Color, Bor
 
 ### Community 41 - "ref_node_child_process"
 Cohesion: 0.03
-Nodes (46): CASES, __dirname, NODE_COLLECTION, skillRoot, tmp, __dirname, skillRoot, repoRoot (+38 more)
+Nodes (42): __dirname, outputRoot, skillRoot, TARGETS, __dirname, skillRoot, repoRoot, __dirname (+34 more)
 
 ### Community 42 - "story-follow-camera.test.mjs"
 Cohesion: 0.25
@@ -697,7 +673,7 @@ Cohesion: 0.08
 Nodes (17): format_context(), format_result(), main(), BM25, calculate_pattern_break(), detect_domain(), get_background_config(), get_color_for_emotion() (+9 more)
 
 ### Community 46 - "html-token-validator.py"
-Cohesion: 0.12
+Cohesion: 0.10
 Nodes (12): get_context(), is_allowed_exception(), is_allowed_rgba(), is_inside_block(), load_css_variables(), main(), print_result(), print_summary() (+4 more)
 
 ### Community 48 - "http"
@@ -757,12 +733,12 @@ Cohesion: 0.09
 Nodes (23): minimum, type, minimum, type, maximum, minimum, type, minimum (+15 more)
 
 ### Community 62 - "cip/core.py"
-Cohesion: 0.11
-Nodes (7): BM25, detect_domain(), get_cip_brief(), _load_csv(), search(), search_all(), _search_csv()
+Cohesion: 0.06
+Nodes (13): BM25, detect_domain(), get_cip_brief(), _load_csv(), search(), search_all(), _search_csv(), BM25 (+5 more)
 
 ### Community 63 - "VideoSession"
-Cohesion: 0.09
-Nodes (18): VideoSession, AssignedVerifierId, CaseId, ChecklistJson, EndedAt, EvaluatedAt, Id, Participants (+10 more)
+Cohesion: 0.04
+Nodes (47): CaseRescueHold, AdjudicatedAt, AdjudicatedByVerifierId, AdjudicationNotes, CaseId, Decision, HandoverSnapshotsJson, HeldAt (+39 more)
 
 ### Community 64 - "dependencies"
 Cohesion: 0.04
@@ -789,8 +765,8 @@ Cohesion: 0.21
 Nodes (33): validateArchitecture(), flowLabelSize(), validateDataflow(), validateLifecycle(), messageLabelBox(), messagePath(), segmentLabelBox(), validateSequence() (+25 more)
 
 ### Community 70 - "spacing"
-Cohesion: 0.09
-Nodes (22): $type, $value, $type, $value, $type, $value, $type, $value (+14 more)
+Cohesion: 0.06
+Nodes (34): $type, $value, $type, $value, $type, $value, $type, $value (+26 more)
 
 ### Community 71 - "HandoverVaultModel"
 Cohesion: 0.07
@@ -801,7 +777,7 @@ Cohesion: 0.07
 Nodes (20): IdempotencyRecord, OrderId, ProcessedAt, ProviderEventId, ResponsePayloadJson, PaymentOrder, CreatedAt, ExpiresAt (+12 more)
 
 ### Community 73 - "cip/generate.py"
-Cohesion: 0.18
+Cohesion: 0.19
 Nodes (7): build_cip_prompt(), check_logo_required(), generate_cip_set(), generate_with_nano_banana(), load_env(), load_logo_image(), main()
 
 ### Community 74 - "properties"
@@ -820,9 +796,9 @@ Nodes (25): items, type, items, type, $ref, items, minItems, type (+17 more)
 Cohesion: 0.12
 Nodes (17): $ref, const, minItems, type, additionalProperties, required, type, minItems (+9 more)
 
-### Community 78 - "finder-browser.test.mjs"
-Cohesion: 0.15
-Nodes (16): load(), opened(), run(), search(), skillRoot, snapshot(), createViewerClick(), installClickObserver() (+8 more)
+### Community 78 - "ref_node_assert"
+Cohesion: 0.11
+Nodes (21): authoringContract, __dirname, schemaReadme, skill, skillRoot, load(), opened(), run() (+13 more)
 
 ### Community 79 - "Canvas Design System"
 Cohesion: 0.06
@@ -836,9 +812,13 @@ Nodes (20): compilerOptions, allowArbitraryExtensions, allowImportingTsExtension
 Cohesion: 0.11
 Nodes (11): IOidcValidationService, OidcUserInfo, Audience, Email, ExpiryTime, Issuer, IsValid, Name (+3 more)
 
+### Community 82 - "TestWebStackFreshness"
+Cohesion: 0.05
+Nodes (7): _rows(), TestNativeDesktopStackFreshness, read_rows(), TestTextLayoutDataContracts, TestTextLayoutRetrieval, _rows(), TestWebStackFreshness
+
 ### Community 83 - "TimeLockRescueService"
 Cohesion: 0.06
-Nodes (32): SubmitAliveClaimRequest, CaseId, OwnerIdentityCard, Reason, TimeLockStatusDto, AliveClaimReason, AliveClaimSubmittedAt, CaseId (+24 more)
+Nodes (37): RescueDecisionRequest, CaseId, Decision, VerifierFullName, VerifierNotes, SubmitAliveClaimRequest, CaseId, OwnerIdentityCard (+29 more)
 
 ### Community 84 - "archify/package.json"
 Cohesion: 0.14
@@ -849,16 +829,20 @@ Cohesion: 0.10
 Nodes (20): $ref, enum, $ref, properties, type, animation, engineering_profile, locale (+12 more)
 
 ### Community 86 - "LegacyVault.Prototype.Application.Interfaces"
-Cohesion: 0.10
-Nodes (10): LegacyVault.Prototype.Infrastructure.Services, LegacyVault.Prototype.Domain.Models, LegacyVault.Prototype.Domain, LegacyVault.Prototype.Application.Services, LegacyVault.Prototype.Application.DTOs, LegacyVault.Prototype.Tests.BlackBox, LegacyVault.Prototype.Application.Interfaces, LegacyVault.Prototype.Application.Common (+2 more)
+Cohesion: 0.09
+Nodes (11): LegacyVault.Prototype.Infrastructure.Services, LegacyVault.Prototype.Domain.Models, LegacyVault.Prototype.Domain, LegacyVault.Prototype.Application.Services, LegacyVault.Prototype.Application.DTOs, LegacyVault.Prototype.Tests.BlackBox, LegacyVault.Prototype.Application.Interfaces, LegacyVault.Prototype.Application.Common (+3 more)
 
-### Community 87 - "ControllerBase"
-Cohesion: 0.13
-Nodes (9): CryptoController, DecryptTestRequest, AssetId, CiphertextBase64, FileName, MimeType, NonceBase64, TagBase64 (+1 more)
+### Community 87 - "3. TEST ITEMS (Các thành phần kiểm thử)"
+Cohesion: 0.12
+Nodes (11): 3. TEST ITEMS (Các thành phần kiểm thử), CryptoController, DecryptTestRequest, AssetId, CiphertextBase64, FileName, MimeType, NonceBase64 (+3 more)
 
 ### Community 88 - "Prerequisites"
 Cohesion: 0.06
 Nodes (34): Accessibility, Available Domains, Available Stacks, Common Rules for Professional UI, Common Sticking Points, Example Workflow, How to Use This Skill, Icons & Visual Elements (+26 more)
+
+### Community 89 - "story-carrier.test.mjs"
+Cohesion: 0.25
+Nodes (5): CASES, __dirname, skillRoot, template, tmp
 
 ### Community 90 - "properties"
 Cohesion: 0.11
@@ -869,16 +853,16 @@ Cohesion: 0.12
 Nodes (15): check(), __dirname, expectFailure(), GOLDEN, landingPage, landingVersions, lock, pkg (+7 more)
 
 ### Community 92 - "ref_node_fs"
-Cohesion: 0.05
-Nodes (22): here, skillRoot, tmp, CASES, __dirname, skillRoot, tmp, originalRmSync (+14 more)
+Cohesion: 0.06
+Nodes (20): here, skillRoot, tmp, delivery, here, skill, originalRmSync, CASES (+12 more)
 
 ### Community 93 - "fetch-background.py"
 Cohesion: 0.16
 Nodes (9): generate_css_for_background(), get_background_image(), get_curated_images(), get_overlay_css(), get_pexels_search_url(), load_backgrounds_config(), load_brand_colors(), main() (+1 more)
 
 ### Community 94 - "color"
-Cohesion: 0.11
-Nodes (19): $type, $value, background, foreground, muted-foreground, primary, primary-hover, secondary (+11 more)
+Cohesion: 0.05
+Nodes (37): $type, $value, background, destructive, destructive-foreground, foreground, muted, muted-foreground (+29 more)
 
 ### Community 95 - "generate_system_flows.js"
 Cohesion: 0.22
@@ -937,8 +921,8 @@ Cohesion: 0.07
 Nodes (28): 1.1. Chuẩn Hóa Phản Hồi Thành Công (`ApiResponse<T>`), 1.2. Chuẩn Hóa Phản Hồi Lỗi (RFC 7807 ProblemDetails), 1.3. Phân Quyền Zero-Trust & Header Bắt Buộc, 1. NGUYÊN TẮC THIẾT KẾ NỀN TẢNG (CORE PROTOCOLS), 2. MODULE 0: XÁC THỰC & TÀI KHOẢN (AUTHENTICATION & RBAC), 3. MODULE 1: QUẢN LÝ KHO NGUỒN & TÀI SẢN SỐ (LUỒNG 1A), 4. MODULE 2: THIẾT LẬP KẾ HOẠCH DI SẢN & TỰ GOM KHO (LUỒNG 1B), 5. MODULE 3: ĐIỂM DANH SINH TỒN DEAD MAN'S SWITCH (LUỒNG 2A & 2B) (+20 more)
 
 ### Community 109 - "fontSize"
-Cohesion: 0.12
-Nodes (16): $type, $value, $type, $value, $type, $value, $type, $value (+8 more)
+Cohesion: 0.11
+Nodes (20): $type, $value, $type, $value, $type, $value, $type, $value (+12 more)
 
 ### Community 110 - "Enums.cs"
 Cohesion: 0.06
@@ -972,10 +956,6 @@ Nodes (10): ProblemDetailsResponse, CorrelationId, Detail, ErrorCode, Instance, 
 Cohesion: 0.15
 Nodes (9): EstatePlanActivationRequest, DesignatedAssetCount, HasOtherActivePlan, IsOwnerMfaVerified, IsPrimaryExecutorAccepted, PlanExpiresAt, PlanId, Tier (+1 more)
 
-### Community 121 - "test_core.py"
-Cohesion: 0.08
-Nodes (6): format_markdown(), generate_design_system(), TestBm25CoreBehavior, TestDiagnosticsContracts, TestPersistence, TestTokenizer
-
 ### Community 122 - "items"
 Cohesion: 0.23
 Nodes (14): items, type, items, type, additionalProperties, required, type, items (+6 more)
@@ -1001,8 +981,8 @@ Cohesion: 0.25
 Nodes (13): checkManifest(), formatBytes(), formatOutput(), fs, main(), parseFilename(), path, RULES (+5 more)
 
 ### Community 128 - "radius"
-Cohesion: 0.19
-Nodes (14): $type, $value, $type, $value, $type, $value, primitive, radius (+6 more)
+Cohesion: 0.11
+Nodes (27): $type, $value, lg, sm, $type, $value, $type, $value (+19 more)
 
 ### Community 129 - "KIEN_TRUC_MAT_MA_VA_LUU_TRU_DI_SAN.md"
 Cohesion: 0.08
@@ -1017,7 +997,7 @@ Cohesion: 0.15
 Nodes (13): FptAiModelDto, ContextLength, Description, Id, InputModalities, Name, OutputModalities, FptAiModelListResponse (+5 more)
 
 ### Community 134 - "HandoverStatus"
-Cohesion: 0.14
+Cohesion: 0.15
 Nodes (10): HandoverStatus, CANCELLED_WITHOUT_DELIVERY, FROZEN_RECONSIDERATION, HANDOVER_COMMITTED, HANDOVER_STARTED, PENDING_RESPONSE, PRE_BUNDLED, SCHEDULED (+2 more)
 
 ### Community 135 - "temp_script.js"
@@ -1025,7 +1005,7 @@ Cohesion: 0.12
 Nodes (28): centerBlueprintOnNode(), centerOnNode(), computeAbsoluteLayout(), computeConnectorPath(), currentBounds, currentCleanEdges, currentCleanNodes, fitView() (+20 more)
 
 ### Community 136 - "EstatePlanRulesService"
-Cohesion: 0.18
+Cohesion: 0.19
 Nodes (7): Nhóm 2: Kiểm thử Phân tích giá trị biên (Boundary Value Analysis - BVA), Test Case `TC_BVA_01`: Tính mốc xóa kho nguồn khi hạn đóng băng dài hơn hạn gói, Test Case `TC_BVA_02`: Tính thời hạn suy nghĩ lại 2 năm lịch từ ngày nhuận 29/02, Test Case `TC_BVA_03`: Biên số lượng tài sản gán người nhận khi kích hoạt kế hoạch, 2. MA TRẬN TRUY VẾT YÊU CẦU ĐẦY ĐỦ (REQUIREMENT TRACEABILITY MATRIX), EstatePlanRulesService, BoundaryValueAnalysisTests
 
 ### Community 138 - "GuestHandoverSession"
@@ -1044,25 +1024,25 @@ Nodes (32): 1. Mobile-First Design, 2. Consistent Breakpoint Usage, 3. Test at B
 Cohesion: 0.15
 Nodes (12): component, $type, $value, dark, semantic, $schema, $type, $value (+4 more)
 
-### Community 143 - "viewer-camera-browser.test.mjs"
-Cohesion: 0.33
-Nodes (7): cases, load(), run(), skillRoot, snapshot(), stable(), viewport()
+### Community 143 - "story-moment-link.test.mjs"
+Cohesion: 0.25
+Nodes (5): CASES, __dirname, skillRoot, template, tmp
 
 ### Community 144 - "IEstatePlanRulesService"
-Cohesion: 0.18
+Cohesion: 0.17
 Nodes (5): IEstatePlanRulesService, PlanActivationResult, ErrorCode, IsSuccess, Message
 
 ### Community 146 - "Typography Specifications"
 Cohesion: 0.06
 Nodes (30): Accessibility, Base System, Best Practices, Clean & Modern, Common Font Pairings, Contrast Requirements, CSS Implementation, Editorial (+22 more)
 
-### Community 147 - "generate-slide.py"
-Cohesion: 0.13
-Nodes (11): _e(), generate_chart_slide(), generate_cta_slide(), generate_deck(), generate_metrics_slide(), generate_problem_slide(), generate_solution_slide(), generate_testimonial_slide() (+3 more)
+### Community 147 - "chapter-rail.test.mjs"
+Cohesion: 0.29
+Nodes (4): CASES, __dirname, skillRoot, tmp
 
-### Community 148 - "HandoverReceiptDto"
-Cohesion: 0.11
-Nodes (18): FinalizeHandoverResponse, IsGuestSessionRevoked, IsRoomClosed, Message, Receipt, Success, HandoverReceiptDto, BeneficiaryId (+10 more)
+### Community 148 - "FinalizeHandoverResponse"
+Cohesion: 0.33
+Nodes (6): FinalizeHandoverResponse, IsGuestSessionRevoked, IsRoomClosed, Message, Receipt, Success
 
 ### Community 149 - "items"
 Cohesion: 0.26
@@ -1074,7 +1054,7 @@ Nodes (11): extensions, formatReport(), fs, getFiles(), main(), parseArgs(), pat
 
 ### Community 151 - "card"
 Cohesion: 0.20
-Nodes (12): $type, $value, bg, bg, padding, shadow, card, bg (+4 more)
+Nodes (12): radius, padding, radius, shadow, card, radius, $type, $value (+4 more)
 
 ### Community 154 - "temp_val.js"
 Cohesion: 0.12
@@ -1089,8 +1069,8 @@ Cohesion: 0.07
 Nodes (28): Absolute Don'ts, Approved Backgrounds, Before Using Logo, Clear Space, Co-branding, Color Rules, Color Usage, Color Variants (+20 more)
 
 ### Community 157 - "HeritageBadge"
-Cohesion: 0.11
-Nodes (42): GoogleOidcTestbench(), OidcResponse, Window, CryptoEnvelopeTestbench(), EncryptMetadata, ClientMediaPipeFacePoc(), ClientTesseractOcrPoc(), EkycTestbench() (+34 more)
+Cohesion: 0.15
+Nodes (31): GoogleOidcTestbench(), CryptoEnvelopeTestbench(), ClientMediaPipeFacePoc(), ClientTesseractOcrPoc(), EkycTestbench(), EkycTestbenchProps, LivenessData, OcrData (+23 more)
 
 ### Community 158 - "Component Specifications"
 Cohesion: 0.07
@@ -1117,8 +1097,8 @@ Cohesion: 0.20
 Nodes (8): ARRAY_FIELDS, assertFriendlyFailure(), __dirname, EXAMPLES, installedRoot, render(), skillRoot, tmp
 
 ### Community 165 - "ScheduleVideoSessionResponse"
-Cohesion: 0.09
-Nodes (22): ScheduleVideoSessionResponse, AssignedVerifierId, CaseId, ProviderRoomId, Purpose, RequestedAt, ScheduledAt, SessionId (+14 more)
+Cohesion: 0.10
+Nodes (19): ScheduleVideoSessionResponse, AssignedVerifierId, CaseId, ProviderRoomId, Purpose, RequestedAt, ScheduledAt, SessionId (+11 more)
 
 ### Community 166 - "inject-brand-context.cjs"
 Cohesion: 0.31
@@ -1161,12 +1141,12 @@ Cohesion: 0.12
 Nodes (16): SmtpConfigOverride, Host, Password, Port, SenderEmail, SenderName, Username, CustomEmailRequest (+8 more)
 
 ### Community 176 - "SubscriptionTier"
-Cohesion: 0.20
-Nodes (9): CreatePaymentOrderRequest, PersonId, PlanTier, SubscriptionTier, LEGACY_XS, LEGACY_XS_MAX, OWNER_FREE, RECIPIENT_FREE (+1 more)
-
-### Community 177 - "CaseRescueHold"
 Cohesion: 0.12
-Nodes (14): CaseRescueHold, AdjudicatedAt, AdjudicatedByVerifierId, AdjudicationNotes, CaseId, Decision, HandoverSnapshotsJson, HeldAt (+6 more)
+Nodes (14): CreatePaymentOrderRequest, PersonId, PlanTier, WebhookProcessResult, ErrorCode, Message, StatusCode, Success (+6 more)
+
+### Community 177 - "finder.test.mjs"
+Cohesion: 0.29
+Nodes (4): CASES, __dirname, skillRoot, tmp
 
 ### Community 178 - "entries"
 Cohesion: 0.20
@@ -1197,7 +1177,7 @@ Cohesion: 0.20
 Nodes (9): ajv, diagramTypes, __dirname, output, root, schemaIds, schemasDir, validatorCode (+1 more)
 
 ### Community 185 - "AssetEnvelopeMetadata"
-Cohesion: 0.13
+Cohesion: 0.10
 Nodes (12): AssetEnvelopeMetadata, AssetId, ChecksumSha256, CreatedAt, FileName, MimeType, NonceBase64, SizeBytes (+4 more)
 
 ### Community 186 - "generate-tokens.cjs"
@@ -1205,12 +1185,12 @@ Cohesion: 0.36
 Nodes (9): flattenTokens(), fs, generateCSS(), generateTailwind(), main(), parseArgs(), path, resolveReference() (+1 more)
 
 ### Community 187 - "button"
-Cohesion: 0.20
-Nodes (10): fg, font-size, hover-bg, button, $type, $value, $type, $value (+2 more)
+Cohesion: 0.15
+Nodes (15): $type, $value, bg, fg, font-size, hover-bg, bg, button (+7 more)
 
-### Community 188 - "duration"
-Cohesion: 0.20
-Nodes (10): fast, normal, slow, $type, $value, $type, $value, duration (+2 more)
+### Community 188 - "primitive"
+Cohesion: 0.18
+Nodes (11): fast, normal, slow, $type, $value, $type, $value, primitive (+3 more)
 
 ### Community 189 - "VideoSessionService"
 Cohesion: 0.09
@@ -1224,9 +1204,9 @@ Nodes (8): args, explicitFiles, findings, isAll, lintBlock(), lintFile(), listSk
 Cohesion: 0.24
 Nodes (8): diffLayoutAnchors(), checkHorizontalGap(), checkVerticalGap(), formatWireframeReport(), isSameColumn(), isSameLine(), listWireframeMustReportItems(), quoteAnchor()
 
-### Community 192 - "logo/core.py"
-Cohesion: 0.12
-Nodes (6): BM25, detect_domain(), _load_csv(), search(), search_all(), _search_csv()
+### Community 192 - "motion-governor.test.mjs"
+Cohesion: 0.29
+Nodes (4): CASES, __dirname, skillRoot, tmp
 
 ### Community 193 - "HandoverReceipt"
 Cohesion: 0.14
@@ -1256,9 +1236,9 @@ Nodes (8): cases, evaluate(), load(), media(), skillRoot, snapshot(), stable(), 
 Cohesion: 0.25
 Nodes (8): collectLayoutAnchors(), findBackground(), normalizeColor(), compareWithWireframe(), measureHiddenScrollHeight(), openForAnchors(), sweepWidths(), takeFullScreenshot()
 
-### Community 203 - "story-director-strip.test.mjs"
-Cohesion: 0.25
-Nodes (5): CASES, __dirname, skillRoot, template, tmp
+### Community 203 - "relationship-pulse.test.mjs"
+Cohesion: 0.29
+Nodes (4): CASES, __dirname, skillRoot, tmp
 
 ### Community 205 - "wraps"
 Cohesion: 0.25
@@ -1272,9 +1252,9 @@ Nodes (8): ConfirmScheduleDto, ScheduledAt, VerifierId, TriggerRescueHoldDto, Ca
 Cohesion: 0.25
 Nodes (4): CASES, __dirname, skillRoot, tmp
 
-### Community 208 - "ref_node_assert"
-Cohesion: 0.06
-Nodes (18): delivery, here, skill, CASES, __dirname, skillRoot, tmp, CASES (+10 more)
+### Community 208 - "ref_node_test"
+Cohesion: 0.05
+Nodes (17): target, checker, __dirname, skillRoot, tmp, CASES, __dirname, skillRoot (+9 more)
 
 ### Community 209 - "relationship-direct-explorer.test.mjs"
 Cohesion: 0.25
@@ -1289,7 +1269,7 @@ Cohesion: 0.15
 Nodes (6): DownloadPresignedUrlRequest, Key, PresignedUrlRequest, ContentType, FileName, StorageController
 
 ### Community 212 - "test_relevance_evaluator.py"
-Cohesion: 0.12
+Cohesion: 0.11
 Nodes (3): TestFixtureValidation, TestMetricMath, TestThresholdGate
 
 ### Community 213 - "Logo AI Prompt Engineering"
@@ -1316,17 +1296,17 @@ Nodes (24): Apparel, Business Card, Car/Sedan, CIP Deliverable Guide, Core Ident
 Cohesion: 0.18
 Nodes (13): Archify, Authoring invariants, Delivery, Fast authoring path, Mermaid input, Optional viewer capabilities, Output, Setup and fallback (+5 more)
 
-### Community 220 - "ref_node_url"
-Cohesion: 0.05
-Nodes (28): __dirname, outputRoot, skillRoot, TARGETS, __dirname, docsRoot, landing, manifest (+20 more)
+### Community 220 - "landing.test.mjs"
+Cohesion: 0.25
+Nodes (7): __dirname, docsRoot, landing, manifest, proofs, repoRoot, skillRoot
 
 ### Community 221 - "ClientTesseractOcrPoc.tsx"
 Cohesion: 0.21
 Nodes (10): CropBox, ExtractedFields, ROI_PRESETS, RoiPreset, BENCHMARK_TEST_CASES, BenchmarkResultItem, BenchmarkTestCase, computeSimilarity() (+2 more)
 
 ### Community 222 - "input"
-Cohesion: 0.29
-Nodes (8): padding-x, input, $type, $value, focus-ring, padding-x, $type, $value
+Cohesion: 0.15
+Nodes (17): $type, $value, padding-x, padding-y, border, border, input, $type (+9 more)
 
 ### Community 225 - "States and Variants"
 Cohesion: 0.08
@@ -1357,12 +1337,12 @@ Cohesion: 0.08
 Nodes (23): Art Direction Styles (Reuse from Banner), Color & Contrast, Design Best Practices, HTML Design Rules, HTML Template Structure, Option A: Chrome Headless CLI (Recommended — zero dependencies), Option B: chrome-devtools skill, Option C: Playwright script (+15 more)
 
 ### Community 232 - "visual-check.test.mjs"
-Cohesion: 0.11
-Nodes (4): __dirname, png, skillRoot, tmp
+Cohesion: 0.05
+Nodes (34): __dirname, packagedHtmlExamples, skillRoot, click(), load(), record(), run(), skillRoot (+26 more)
 
-### Community 233 - "guided-views-browser.test.mjs"
-Cohesion: 0.28
-Nodes (10): activate(), click(), hash(), load(), move(), point(), run(), settled() (+2 more)
+### Community 233 - "repository-evidence-replacement.test.mjs"
+Cohesion: 0.33
+Nodes (5): cases, cli, fixture(), installReplacement(), skillRoot
 
 ### Community 234 - "5. 🏛️ BỘ 5 THÀNH PHẦN NGHIỆP VỤ ĐẶC THÙ (DOMAIN-SPECIFIC PROTOCOLS)"
 Cohesion: 0.08
@@ -1389,8 +1369,12 @@ Cohesion: 0.29
 Nodes (6): DispatchedEmailRecord, HtmlBody, IsRealSmtp, SentAt, Subject, ToEmail
 
 ### Community 240 - ".EP03_DeletionEligibility_TierPartitions"
-Cohesion: 0.19
-Nodes (6): Nhóm 1: Kiểm thử Phân vùng tương đương (Equivalence Partitioning - EP), Test Case `TC_EP_01`: Xác thực địa chỉ Email hợp lệ, Test Case `TC_EP_02`: Từ chối địa chỉ Email thiếu ký tự `@`, Test Case `TC_EP_03`: Tự gom kho bàn giao theo tập Người thụ hưởng duy nhất, Bước 4: Thiết kế Trường hợp kiểm thử cụ thể (Test Case Specification), EquivalencePartitioningTests
+Cohesion: 0.31
+Nodes (4): Nhóm 1: Kiểm thử Phân vùng tương đương (Equivalence Partitioning - EP), Test Case `TC_EP_01`: Xác thực địa chỉ Email hợp lệ, Test Case `TC_EP_02`: Từ chối địa chỉ Email thiếu ký tự `@`, EquivalencePartitioningTests
+
+### Community 241 - "DecryptionKeyMaterialDto"
+Cohesion: 0.29
+Nodes (7): DecryptionKeyMaterialDto, ChannelSecurity, InitializationVector, KeyAlgorithm, KeyDerivationSalt, KeyLengthBits, WrappedKeyEnvelope
 
 ### Community 242 - "size"
 Cohesion: 0.33
@@ -1444,18 +1428,6 @@ Nodes (5): devDependencies, ajv, parse5, saxes, simple-icons
 Cohesion: 0.40
 Nodes (5): items, minItems, type, $ref, focus
 
-### Community 256 - "$type"
-Cohesion: 0.60
-Nodes (5): $type, $value, border, border, border
-
-### Community 257 - "radius"
-Cohesion: 0.60
-Nodes (5): radius, radius, radius, $type, $value
-
-### Community 258 - "render-html.py"
-Cohesion: 0.09
-Nodes (9): generate_html(), get_deliverable_info(), get_image_base64(), main(), format_brief(), format_results(), main(), format_output() (+1 more)
-
 ### Community 259 - "baseService.ts"
 Cohesion: 0.47
 Nodes (3): ApiResponse, PaginatedList, PaginationParams
@@ -1464,17 +1436,9 @@ Nodes (3): ApiResponse, PaginatedList, PaginationParams
 Cohesion: 0.11
 Nodes (15): ctx, flowsData, fs, genFile, htmlContentIndex, roadmapIndex, roadmapsCode, vm (+7 more)
 
-### Community 261 - "WebhookProcessResult"
-Cohesion: 0.40
-Nodes (5): WebhookProcessResult, ErrorCode, Message, StatusCode, Success
-
 ### Community 262 - "Routing by Task Type"
 Cohesion: 0.10
 Nodes (19): Banner Design Tasks, Brand Identity Tasks, Component Creation, Corporate Identity Program Tasks, Design Routing Guide, Design System Migration, Icon Design Tasks, Implementation Tasks (+11 more)
-
-### Community 263 - "VideoSessionParticipant"
-Cohesion: 0.18
-Nodes (9): VideoSessionParticipant, ClientIpAddress, Id, JoinedAt, LeftAt, Role, SessionId, UserAgent (+1 more)
 
 ### Community 264 - "common.schema.json"
 Cohesion: 0.50
@@ -1512,13 +1476,9 @@ Nodes (4): maximum, minimum, type, fromCol
 Cohesion: 0.50
 Nodes (4): toCol, maximum, minimum, type
 
-### Community 273 - "padding-y"
-Cohesion: 0.67
-Nodes (4): padding-y, padding-y, $type, $value
-
-### Community 274 - "RescueDecisionRequest"
-Cohesion: 0.11
-Nodes (18): RescueDecisionRequest, CaseId, Decision, VerifierFullName, VerifierNotes, RescueHoldResultDto, CaseId, HoldId (+10 more)
+### Community 274 - "VideoSessionDetailDto"
+Cohesion: 0.06
+Nodes (30): ResumeHoldRequest, AdjudicationNotes, CaseId, Decision, VideoSessionDetailDto, AssignedVerifierId, CaseId, ChecklistJson (+22 more)
 
 ### Community 275 - "CaseBundlesController"
 Cohesion: 0.24
@@ -1600,37 +1560,13 @@ Nodes (5): CASES, __dirname, PROOF_CASES, skillRoot, tmp
 Cohesion: 0.15
 Nodes (12): ctx, { execSync }, flowsData, fs, genFile, output, roadmapIndex, roadmapsCode (+4 more)
 
-### Community 296 - "destructive"
-Cohesion: 0.67
-Nodes (3): destructive, $type, $value
-
-### Community 297 - "destructive-foreground"
-Cohesion: 0.67
-Nodes (3): destructive-foreground, $type, $value
-
-### Community 298 - "muted"
-Cohesion: 0.67
-Nodes (3): muted, $type, $value
-
-### Community 299 - "primary-foreground"
-Cohesion: 0.67
-Nodes (3): primary-foreground, $type, $value
-
-### Community 300 - "ring"
-Cohesion: 0.67
-Nodes (3): ring, $type, $value
-
-### Community 301 - "secondary-foreground"
-Cohesion: 0.67
-Nodes (3): secondary-foreground, $type, $value
-
 ### Community 309 - "HƯỚNG DẪN TÍCH HỢP & PHÁT TRIỂN DÀNH CHO BACKEND (BE INTEGRATION GUIDE)"
 Cohesion: 0.10
 Nodes (20): 1.1. Nguyên Tắc An Toàn Dữ Liệu & Mã Hóa Envelope (`SEC-01` $\rightarrow$ `SEC-09`), 1.2. Chuẩn Hóa Cấu Hình Web API (`Program.cs`), 1. TỔNG QUAN KIẾN TRÚC & NGUYÊN TẮC BACKEND BẮT BUỘC, 2.1. Cấu Trúc Người Dùng (`Persons` vs `Users`), 2.2. JWT Token & Zero-Trust Headers, 2. QUẢN LÝ ĐỊNH DANH, PHÂN QUYỀN & XUNG ĐỘT VAI TRÒ, 3.1. Gom Nhóm Kho Bàn Giao Bất Biến (`HandoverVaults`), 3.2. Khóa Snapshot Khi Nộp Hồ Sơ (`CaseAssetSnapshots`) (+12 more)
 
 ### Community 311 - "BÁO CÁO TỔNG KẾT THỰC THI KIỂM THỬ (TEST EXECUTION REPORT)"
-Cohesion: 0.12
-Nodes (16): 1. TEST SUMMARY REPORT IDENTIFIER, 2. SUMMARY OF ACTIVITIES (Tổng kết các hoạt động kiểm thử), 3. VÍ DỤ HOÀN CHỈNH XUYÊN SUỐT (END-TO-END TRACED EXAMPLE), 4. BÁO CÁO SỰ CỐ VÀ LỖI PHÁT HIỆN (INCIDENT / DEFECT REPORT - CHƯƠNG 5.6), 5. BẢNG TỔNG HỢP TRẠNG THÁI KIỂM THỬ THEO PHẠM VI YÊU CẦU, 6. ĐÁNH GIÁ TỔNG QUAN & KHUYẾN NGHỊ BÀN GIAO (EVALUATION & RECOMMENDATIONS), BIỂU MẪU SỰ CỐ THEO CHUẨN IEEE 829 (MỤC 5.6.2, TRANG 159):, BÁO CÁO TỔNG KẾT THỰC THI KIỂM THỬ (TEST EXECUTION REPORT) (+8 more)
+Cohesion: 0.10
+Nodes (17): 1. TEST SUMMARY REPORT IDENTIFIER, 2. SUMMARY OF ACTIVITIES (Tổng kết các hoạt động kiểm thử), 3. VÍ DỤ HOÀN CHỈNH XUYÊN SUỐT (END-TO-END TRACED EXAMPLE), 4. BÁO CÁO SỰ CỐ VÀ LỖI PHÁT HIỆN (INCIDENT / DEFECT REPORT - CHƯƠNG 5.6), 5. BẢNG TỔNG HỢP TRẠNG THÁI KIỂM THỬ THEO PHẠM VI YÊU CẦU, 6. ĐÁNH GIÁ TỔNG QUAN & KHUYẾN NGHỊ BÀN GIAO (EVALUATION & RECOMMENDATIONS), BIỂU MẪU SỰ CỐ THEO CHUẨN IEEE 829 (MỤC 5.6.2, TRANG 159):, BÁO CÁO TỔNG KẾT THỰC THI KIỂM THỬ (TEST EXECUTION REPORT) (+9 more)
 
 ### Community 313 - "ErrorBoundary.tsx"
 Cohesion: 0.29
@@ -1652,10 +1588,6 @@ Nodes (4): CASES, __dirname, skillRoot, tmp
 Cohesion: 0.29
 Nodes (7): JoinTokenResponse, ExpiresInSeconds, LiveKitUrl, ParticipantIdentity, ParticipantName, RoomName, Token
 
-### Community 318 - "index.ts"
-Cohesion: 0.50
-Nodes (3): CASE_STATUS, HTTP_STATUS, SUBSCRIPTION_TIERS
-
 ### Community 319 - "diagram-guide.test.mjs"
 Cohesion: 0.29
 Nodes (4): CASES, __dirname, skillRoot, tmp
@@ -1667,14 +1599,6 @@ Nodes (9): HandoverAssetItem, AssetId, Category, CiphertextHash, DownloadEndpoin
 ### Community 325 - "story-horizon.test.mjs"
 Cohesion: 0.29
 Nodes (5): CASES, __dirname, skillRoot, template, tmp
-
-### Community 328 - "lg"
-Cohesion: 0.60
-Nodes (5): lg, $type, $value, lg, lg
-
-### Community 329 - "sm"
-Cohesion: 0.60
-Nodes (5): sm, sm, sm, $type, $value
 
 ### Community 336 - "Core Logo Types"
 Cohesion: 0.11
@@ -1784,9 +1708,9 @@ Nodes (13): Card Styles, Component Variants, CSS Structures, Feature Grid (3 col
 Cohesion: 0.14
 Nodes (13): Bố cục khối nổi, Chuyển động, Command palette, Dropdown, Hộp xác nhận, Menu con (dropdown đa cấp), Menu tài khoản, Modal có nội dung (+5 more)
 
-### Community 366 - "InteractiveWorkflowVisualizer.tsx"
-Cohesion: 0.17
-Nodes (10): DEMO_PERSONAS, FLOW_01_STEPS, FLOW_02_STEPS, FLOW_03_STEPS, InteractiveWorkflowVisualizerProps, WorkflowStep, LivePipelineProgress(), LivePipelineProgressProps (+2 more)
+### Community 366 - "react"
+Cohesion: 0.08
+Nodes (31): OidcResponse, Window, EncryptMetadata, CLAUSE_PRESETS, ClauseReviewResponse, FptModelDto, FptModelListResponse, SyntheticClausePreset (+23 more)
 
 ### Community 367 - "2. CHI TIẾT CÁC THỰC THỂ CSDL (.NET 10 / SQL SERVER 2022)"
 Cohesion: 0.14
@@ -1807,10 +1731,6 @@ Nodes (12): Color Presets, Examples, Files Modified, Important, Overview, Skills
 ### Community 372 - "Logo Design Reference"
 Cohesion: 0.15
 Nodes (12): Available Styles, Color Psychology, Commands, Design Brief (Start Here), Detailed References, Generate Logo, Industry Defaults, Logo Design Reference (+4 more)
-
-### Community 373 - "xl"
-Cohesion: 0.67
-Nodes (4): xl, xl, $type, $value
 
 ### Community 374 - "Token Architecture"
 Cohesion: 0.15
@@ -1892,10 +1812,6 @@ Nodes (9): Automated browser evidence, Delivery contract, Handoff receipt, Last-
 Cohesion: 0.20
 Nodes (9): Canonical exports, Exploration, Guided views and story, Motion and presentation, Reach Share Card, Route Share Card, Share Card, Truth boundary (+1 more)
 
-### Community 396 - "none"
-Cohesion: 0.67
-Nodes (4): $type, $value, none, none
-
 ### Community 397 - "Archify JSON IR Schemas"
 Cohesion: 0.20
 Nodes (9): Archify JSON IR Schemas, Error format, Files, Legend presentation contract, Runtime validation, schema_version policy, Shared definitions (common.schema.json), Visual quality and engineering truth (+1 more)
@@ -1944,10 +1860,6 @@ Nodes (9): 1. VÒNG ĐỜI ĐIỂM DANH SINH TỒN (DEAD MAN'S SWITCH - DMS), 2.
 Cohesion: 0.20
 Nodes (9): 1. NGUYÊN TẮC NGHIỆP VỤ & RÀNG BUỘC PHÁP LÝ BẮT BUỘC (HARD RULES), 2. BẢNG MA TRẬN QUYẾT ĐỊNH: TƯƠNG TÁC GIỮA DMS STATUS VÀ CASE STATUS (CHỨNG TỬ), 3. MA TRẬN 6 BƯỚC TRIỂN KHAI KỸ THUẬT (STEP-BY-STEP IMPLEMENTATION MATRIX), BƯỚC 01: KHỞI TẠO LỊCH TRÌNH BAN ĐẦU & CẬP NHẬT CẤU HÌNH (DMS-01, DMS-02), BƯỚC 03: XỬ LÝ ĐIỂM DANH HỢP LỆ VỚI STATE GUARD & CONCURRENCY CONTROL (DMS-02), BƯỚC 05: WORKER GỬI NHẮC ĐA MỐC & CHỐNG GỬI TRÙNG (DMS-06, DMS-07), BƯỚC 06: WORKER ĐÓNG BĂNG AN TOÀN `FROZEN_INACTIVITY` TỪNG KHO (DMS-09), FLOW 03 · DEAD MAN'S SWITCH (DMS) · ĐIỂM DANH SINH TỒN, TẠM TREO VÀ ĐÓNG BĂNG AN TOÀN (+1 more)
 
-### Community 410 - "16"
-Cohesion: 0.67
-Nodes (3): $type, $value, 16
-
 ### Community 411 - "3. BẢNG TỔNG HỢP KẾT QUẢ ĐO ĐẠC THỰC TẾ (COVERLET REPORT)"
 Cohesion: 0.11
 Nodes (17): 1.1. Định nghĩa chuẩn lý thuyết ISTQB CTFL (Graham et al. Mục 4.4, trang 105–113), 1.2. Phân định cơ chế đo lường của công cụ Coverlet (.NET XPlat Code Coverage), 1. CĂN CỨ LÝ THUYẾT & ĐỐI CHIẾU CHỈ SỐ CÔNG CỤ (ISTQB CHƯƠNG 4.4 VS. COVERLET), 2.1. Phân tích MC/DC 01: Biểu thức Cam kết pháp lý hai bên (`ValidateDeathAttestation`), 2.2. Phân tích MC/DC 02: Khởi tạo Master KEK từ biến cấu hình, 2.3. Control-Flow Graph & Decision Coverage: Thẩm định kích hoạt kế hoạch (`ValidatePlanActivation`), 2. PHÂN TÍCH VÀ ĐO ĐẠC TRÊN CÁC METHOD THỰC TẾ TRONG MÃ NGUỒN, 3. BẢNG TỔNG HỢP KẾT QUẢ ĐO ĐẠC THỰC TẾ (COVERLET REPORT) (+9 more)
@@ -1955,10 +1867,6 @@ Nodes (17): 1.1. Định nghĩa chuẩn lý thuyết ISTQB CTFL (Graham et al. M
 ### Community 412 - "LegacyVault · Digital Estate & Post-Mortem Asset Handover Platform"
 Cohesion: 0.20
 Nodes (9): 🚀 8 Trụ cột Công nghệ lõi (Đã tích hợp trong Prototype), Cách 1: Khởi chạy bằng file script tự động (Khuyến nghị trên Windows), Cách 2: Khởi chạy thủ công từng phần, 🏗️ Cấu trúc Thư mục Dự án, 🌟 Giới thiệu Tổng quan, ⚡ Hướng dẫn Khởi chạy Nhanh, LegacyVault · Digital Estate & Post-Mortem Asset Handover Platform, 📜 Tài liệu Tham khảo & Bản quyền (+1 more)
-
-### Community 413 - "relationship-permalink.test.mjs"
-Cohesion: 0.22
-Nodes (4): CASES, __dirname, skillRoot, tmp
 
 ### Community 415 - "Đường dẫn (breadcrumb)"
 Cohesion: 0.22
@@ -1971,10 +1879,6 @@ Nodes (8): Bảng giá, Bố cục, Câu hỏi thường gặp, Gói nổi bật
 ### Community 417 - "SƠ ĐỒ LUỒNG BƠI KIẾN TRÚC (SWIMLANE WORKFLOW ARCHITECTURE)"
 Cohesion: 0.22
 Nodes (8): 1. SWIMLANE FLOW 01: ĐĂNG NHẬP VÀ ĐĂNG KÝ TÀI KHOẢN (FLOW 01 · SIGN-IN AND ACCOUNT REGISTRATION), 2. SWIMLANE FLOW 02: THIẾT LẬP KHO, MÃ HÓA ENVELOPE, GOM KHO THỤ HƯỞNG, MỜI EXECUTOR, XÁC MINH DANH TÍNH THỦ CÔNG & KÍCH HOẠT KẾ HOẠCH, 3. SWIMLANE FLOW 03: DEAD MAN'S SWITCH (DMS) · HEARTBEAT, SUSPENSION & SAFE FREEZE, 4. BẢNG ĐỐI SOÁT CÔNG NGHỆ & CĂN CỨ PHÁP LÝ, HƯỚNG DẪN IMPORT VÀO DRAW.IO (DIAGRAMS.NET), HỆ THỐNG QUẢN LÝ & BÀN GIAO DI SẢN SỐ AN TOÀN LEGACYVAULT, SƠ ĐỒ LUỒNG BƠI KIẾN TRÚC (SWIMLANE WORKFLOW ARCHITECTURE), TIÊU CHUẨN KÝ HIỆU LƯU ĐỒ ISO/ANSI (FLOWCHART SYMBOLS STANDARD)
-
-### Community 418 - "1"
-Cohesion: 0.67
-Nodes (3): $type, $value, 1
 
 ### Community 419 - "route-journey.test.mjs"
 Cohesion: 0.25
@@ -2003,10 +1907,6 @@ Nodes (6): 1. MỤC ĐÍCH & Ý NGHĨA TRUY VẾT (TRACEABILITY RATIONALE), 3. K
 ### Community 427 - "Sequence Renderer"
 Cohesion: 0.29
 Nodes (6): Column fit, Design Rules, Input, Layout budget, Legend, Sequence Renderer
-
-### Community 430 - "3"
-Cohesion: 0.67
-Nodes (3): $type, $value, 3
 
 ### Community 432 - "Slides Reference"
 Cohesion: 0.29
@@ -2140,14 +2040,6 @@ Nodes (3): Expanding the Oxlint configuration, React Compiler, React + TypeScrip
 Cohesion: 0.67
 Nodes (3): minimum, type, labelSegment
 
-### Community 472 - "8"
-Cohesion: 0.67
-Nodes (3): $type, $value, 8
-
-### Community 473 - "HandoverVaultSnapshot"
-Cohesion: 0.22
-Nodes (6): HandoverVaultSnapshot, HandoverVaultId, PreviousStatus, RemainingGrantWindowSeconds, RemainingResponseWindowSeconds, ScheduledDeliveryDate
-
 ### Community 486 - "repair-receipt.test.mjs"
 Cohesion: 0.25
 Nodes (5): cli, here, receipt(), skillRoot, tmp
@@ -2156,21 +2048,9 @@ Nodes (5): cli, here, receipt(), skillRoot, tmp
 Cohesion: 0.25
 Nodes (5): CASES, here, repoRoot, skillRoot, tmp
 
-### Community 488 - "vertical-edge.test.mjs"
-Cohesion: 0.25
-Nodes (5): bin, __dirname, REPRO, skillRoot, tmp
-
 ### Community 489 - "THƯ VIỆN TÀI LIỆU DỰ ÁN LEGACYVAULT (SWP391 - SRS v3.11.0)"
 Cohesion: 0.25
 Nodes (8): 1. 📋 [01_requirements/](01_requirements/) — Yêu cầu Nghiệp vụ & Pháp lý, 2. 🏛️ [02_architecture/](02_architecture/) — Kiến trúc Hệ thống, Mật mã & Dữ liệu, 3. 🔌 [03_api_and_integration/](03_api_and_integration/) — Hợp đồng API & Tích hợp, 4. 🔄 [04_business_flows/](04_business_flows/) — Luồng Nghiệp vụ & Sơ đồ Swimlane, 5. 🎨 [05_design_ui/](05_design_ui/) — Design System & Giao diện, 6. 📊 [06_diagrams_interactive/](06_diagrams_interactive/) — Sơ đồ Tương tác Độc lập, 📂 CẤU TRÚC THƯ VIỆN TÀI LIỆU (`docs/`), THƯ VIỆN TÀI LIỆU DỰ ÁN LEGACYVAULT (SWP391 - SRS v3.11.0)
-
-### Community 491 - "chapter-handoff.test.mjs"
-Cohesion: 0.29
-Nodes (4): CASES, __dirname, skillRoot, tmp
-
-### Community 492 - "route-probe.test.mjs"
-Cohesion: 0.29
-Nodes (4): CASES, __dirname, skillRoot, tmp
 
 ### Community 494 - "4. THIẾT KẾ CÁC KHỐI THÀNH PHẦN CỐT LÕI (CORE COMPONENTS DESIGN)"
 Cohesion: 0.33
@@ -2193,24 +2073,24 @@ Cohesion: 0.40
 Nodes (5): 5.1. Mục tiêu & Ý nghĩa nghiệp vụ, 5.2. Điều kiện tiên quyết (Pre-conditions), 5.3. Các bước thực hiện chi tiết (Step-by-Step), 5.4. Điều kiện kết thúc (Post-conditions), 5. MAIN FLOW 4: THIẾT LẬP NGƯỜI THỤ HƯỞNG & CHỈ ĐỊNH NGƯỜI THI HÀNH (EXECUTOR)
 
 ## Knowledge Gaps
-- **3543 isolated node(s):** `COMPONENT_FIELDS`, `CONNECTION_FIELDS`, `BOUNDARY_FIELDS`, `name`, `version` (+3538 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 4519 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **80 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **3547 isolated node(s):** `COMPONENT_FIELDS`, `CONNECTION_FIELDS`, `BOUNDARY_FIELDS`, `name`, `version` (+3542 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 4523 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **79 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `2.5. Xử lý lỗi & Ngoại lệ (Exception Handling)` connect `ĐẶC TẢ CHI TIẾT CÁC LUỒNG NGHIỆP VỤ CHÍNH (MAIN FLOWS SPECIFICATION)` to `ErrorBoundary.tsx`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `ErrorBoundary` connect `ErrorBoundary.tsx` to `react`, `HeritageBadge`, `ĐẶC TẢ CHI TIẾT CÁC LUỒNG NGHIỆP VỤ CHÍNH (MAIN FLOWS SPECIFICATION)`?**
+- **Why does `ErrorBoundary` connect `ErrorBoundary.tsx` to `lucide-react`, `HeritageBadge`, `ĐẶC TẢ CHI TIẾT CÁC LUỒNG NGHIỆP VỤ CHÍNH (MAIN FLOWS SPECIFICATION)`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
 - **What connects `COMPONENT_FIELDS`, `CONNECTION_FIELDS`, `BOUNDARY_FIELDS` to the rest of the system?**
-  _3543 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _3547 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `compileWorkflowInternal` be split into smaller, more focused modules?**
   _Cohesion score 0.06043956043956044 - nodes in this community are weakly interconnected._
 - **Should `design_system.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.04970914859862507 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06707317073170732 - nodes in this community are weakly interconnected._
 - **Should `focus-browser.test.mjs` be split into smaller, more focused modules?**
-  _Cohesion score 0.052429667519181586 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07607843137254902 - nodes in this community are weakly interconnected._
 - **Should `DesignSystemGenerator` be split into smaller, more focused modules?**
-  _Cohesion score 0.05513784461152882 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.04794520547945205 - nodes in this community are weakly interconnected._

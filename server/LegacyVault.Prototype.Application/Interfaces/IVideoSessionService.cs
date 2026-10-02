@@ -10,7 +10,12 @@ public interface IVideoSessionService
     
     Task<ScheduleVideoSessionResponse> ConfirmScheduleAsync(Guid sessionId, DateTime scheduledAt, Guid currentUserId);
     
-    Task<JoinTokenResponse> GetJoinTokenAsync(Guid sessionId, Guid currentUserId);
+    Task<JoinTokenResponse> GetJoinTokenAsync(
+        Guid sessionId, 
+        Guid currentUserId, 
+        string? participantName = null, 
+        string? guestToken = null, 
+        string? role = null);
     
     Task<VideoSessionDetailDto> SubmitVerdictAsync(Guid sessionId, SubmitVerdictRequest request, Guid currentVerifierId);
     

@@ -176,7 +176,8 @@ public class FinalizeHandoverResponse
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
     public HandoverReceiptDto Receipt { get; set; } = new();
-    public bool IsRoomClosed { get; set; } = true;
+    public bool IsRoomClosed { get; set; } = false;
+    public string RoomStatus { get; set; } = "OPEN"; // OPEN | CLOSING | CLOSED | FAILED_TO_CLOSE
     public bool IsGuestSessionRevoked { get; set; } = true;
     public bool IsRecipientGrantFinalized { get; set; } = true;
     public bool AreOtherBeneficiariesStillActive { get; set; }
@@ -186,12 +187,14 @@ public class HandoverReceiptDto
 {
     public Guid ReceiptId { get; set; }
     public string ReceiptNumber { get; set; } = string.Empty;
+    public string ReceiptVersion { get; set; } = "1.1";
     public Guid CaseId { get; set; }
     public Guid BundleId { get; set; }
     public Guid GrantId { get; set; }
     public Guid SessionId { get; set; }
     public Guid BeneficiaryId { get; set; }
     public string BeneficiaryName { get; set; } = string.Empty;
+    public Guid ExecutorId { get; set; }
     public DateTime ReceivedAt { get; set; }
     public int DownloadedAssetsCount { get; set; }
     public int TotalAssetsCount { get; set; }
@@ -200,6 +203,7 @@ public class HandoverReceiptDto
     public string LegalDeclaration { get; set; } = string.Empty;
     public string SignatureType { get; set; } = "ELECTRONIC_RECEIPT_SIGNATURE";
     public string? RecipientSignatureData { get; set; }
+    public string SignatureHash { get; set; } = string.Empty;
     public string ReceiptContentHash { get; set; } = string.Empty;
     public string ReceiptAuditDigest { get; set; } = string.Empty;
     public string DigitalSignatureAudit { get; set; } = string.Empty;

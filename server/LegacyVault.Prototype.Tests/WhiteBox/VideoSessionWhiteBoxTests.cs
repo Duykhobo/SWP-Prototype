@@ -840,7 +840,8 @@ public class VideoSessionWhiteBoxTests
         {
             RecipientId = benB,
             GuestToken = guestB.GuestToken,
-            DownloadedAssetIds = allAssetIds
+            DownloadedAssetIds = allAssetIds,
+            RecipientSignatureData = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
         });
 
         // Assert 1: B hoàn tất, nhưng phòng CHƯA ĐÓNG vì C vẫn còn đang active
@@ -864,13 +865,14 @@ public class VideoSessionWhiteBoxTests
         {
             RecipientId = benC,
             GuestToken = guestC.GuestToken,
-            DownloadedAssetIds = allAssetIds
+            DownloadedAssetIds = allAssetIds,
+            RecipientSignatureData = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
         });
 
-        // Assert 2: C hoàn tất -> Không còn ai active -> Phòng đóng hoàn toàn
+        // Assert 2: C hoàn tất -> Không còn ai active -> Yêu cầu đóng phòng được gửi tới LiveKit
         Assert.True(finalizeC.Success);
         Assert.False(finalizeC.AreOtherBeneficiariesStillActive);
-        Assert.True(finalizeC.IsRoomClosed);
+        Assert.Contains(finalizeC.RoomStatus, new[] { "CLOSED", "CLOSING", "FAILED_TO_CLOSE" });
     }
     #endregion
 
@@ -1055,6 +1057,174 @@ public class VideoSessionWhiteBoxTests
         Assert.NotEmpty(receipt.ReceiptContentHash);
         Assert.Equal(64, receipt.ReceiptContentHash.Length); // 64 hex chars = 256 bits
         Assert.Equal($"SHA256:{receipt.ReceiptContentHash}", receipt.ReceiptAuditDigest);
+        Assert.NotEmpty(receipt.SignatureHash);
+        Assert.Equal("1.1", receipt.ReceiptVersion);
+    }
+
+    [Fact]
+    public async Task ExecutorAuthorization_WhenCallerNotAssignedExecutor_ShouldThrowUnauthorizedAccessException()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var legitimateExecutorId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var impostorExecutorId = Guid.NewGuid(); // Kẻ giả danh
+
+        var sessionResp = await videoSessionService.RequestSessionAsync(new CreateVideoSessionRequest
+        {
+            CaseId = caseId,
+            ScheduledAt = DateTime.UtcNow.AddHours(1),
+            AssignedVerifierId = legitimateExecutorId
+        }, Guid.NewGuid());
+
+        // Act & Assert: Kẻ giả danh cố duyệt người nhận -> Phải bị chặn 403 / UnauthorizedAccessException
+        var ex = await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
+            videoSessionService.AuthorizeRecipientByExecutorAsync(sessionResp.SessionId, impostorExecutorId, new AuthorizeRecipientRequest
+            {
+                FaceMatched = true,
+                NationalIdMatched = true
+            }));
+
+        Assert.Contains(impostorExecutorId.ToString(), ex.Message);
+    }
+
+    [Fact]
+    public async Task FinalizeHandover_SignatureValidation_RejectsMissingInvalidOrOversizedSignatures()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var executorId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var subjectId = Guid.NewGuid();
+
+        var sessionResp = await videoSessionService.RequestSessionAsync(new CreateVideoSessionRequest
+        {
+            CaseId = caseId,
+            ScheduledAt = DateTime.UtcNow.AddHours(1),
+            SubjectUserId = subjectId,
+            AssignedVerifierId = executorId
+        }, subjectId);
+
+        timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: true);
+        timeLockService.ApproveCaseForDelivery(caseId);
+
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(sessionResp.SessionId, executorId, new AuthorizeRecipientRequest());
+        var acceptResp = await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, subjectId, new AcceptHandoverRequest
+        {
+            LegalAcknowledgment = true,
+            SecondFactorProof = "fido2-signature-verified-123"
+        });
+
+        var allAssetIds = new List<Guid>
+        {
+            Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            Guid.Parse("33333333-3333-3333-3333-333333333333")
+        };
+        foreach (var assetId in allAssetIds)
+        {
+            await videoSessionService.RecordAssetDownloadAsync(acceptResp.DownloadToken!, assetId);
+        }
+
+        // Test 1: Thiếu chữ ký (null hoặc whitespace) -> Phải ném lỗi
+        var ex1 = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, subjectId, new FinalizeHandoverRequest
+            {
+                DownloadedAssetIds = allAssetIds,
+                RecipientSignatureData = null
+            }));
+        Assert.Contains("bắt buộc phải có chữ ký", ex1.Message);
+
+        // Test 2: Định dạng chữ ký không phải data:image/ -> Phải ném lỗi
+        var ex2 = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, subjectId, new FinalizeHandoverRequest
+            {
+                DownloadedAssetIds = allAssetIds,
+                RecipientSignatureData = "invalid-raw-text-signature"
+            }));
+        Assert.Contains("Định dạng ảnh chữ ký không hợp lệ", ex2.Message);
+
+        // Test 3: Kích thước ảnh chữ ký vượt quá 512KB -> Phải ném lỗi
+        var oversizedSig = "data:image/png;base64," + new string('A', 513 * 1024);
+        var ex3 = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, subjectId, new FinalizeHandoverRequest
+            {
+                DownloadedAssetIds = allAssetIds,
+                RecipientSignatureData = oversizedSig
+            }));
+        Assert.Contains("vượt quá giới hạn cho phép", ex3.Message);
+    }
+
+    [Fact]
+    public async Task FinalizeHandover_IdempotencyRetry_WhenGrantIsAlreadyFinalized_ShouldReturnExistingReceipt()
+    {
+        // Arrange
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var executorId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var subjectId = Guid.NewGuid();
+
+        var sessionResp = await videoSessionService.RequestSessionAsync(new CreateVideoSessionRequest
+        {
+            CaseId = caseId,
+            ScheduledAt = DateTime.UtcNow.AddHours(1),
+            SubjectUserId = subjectId,
+            AssignedVerifierId = executorId
+        }, subjectId);
+
+        timeLockService.InitializeCaseTimeLock(caseId, isDemoMode: true);
+        timeLockService.ApproveCaseForDelivery(caseId);
+
+        await videoSessionService.AuthorizeRecipientByExecutorAsync(sessionResp.SessionId, executorId, new AuthorizeRecipientRequest());
+        var acceptResp = await videoSessionService.AcceptHandoverAsync(sessionResp.SessionId, subjectId, new AcceptHandoverRequest
+        {
+            LegalAcknowledgment = true,
+            SecondFactorProof = "fido2-signature-verified-123"
+        });
+
+        var allAssetIds = new List<Guid>
+        {
+            Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            Guid.Parse("33333333-3333-3333-3333-333333333333")
+        };
+        foreach (var assetId in allAssetIds)
+        {
+            await videoSessionService.RecordAssetDownloadAsync(acceptResp.DownloadToken!, assetId);
+        }
+
+        var signatureData = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+        var request = new FinalizeHandoverRequest
+        {
+            DownloadedAssetIds = allAssetIds,
+            RecipientSignatureData = signatureData,
+            LegalDeclaration = "Tôi cam đoan đã nhận và giải mã toàn bộ tệp di sản."
+        };
+
+        // Lần 1: Hoàn tất bàn giao lần đầu -> Grant chuyển sang FINALIZED
+        var firstResp = await videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, subjectId, request);
+        Assert.True(firstResp.Success);
+        Assert.NotNull(firstResp.Receipt);
+        var initialReceiptNumber = firstResp.Receipt.ReceiptNumber;
+
+        // Lần 2 (RETRY): Gọi lại khi Grant đã FINALIZED -> Không bị từ chối mà trả về đúng biên nhận cũ!
+        var retryResp = await videoSessionService.FinalizeHandoverSessionAsync(sessionResp.SessionId, subjectId, request);
+        Assert.True(retryResp.Success);
+        Assert.NotNull(retryResp.Receipt);
+        Assert.Equal(initialReceiptNumber, retryResp.Receipt.ReceiptNumber);
+        Assert.Contains("trước đó", retryResp.Message);
     }
     #endregion
 }

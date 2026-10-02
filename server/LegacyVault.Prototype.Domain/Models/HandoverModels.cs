@@ -16,6 +16,7 @@ public class HandoverVaultConfig
     public DateTime? ResponseDeadlineUtc { get; set; } // Hạn 7 ngày ban đầu
     public DateTime? FreezeStartedAt { get; set; }
     public DateTime? ReconsiderationExpiresAt { get; set; } // Hạn suy nghĩ lại 2 năm
+    public Guid AssignedExecutorId { get; set; } = Guid.Empty;
     public List<HandoverAssetItem> Assets { get; set; } = new();
 }
 
@@ -141,6 +142,7 @@ public class HandoverReceipt
 {
     public Guid ReceiptId { get; set; } = Guid.NewGuid();
     public string ReceiptNumber { get; set; } = $"RCP-LV-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}";
+    public string ReceiptVersion { get; set; } = "1.1";
     public Guid CaseId { get; set; }
     public Guid BundleId { get; set; }
     public Guid GrantId { get; set; }
@@ -160,6 +162,7 @@ public class HandoverReceipt
     // Ký xác nhận biên nhận điện tử (Electronic Receipt Confirmation)
     public string SignatureType { get; set; } = "ELECTRONIC_RECEIPT_SIGNATURE";
     public string? RecipientSignatureData { get; set; } // Data URI (canvas chữ ký)
+    public string SignatureHash { get; set; } = string.Empty; // SHA-256 thực của ảnh chữ ký
     public string ReceiptContentHash { get; set; } = string.Empty; // SHA-256 thực của nội dung biên nhận
     public string ReceiptAuditDigest { get; set; } = string.Empty; // SHA256:{hash}
     public string DigitalSignatureAudit { get; set; } = string.Empty; // Tương thích ngược

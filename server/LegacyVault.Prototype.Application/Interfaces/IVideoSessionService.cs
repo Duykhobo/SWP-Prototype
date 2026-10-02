@@ -44,12 +44,12 @@ public interface IVideoSessionService
 
     Task<GuestHandoverSession> GetOrCreateGuestSessionAsync(Guid caseId, Guid beneficiaryId, Guid executorId, Guid sessionId);
 
-    Task<GuestHandoverSession?> ValidateGuestSessionAsync(string guestToken);
+    Task<GuestHandoverSession?> ValidateGuestSessionAsync(string guestToken, bool allowCompleted = false);
 
     // Download audit & dynamic vault configuration
     Task<bool> RecordAssetDownloadAsync(string downloadToken, Guid assetId);
 
     Task<AssetDownloadResultDto> VerifyAndServeEncryptedAssetAsync(Guid bundleId, Guid assetId, string? downloadToken);
 
-    Task<HandoverVaultConfig> ConfigureVaultAsync(Guid bundleOrCaseId, RecipientMode mode, IEnumerable<Guid> designatedRecipientIds);
+    Task<HandoverVaultConfig> ConfigureVaultAsync(Guid bundleOrCaseId, RecipientMode mode, IEnumerable<Guid> designatedRecipientIds, Guid? assignedExecutorId = null);
 }

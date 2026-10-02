@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using LegacyVault.Prototype.Application.DTOs;
 using LegacyVault.Prototype.Application.Interfaces;
+using LegacyVault.Prototype.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LegacyVault.Prototype.WebApi.Controllers;
@@ -11,13 +12,16 @@ public class CaseBundlesController : ControllerBase
 {
     private readonly IVideoSessionService _videoSessionService;
     private readonly ILogger<CaseBundlesController> _logger;
+    private readonly IWebHostEnvironment _env;
 
     public CaseBundlesController(
         IVideoSessionService videoSessionService,
-        ILogger<CaseBundlesController> logger)
+        ILogger<CaseBundlesController> logger,
+        IWebHostEnvironment env)
     {
         _videoSessionService = videoSessionService;
         _logger = logger;
+        _env = env;
     }
 
     /// <summary>
@@ -138,17 +142,24 @@ public class CaseBundlesController : ControllerBase
         [FromQuery] Guid? executorId = null)
     {
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
-        var auth = await ResolveCallerContextAsync(caseBundleId, null, executorId);
-        var currentExecutorId = auth.IsSuccess ? auth.UserId : (executorId ?? Guid.Parse("22222222-2222-2222-2222-222222222222"));
+        var auth = await ResolveCallerContextAsync(caseBundleId, null, executorId, isExecutorAction: true);
+        if (!auth.IsSuccess)
+        {
+            return StatusCode(auth.StatusCode, new { success = false, message = auth.ErrorMessage });
+        }
 
         try
         {
             var req = request ?? new AuthorizeRecipientRequest();
             var result = await _videoSessionService.AuthorizeRecipientByExecutorAsync(
                 caseBundleId, 
-                currentExecutorId, 
+                auth.UserId, 
                 req);
             return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { success = false, message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
@@ -169,7 +180,7 @@ public class CaseBundlesController : ControllerBase
     {
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
         var token = request.GuestToken ?? guestToken ?? Request.Headers["X-Guest-Token"].FirstOrDefault();
-        var auth = await ResolveCallerContextAsync(caseBundleId, token, beneficiaryId ?? request.RecipientId);
+        var auth = await ResolveCallerContextAsync(caseBundleId, token, beneficiaryId ?? request.RecipientId, allowCompletedGuest: true);
         if (!auth.IsSuccess)
         {
             return StatusCode(auth.StatusCode, new { success = false, message = auth.ErrorMessage });
@@ -182,6 +193,10 @@ public class CaseBundlesController : ControllerBase
         {
             var result = await _videoSessionService.FinalizeHandoverSessionAsync(caseBundleId, auth.UserId, request);
             return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, new { success = false, message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
@@ -247,12 +262,19 @@ public class CaseBundlesController : ControllerBase
     private async Task<AuthContextResult> ResolveCallerContextAsync(
         Guid caseBundleId,
         string? guestToken,
-        Guid? explicitUserId = null)
+        Guid? explicitUserId = null,
+        bool isExecutorAction = false,
+        bool allowCompletedGuest = false)
     {
         // 1. Nếu có cung cấp Guest Token: Bắt buộc phải kiểm tra nghiêm ngặt, KHÔNG BAO GIỜ FALLBACK nếu token sai!
         if (!string.IsNullOrWhiteSpace(guestToken))
         {
-            var guest = await _videoSessionService.ValidateGuestSessionAsync(guestToken);
+            if (isExecutorAction)
+            {
+                return new AuthContextResult(false, 403, "Phiên khách chỉ dành riêng cho Người thụ hưởng, không có thẩm quyền Executor.", Guid.Empty, false, null);
+            }
+
+            var guest = await _videoSessionService.ValidateGuestSessionAsync(guestToken, allowCompletedGuest);
             if (guest == null)
             {
                 return new AuthContextResult(false, 401, "Phiên khách (Guest Token) không hợp lệ, đã hết hạn hoặc đã hoàn tất.", Guid.Empty, false, null);
@@ -272,20 +294,51 @@ public class CaseBundlesController : ControllerBase
         }
 
         // 2. Nếu không có Guest Token, kiểm tra JWT Claims
-        var subClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var subClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
         if (!string.IsNullOrEmpty(subClaim) && Guid.TryParse(subClaim, out var parsed))
         {
+            if (isExecutorAction)
+            {
+                bool isExecutor = User.IsInRole("EXECUTOR") || User.IsInRole("VERIFIER") ||
+                                  User.HasClaim(c => (c.Type == "role" || c.Type == ClaimTypes.Role) &&
+                                                     (c.Value == "EXECUTOR" || c.Value == "VERIFIER"));
+                if (!isExecutor)
+                {
+                    return new AuthContextResult(false, 403, "Tài khoản không có vai trò Executor hoặc Verifier để thực hiện thao tác này.", Guid.Empty, false, null);
+                }
+            }
             return new AuthContextResult(true, 200, null, parsed, false, null);
         }
 
-        // 3. Fallback cho Môi trường Testbench Prototype nếu có chỉ định rõ ràng userId
-        if (explicitUserId.HasValue && explicitUserId.Value != Guid.Empty)
+        // 3. Môi trường phát triển (Development Only): Hỗ trợ chạy Testbench hoặc giả lập có kiểm soát
+        if (_env.IsDevelopment())
         {
-            return new AuthContextResult(true, 200, null, explicitUserId.Value, false, null);
+            bool isSimMode = (Request.Headers.TryGetValue("X-Simulation-Mode", out var simVal) && simVal == "true")
+                          || (Request.Headers.TryGetValue("X-Demo-Simulate", out var demoVal) && demoVal == "true");
+
+            if (isSimMode || (explicitUserId.HasValue && explicitUserId.Value != Guid.Empty))
+            {
+                var simulatedUserId = explicitUserId.HasValue && explicitUserId.Value != Guid.Empty
+                    ? explicitUserId.Value
+                    : (isExecutorAction ? Guid.Parse("22222222-2222-2222-2222-222222222222") : Guid.Parse("11111111-1111-1111-1111-111111111111"));
+
+                _logger.LogWarning("[DEV SIMULATION] Chấp nhận danh tính mô phỏng {UserId} cho thao tác (isExecutor: {IsExecutor}).",
+                    simulatedUserId, isExecutorAction);
+
+                return new AuthContextResult(true, 200, null, simulatedUserId, false, null);
+            }
         }
 
-        // Mặc định cho testbench khi không có token hay user nào truyền vào
-        return new AuthContextResult(true, 200, null, Guid.Parse("11111111-1111-1111-1111-111111111111"), false, null);
+        // 4. Môi trường Production hoặc không bật cờ giả lập: BỎ TOÀN BỘ FALLBACK, BẮT BUỘC XÁC THỰC
+        return new AuthContextResult(
+            false, 
+            401, 
+            isExecutorAction
+                ? "Yêu cầu phiên đã xác thực của Executor/Verifier hoặc bật cờ giả lập môi trường phát triển (X-Simulation-Mode)."
+                : "Yêu cầu phiên khách (Guest Token) hoặc JWT của người thụ hưởng để thực hiện thao tác.", 
+            Guid.Empty, 
+            false, 
+            null);
     }
 
     private static bool IsValidSecondFactorProof(string? proof)

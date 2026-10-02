@@ -242,12 +242,18 @@ export const VideoVerificationTestbench: React.FC = () => {
     if (!sessionId) return;
     try {
       setExecutorAllowing(true);
-      await axios.post(`${API_BASE}/api/case-bundles/${caseId}/executor-allow-handover`, {
-        faceMatched: checklist.faceMatched,
-        nationalIdMatched: true,
-        interactiveChallengePassed: checklist.challengeSpoken,
-        executorNotes: verifierNotes,
-      });
+      await axios.post(
+        `${API_BASE}/api/case-bundles/${caseId}/executor-allow-handover?executorId=22222222-2222-2222-2222-222222222222`,
+        {
+          faceMatched: checklist.faceMatched,
+          nationalIdMatched: true,
+          interactiveChallengePassed: checklist.challengeSpoken,
+          executorNotes: verifierNotes,
+        },
+        {
+          headers: { "X-Simulation-Mode": "true" },
+        },
+      );
       setVerifierSavedPass(true);
       setVerifierSavedInconclusive(false);
       await fetchHandoverEligibility();
@@ -268,13 +274,19 @@ export const VideoVerificationTestbench: React.FC = () => {
         signatureDataUrl = signatureCanvasRef.current.toDataURL("image/png");
       }
 
-      const res = await axios.post(`${API_BASE}/api/case-bundles/${caseId}/finalize-handover`, {
-        downloadedAssetIds: downloadedAssetIds,
-        clientConfirmedAssetIds: downloadedAssetIds,
-        legalDeclaration: "Tôi xác nhận đã nhận đầy đủ và muốn kết thúc phiên.",
-        recipientSignatureData: signatureDataUrl,
-        guestToken: guestToken,
-      });
+      const res = await axios.post(
+        `${API_BASE}/api/case-bundles/${caseId}/finalize-handover`,
+        {
+          downloadedAssetIds: downloadedAssetIds,
+          clientConfirmedAssetIds: downloadedAssetIds,
+          legalDeclaration: "Tôi xác nhận đã nhận đầy đủ và muốn kết thúc phiên.",
+          recipientSignatureData: signatureDataUrl,
+          guestToken: guestToken,
+        },
+        {
+          headers: { "X-Simulation-Mode": "true" },
+        },
+      );
       setFinalReceipt(res.data.receipt);
       setShowReceiptModal(true);
       await fetchHandoverEligibility();
@@ -385,7 +397,9 @@ export const VideoVerificationTestbench: React.FC = () => {
     setDownloadingAssetId(asset.assetId);
     try {
       // 1. Nhận vật liệu giải mã qua kênh bảo mật riêng HTTPS (tách biệt khỏi LiveKit)
-      await axios.post(`${API_BASE}/api/case-bundles/${caseId}/decrypt-key`);
+      await axios.post(`${API_BASE}/api/case-bundles/${caseId}/decrypt-key`, {}, {
+        headers: { "X-Simulation-Mode": "true" }
+      });
       
       // 2. Tải bản mã
       const blobRes = await axios.get(`${API_BASE}${asset.downloadEndpoint}`, { responseType: "blob" });
@@ -1433,6 +1447,22 @@ export const VideoVerificationTestbench: React.FC = () => {
                     {/* Bước 5: NÚT CHẤP NHẬN HOẶC TỪ CHỐI NHẬN DI SẢN (KHI CHƯA TIẾP NHẬN HOẶC ĐANG CHỜ) */}
                     {(!acceptResponse || acceptResponse?.isConsensusComplete === false) && (
                       <div className="pt-2 space-y-2">
+                        {/* Huy hiệu ghi rõ trạng thái mô phỏng Passkey / FIDO2 */}
+                        <div className="p-2.5 bg-blue-50/80 border border-blue-200 rounded-xl text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-blue-950 flex items-center gap-1.5">
+                              <KeyRound className="w-3.5 h-3.5 text-blue-700" />
+                              Xác thực yếu tố thứ 2: Passkey FIDO2
+                            </span>
+                            <span className="text-[10px] bg-blue-100 text-blue-800 border border-blue-300 px-1.5 py-0.5 rounded font-mono font-bold">
+                              [MÔ PHỎNG PROTOTYPE]
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-blue-800 leading-tight">
+                            * Giao diện đang sử dụng chữ ký mô phỏng WebAuthn phục vụ thử nghiệm luồng UI.
+                          </p>
+                        </div>
+
                         {!(handoverEligibility?.isExecutorAuthorized || verifierSavedPass) ? (
                           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 text-center space-y-1">
                             <p className="font-semibold">Vui lòng tương tác trực tiếp với Người thực thi qua video bên trái.</p>
@@ -1544,7 +1574,7 @@ export const VideoVerificationTestbench: React.FC = () => {
                                       </span>
                                     ) : isDownloading ? (
                                       <span className="text-blue-700 font-semibold flex items-center gap-1">
-                                        <RefreshCw className="w-3 h-3 animate-spin text-blue-600" /> Đang giải mã AES-GCM...
+                                        <RefreshCw className="w-3 h-3 animate-spin text-blue-600" /> Đang mô phỏng giải mã AES-GCM (Prototype)...
                                       </span>
                                     ) : (
                                       <span className="text-[#66786E] flex items-center gap-1">
@@ -1561,7 +1591,7 @@ export const VideoVerificationTestbench: React.FC = () => {
                                 >
                                   <Download className="w-3.5 h-3.5 text-[#B88E4C]" />
                                   <span>
-                                    {isDownloading ? "Đang xử lý..." : isDownloaded ? "Tải lại file" : "Giải mã & Tải về"}
+                                    {isDownloading ? "Đang xử lý..." : isDownloaded ? "Tải lại file" : "Giải mã & Tải về [Mô phỏng]"}
                                   </span>
                                 </button>
                               </div>
@@ -1624,7 +1654,7 @@ export const VideoVerificationTestbench: React.FC = () => {
                                     )}
                                   </div>
                                   <p className="text-[10px] text-[#66786E]">
-                                    Chữ ký điện tử sẽ được băm mã hóa SHA-256 gắn liền với nội dung biên nhận và lưu trữ vĩnh viễn trong CSDL kiểm toán.
+                                    Chữ ký điện tử được băm mã hóa SHA-256 gắn liền với nội dung biên nhận và lưu vết trong phiên làm việc của hệ thống prototype.
                                   </p>
                                 </div>
 
@@ -1857,14 +1887,20 @@ export const VideoVerificationTestbench: React.FC = () => {
                 </strong>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-[#EFECE6]">
+                <span className="text-[#66786E]">Phiên bản biên nhận:</span>
+                <span className="font-mono font-bold text-blue-800 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded text-[11px]">
+                  v{finalReceipt.receiptVersion || "1.1"} (Chuẩn mã băm bọc chữ ký)
+                </span>
+              </div>
+              <div className="flex justify-between items-center pb-2 border-b border-[#EFECE6]">
                 <span className="text-[#66786E]">Trạng thái phiên khách:</span>
                 <span className="text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded font-bold border border-red-200">
                   ĐÃ THU HỒI & ĐÓNG PHIÊN
                 </span>
               </div>
-              {/* Hiển thị chữ ký vẽ tay điện tử */}
+              {/* Hiển thị chữ ký vẽ tay điện tử & Hash chữ ký */}
               {finalReceipt.recipientSignatureData && (
-                <div className="p-2 bg-white border border-[#DCD9D0] rounded-lg text-center space-y-1">
+                <div className="p-2.5 bg-white border border-[#DCD9D0] rounded-lg text-center space-y-1.5">
                   <span className="text-[10px] text-[#66786E] block font-semibold">Chữ ký điện tử người nhận:</span>
                   <div className="bg-[#FAF9F5] p-1.5 rounded border border-[#EFECE6] flex items-center justify-center">
                     <img
@@ -1873,11 +1909,19 @@ export const VideoVerificationTestbench: React.FC = () => {
                       className="max-h-16 object-contain"
                     />
                   </div>
+                  {finalReceipt.signatureHash && (
+                    <div className="text-left pt-1">
+                      <span className="text-[9px] text-[#66786E] block font-semibold">Mã băm chữ ký (SignatureHash):</span>
+                      <code className="text-[9px] bg-amber-50 border border-amber-200 p-1 rounded block break-all text-amber-950 font-mono">
+                        SHA256:{finalReceipt.signatureHash}
+                      </code>
+                    </div>
+                  )}
                 </div>
               )}
               <div className="pt-1">
-                <span className="text-[10px] text-[#66786E] block mb-1">
-                  Ký xác nhận biên nhận điện tử (Mã băm toàn vẹn SHA-256):
+                <span className="text-[10px] text-[#66786E] block mb-1 font-semibold">
+                  Mã băm toàn vẹn nội dung biên nhận (ReceiptContentHash - bao gồm chữ ký):
                 </span>
                 <span className="font-mono text-[10px] bg-white border border-[#DCD9D0] p-1.5 rounded block break-all text-[#0B291E]">
                   {finalReceipt.receiptAuditDigest || finalReceipt.digitalSignatureAudit}
@@ -1886,7 +1930,7 @@ export const VideoVerificationTestbench: React.FC = () => {
             </div>
 
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 leading-relaxed">
-              <strong>Lưu ý:</strong> Biên nhận này ghi nhận việc nhận đầy đủ các tệp di sản số trong hệ thống. Phiên khách đã được thu hồi và phòng gọi sẽ đóng lại. Chỉ kết thúc phiên của người nhận này; hồ sơ có nhiều người thụ hưởng vẫn tiếp tục cho những người còn lại.
+              <strong>Lưu ý:</strong> Biên nhận này ghi nhận việc nhận đầy đủ các tệp di sản số trong phiên làm việc. Dữ liệu biên nhận hiện được lưu trữ trong phiên runtime của hệ thống prototype. Phiên khách đã được thu hồi và phòng gọi sẽ đóng lại.
             </div>
 
             <div className="pt-2 flex gap-2">

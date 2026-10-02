@@ -68,3 +68,44 @@ public enum UserRole
     BENEFICIARY,
     ADMIN
 }
+
+public enum VideoSessionStatus
+{
+    REQUESTED,      // Đã tạo yêu cầu, chờ Verifier xác nhận lịch
+    SCHEDULED,      // Đã chốt lịch hẹn
+    WAITING,        // Mở phòng chờ (trước 10-15 phút để test mic/cam local)
+    IN_PROGRESS,    // Đang diễn ra cuộc gọi
+    COMPLETED,      // Kết thúc bình thường
+    CANCELLED,      // Bị hủy trước giờ hẹn
+    EXPIRED,        // Quá hạn không ai vào
+    TERMINATED      // Bị ngắt cưỡng bức do vi phạm
+}
+
+public enum VideoSessionPurpose
+{
+    HANDOVER_VERIFICATION, // Thẩm định nhân thân Executor / nộp chứng tử
+    OWNER_RESCUE           // Kháng nghị khẩn cấp "Tôi còn sống" của Owner
+}
+
+public enum VerificationOutcome
+{
+    PENDING,            // Chưa có kết luận
+    PASS,               // Đối chiếu thành công
+    FAIL,               // Nghi ngờ gian lận / giả mạo
+    REQUIRE_MORE_DOCS,  // Yêu cầu bổ sung tài liệu
+    INCONCLUSIVE        // Mạng yếu / cam hỏng / không thể kết luận (lên lịch lại)
+}
+
+public enum ParticipantRoleInCall
+{
+    HOST_VERIFIER,
+    SUBJECT_USER
+}
+
+public enum AccessGrantStatus
+{
+    ACTIVE,
+    SUSPENDED_RESCUE_HOLD,
+    REVOKED,
+    EXPIRED
+}

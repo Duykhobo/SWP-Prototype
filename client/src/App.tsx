@@ -17,7 +17,15 @@ import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 import { ShieldCheck, Zap } from 'lucide-react';
 
 export const App: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState<MainNavTab>('dashboard');
+  const [currentTab, setCurrentTab] = useState<MainNavTab>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('session')) {
+        return 'testbench';
+      }
+    }
+    return 'dashboard';
+  });
   const [uiTheme, setUiTheme] = useState<'evon' | 'promax'>('evon');
   const [currentRole, setCurrentRole] = useState<string>('OWNER');
   const [daysRemaining, setDaysRemaining] = useState<number>(29);
@@ -211,22 +219,21 @@ export const App: React.FC = () => {
 
           {currentTab === 'testbench' && (
             <div className="space-y-4">
-              <div className={`p-4 rounded-xl flex items-center justify-between text-xs border ${
-                uiTheme === 'promax'
-                  ? 'bg-[#131C2E] border-slate-700 text-slate-300'
-                  : 'bg-[#FAF9F5] border-[#DCD9D0] text-[#66786E]'
-              }`}>
-                <span>
-                  Đang mở <strong>Chế độ Thử Nghiệm Kỹ Thuật (Engineering Testbench Sandbox)</strong> để đánh giá 8 trụ cột công nghệ lõi.
-                </span>
+              <div className="flex items-center justify-between text-xs text-[#66786E] px-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-[#0B291E]">Engineering Testbench Sandbox</span>
+                  <span className="text-[10px] bg-[#B88E4C]/20 text-[#8C6B32] font-bold px-2 py-0.5 rounded-full">
+                    11 Trụ Cột Công Nghệ
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => setCurrentTab('dashboard')}
-                  className={`text-xs font-bold underline cursor-pointer ${
+                  className={`font-semibold underline cursor-pointer text-xs ${
                     uiTheme === 'promax' ? 'text-emerald-400 hover:text-emerald-300' : 'text-[#0B291E] hover:text-[#B88E4C]'
                   }`}
                 >
-                  Quay lại Giao Diện Ứng Dụng (Portal)
+                  ← Quay lại Giao Diện Tổng Quan
                 </button>
               </div>
               <TestbenchPage />

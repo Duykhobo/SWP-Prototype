@@ -1,14 +1,22 @@
 /**
  * @file TestbenchPage.tsx
  * @description Trang điều khiển trung tâm thử nghiệm và đánh giá toàn diện công nghệ cho Đồ án LegacyVault
+ * Đã tinh chỉnh: Loại bỏ hoàn toàn Header, Navbar và Footer lồng nhau khi nhúng trong Prototype Portal.
  */
 
 import React, { useState } from 'react';
-import { AppHeader } from '@/widgets/AppHeader';
-import { TechOverviewBar } from '@/widgets/TechOverviewBar';
-import { LiveDmsHeartbeatCard } from '@/widgets/LiveDmsHeartbeatCard';
-import { ComplianceWarningBox } from '@/widgets/ComplianceWarningBox';
-import { LegalDropzone } from '@/widgets/LegalDropzone';
+import { 
+  Shield, 
+  KeyRound, 
+  Clock, 
+  CreditCard, 
+  Mail, 
+  LogIn, 
+  Cpu, 
+  Sparkles, 
+  UserCheck, 
+  Video 
+} from 'lucide-react';
 
 import { CryptoEnvelopeTestbench } from '@/features/crypto-envelope/CryptoEnvelopeTestbench';
 import { ShamirTestbench } from '@/features/shamir-anti-rogue/ShamirTestbench';
@@ -17,69 +25,82 @@ import { SePayTestbench } from '@/features/payment-sepay/SePayTestbench';
 import { MailKitTestbench } from '@/features/notification-mailkit/MailKitTestbench';
 import { EkycTestbench } from '@/features/ekyc-verification/EkycTestbench';
 import { RescueTimeLockTestbench } from '@/features/rescue-timelock/RescueTimeLockTestbench';
+import { VideoVerificationTestbench } from '@/features/video-verification/VideoVerificationTestbench';
 import { GoogleOidcTestbench } from '@/features/auth-oidc/GoogleOidcTestbench';
 import { FptMarketplaceTestbench } from '@/features/fpt-marketplace/FptMarketplaceTestbench';
 import { InteractiveWorkflowVisualizer } from '@/features/workflow-visualizer/InteractiveWorkflowVisualizer';
 import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 
-export const TestbenchPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>('flow');
-  const [currentRole, setCurrentRole] = useState<string>('OWNER');
+interface TestbenchPageProps {
+  defaultTab?: string;
+}
+
+export const TestbenchPage: React.FC<TestbenchPageProps> = ({ defaultTab = 'flow' }) => {
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('session')) {
+        return 'video-verification';
+      }
+    }
+    return defaultTab;
+  });
+
+  const testbenchTabs = [
+    { id: 'flow', label: '🌟 0. Quy Trình Hoạt Hình', icon: <Sparkles className="w-3.5 h-3.5 text-amber-500" /> },
+    { id: 'envelope', label: '1. Envelope AES-GCM', icon: <Shield className="w-3.5 h-3.5" /> },
+    { id: 'shamir', label: '2. Shamir SSS (2/3)', icon: <KeyRound className="w-3.5 h-3.5" /> },
+    { id: 'r2', label: '3. Cloudflare R2', icon: <Shield className="w-3.5 h-3.5" /> },
+    { id: 'sepay', label: '4. SePay VietQR', icon: <CreditCard className="w-3.5 h-3.5" /> },
+    { id: 'mailkit', label: '5. MailKit SMTP', icon: <Mail className="w-3.5 h-3.5" /> },
+    { id: 'ekyc', label: '6. Xác Minh Danh Tính Thủ Công', icon: <UserCheck className="w-3.5 h-3.5" /> },
+    { id: 'timelock', label: '7. Time-Lock & Rescue', icon: <Clock className="w-3.5 h-3.5" /> },
+    { id: 'video-verification', label: '🎥 8. Gọi Video 1–1 (LiveKit)', icon: <Video className="w-3.5 h-3.5 text-emerald-600" /> },
+    { id: 'oidc', label: '9. Google OIDC', icon: <LogIn className="w-3.5 h-3.5" /> },
+    { id: 'fpt-marketplace', label: '10. AI Trích Xuất (Định hướng)', icon: <Cpu className="w-3.5 h-3.5" /> },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#EFECE6] text-[#14241C] flex flex-col font-sans">
-      {/* Header */}
-      <AppHeader
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        currentRole={currentRole}
-        onRoleChange={setCurrentRole}
-      />
+    <div className="space-y-6">
+      {/* 1. CLEAN SUB-TAB NAVIGATION BAR (No duplicate Header / No duplicate logo / No duplicate role) */}
+      <div className="bg-white border border-[#DCD9D0] rounded-2xl p-2 shadow-xs">
+        <nav className="flex space-x-1.5 overflow-x-auto scrollbar-none py-0.5">
+          {testbenchTabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-[#0B291E] text-white shadow-xs scale-[1.01]'
+                    : 'text-[#66786E] hover:text-[#0B291E] hover:bg-[#FAF9F5]'
+                }`}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
-      {/* Tech Overview Bar */}
-      <TechOverviewBar />
-
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
-        {/* Top 2 Domain Protocol Components */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <LiveDmsHeartbeatCard ownerName="Nguyễn Văn Chủ Kho" cycleDays={30} />
-          <ComplianceWarningBox totalAssetsValue={500000000} />
-        </div>
-
-        {/* Tab Content Display */}
-        <div className="transition-all duration-300">
-          <ErrorBoundary fallbackTitle="Lỗi hiển thị thành phần thử nghiệm">
-            {activeTab === 'flow' && <InteractiveWorkflowVisualizer onNavigateTab={setActiveTab} />}
-            {activeTab === 'envelope' && <CryptoEnvelopeTestbench />}
-            {activeTab === 'shamir' && <ShamirTestbench />}
-            {activeTab === 'r2' && <R2StorageTestbench />}
-            {activeTab === 'sepay' && <SePayTestbench />}
-            {activeTab === 'mailkit' && <MailKitTestbench />}
-            {activeTab === 'ekyc' && <EkycTestbench onNavigateToMarketplace={() => setActiveTab('fpt-marketplace')} />}
-            {activeTab === 'timelock' && <RescueTimeLockTestbench />}
-            {activeTab === 'oidc' && <GoogleOidcTestbench />}
-            {activeTab === 'fpt-marketplace' && <FptMarketplaceTestbench />}
-          </ErrorBoundary>
-        </div>
-
-        {/* Legal Dropzone at bottom for testing standalone hashing */}
-        <div className="pt-4 border-t border-[#DCD9D0]">
-          <LegalDropzone />
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-[#FAF9F5] border-t border-[#DCD9D0] py-6 text-center text-xs text-[#66786E]">
-        <div className="max-w-7xl mx-auto px-4 space-y-1">
-          <p className="font-semibold text-[#0B291E]">
-            Dự án Tốt nghiệp Kỹ thuật phần mềm: LegacyVault (SWP391 - Fall 2026)
-          </p>
-          <p>
-            Mã hóa Phong bì AES-256-GCM • Shamir SSS (2/3) • Cloudflare R2 • SePay VietQR • MailKit SMTP • Thẩm định hồ sơ thủ công • Google OIDC
-          </p>
-        </div>
-      </footer>
+      {/* 2. DIRECT TAB CONTENT (No duplicate top cards / Immediate focus on selected tool) */}
+      <div className="transition-all duration-300">
+        <ErrorBoundary fallbackTitle="Lỗi hiển thị thành phần thử nghiệm">
+          {activeTab === 'flow' && <InteractiveWorkflowVisualizer onNavigateTab={setActiveTab} />}
+          {activeTab === 'envelope' && <CryptoEnvelopeTestbench />}
+          {activeTab === 'shamir' && <ShamirTestbench />}
+          {activeTab === 'r2' && <R2StorageTestbench />}
+          {activeTab === 'sepay' && <SePayTestbench />}
+          {activeTab === 'mailkit' && <MailKitTestbench />}
+          {activeTab === 'ekyc' && <EkycTestbench onNavigateToMarketplace={() => setActiveTab('fpt-marketplace')} />}
+          {activeTab === 'timelock' && <RescueTimeLockTestbench />}
+          {activeTab === 'video-verification' && <VideoVerificationTestbench />}
+          {activeTab === 'oidc' && <GoogleOidcTestbench />}
+          {activeTab === 'fpt-marketplace' && <FptMarketplaceTestbench />}
+        </ErrorBoundary>
+      </div>
     </div>
   );
 };

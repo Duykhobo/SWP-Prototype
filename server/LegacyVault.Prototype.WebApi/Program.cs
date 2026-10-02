@@ -41,6 +41,8 @@ builder.Services.AddHttpClient<IEkycService, EkycService>();
 builder.Services.AddHttpClient<IFptMarketplaceService, FptMarketplaceService>();
 builder.Services.AddSingleton<ITimeLockRescueService, TimeLockRescueService>();
 builder.Services.AddTransient<IOidcValidationService, GoogleOidcValidationService>();
+builder.Services.AddSingleton<ILiveKitVideoService, LiveKitVideoService>();
+builder.Services.AddSingleton<IVideoSessionService, VideoSessionService>();
 
 // 4. Swagger / OpenAPI Documentation
 builder.Services.AddEndpointsApiExplorer();

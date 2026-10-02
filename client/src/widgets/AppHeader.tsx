@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Shield, KeyRound, Clock, CreditCard, Mail, Scan, LogIn, ExternalLink, Cpu, Sparkles, UserCheck } from 'lucide-react';
+import { Shield, KeyRound, Clock, CreditCard, Mail, Scan, LogIn, ExternalLink, Cpu, Sparkles, UserCheck, Video } from 'lucide-react';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
 
 interface AppHeaderProps {
@@ -29,8 +29,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     { id: 'mailkit', label: '5. MailKit SMTP', icon: <Mail className="w-4 h-4" /> },
     { id: 'ekyc', label: '6. Xác minh danh tính thủ công', icon: <UserCheck className="w-4 h-4" /> },
     { id: 'timelock', label: '7. Time-Lock & Rescue', icon: <Clock className="w-4 h-4" /> },
-    { id: 'oidc', label: '8. Google OIDC', icon: <LogIn className="w-4 h-4" /> },
-    { id: 'fpt-marketplace', label: '9. AI Trích Xuất (Định hướng tương lai)', icon: <Cpu className="w-4 h-4" /> },
+    { id: 'video-verification', label: '🎥 8. Gọi Video 1–1 (LiveKit)', icon: <Video className="w-4 h-4 text-emerald-400" /> },
+    { id: 'oidc', label: '9. Google OIDC', icon: <LogIn className="w-4 h-4" /> },
+    { id: 'fpt-marketplace', label: '10. AI Trích Xuất (Định hướng tương lai)', icon: <Cpu className="w-4 h-4" /> },
   ];
 
   const roles = ['OWNER', 'EXECUTOR', 'VERIFIER', 'BENEFICIARY', 'ADMIN'];

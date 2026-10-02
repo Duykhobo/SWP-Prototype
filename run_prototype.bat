@@ -11,13 +11,13 @@ start "LegacyVault Backend API" cmd /k "cd server\LegacyVault.Prototype.WebApi &
 
 timeout /t 3 /nobreak >nul
 
-echo [2/2] Khoi dong Frontend React 19 + Vite (Port 5173)...
+echo [2/2] Khoi dong Frontend React 19 + Vite (Port 5073)...
 start "LegacyVault Frontend App" cmd /k "cd client && npm run dev"
 
 echo.
 echo =========================================================================
 echo  He thong da duoc khoi dong thanh cong!
-echo  - Frontend Testbench UI: http://localhost:5173
+echo  - Frontend Testbench UI: http://localhost:5073
 echo  - Backend Swagger Docs : http://localhost:5000/swagger
 echo =========================================================================
 echo.

@@ -11,6 +11,7 @@ namespace LegacyVault.Prototype.WebApi.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IOidcValidationService _oidcService;
+    private readonly IJwtTokenService _jwtService;
 
     // Bộ nhớ RAM lưu trữ User & Persona phục vụ Prototype demo
     private static readonly ConcurrentDictionary<string, UserModel> _users = new(StringComparer.OrdinalIgnoreCase);
@@ -86,9 +87,10 @@ public class AuthController : ControllerBase
         };
     }
 
-    public AuthController(IOidcValidationService oidcService)
+    public AuthController(IOidcValidationService oidcService, IJwtTokenService jwtService)
     {
         _oidcService = oidcService;
+        _jwtService = jwtService;
     }
 
     /// <summary>
@@ -107,7 +109,7 @@ public class AuthController : ControllerBase
             });
         }
 
-        var token = "jwt_demo_" + persona.Role.ToLowerInvariant() + "_" + Guid.NewGuid().ToString("N");
+        var token = _jwtService.GenerateToken(persona.PersonId, persona.PersonId, persona.Email, persona.FullName, persona.Roles);
 
         return Ok(new
         {
@@ -155,7 +157,7 @@ public class AuthController : ControllerBase
             };
         });
 
-        var token = "jwt_oidc_" + Guid.NewGuid().ToString("N");
+        var token = _jwtService.GenerateToken(user.PersonId, user.PersonId, user.Email, user.FullName, user.Roles);
 
         if (!userInfo.IsValid)
             return Unauthorized(new { success = false, message = "Google ID Token is invalid." });
@@ -216,7 +218,7 @@ public class AuthController : ControllerBase
         };
 
         _users[newUser.Email] = newUser;
-        var token = "jwt_form_" + Guid.NewGuid().ToString("N");
+        var token = _jwtService.GenerateToken(newUser.PersonId, newUser.PersonId, newUser.Email, newUser.FullName, newUser.Roles);
 
         return Ok(new
         {
@@ -256,7 +258,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { success = false, message = "Email hoặc mật khẩu không chính xác." });
         }
 
-        var token = "jwt_form_" + Guid.NewGuid().ToString("N");
+        var token = _jwtService.GenerateToken(user.PersonId, user.PersonId, user.Email, user.FullName, user.Roles);
 
         return Ok(new
         {

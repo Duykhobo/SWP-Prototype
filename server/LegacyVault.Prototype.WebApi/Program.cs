@@ -1,8 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using LegacyVault.Prototype.Application.Interfaces;
+using LegacyVault.Prototype.Infrastructure.Persistence;
 using LegacyVault.Prototype.Infrastructure.Services;
 using LegacyVault.Prototype.WebApi.Middlewares;
+using Microsoft.EntityFrameworkCore;
 
 LoadDotEnv();
 
@@ -31,8 +33,18 @@ builder.Services.AddCors(options =>
     });
 });
 
-// 3. Đăng ký Services & DI
+// 3. Đăng ký Database & EF Core
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? "Server=(localdb)\\mssqllocaldb;Database=LegacyVaultDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
+
+builder.Services.AddDbContext<LegacyVaultDbContext>(options =>
+{
+    options.UseSqlServer(connectionString);
+});
+
+// 4. Đăng ký Services & DI
 builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddSingleton<IEnvelopeEncryptionService, EnvelopeEncryptionService>();
 builder.Services.AddSingleton<IR2StorageService, CloudflareR2StorageService>();
 builder.Services.AddSingleton<IPaymentService, SePayPaymentService>();
@@ -44,13 +56,70 @@ builder.Services.AddTransient<IOidcValidationService, GoogleOidcValidationServic
 builder.Services.AddSingleton<ILiveKitVideoService, LiveKitVideoService>();
 builder.Services.AddSingleton<IVideoSessionService, VideoSessionService>();
 
-// 4. Swagger / OpenAPI Documentation
+// 4. Cấu hình JWT Bearer Authentication chuẩn RFC 7519
+var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "LegacyVault_Super_Secret_Key_For_Jwt_Token_Signing_2026_Minimum_256_Bits!";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "LegacyVault.Identity";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "LegacyVault.ClientApp";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtSecret)),
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.FromMinutes(1)
+    };
+});
+
+// 5. Swagger / OpenAPI Documentation kèm Bearer Authorization
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
+    { 
+        Title = "LegacyVault Prototype API", 
+        Version = "v1",
+        Description = "API nguyên mẫu hệ thống lưu giữ và bàn giao di sản số LegacyVault"
+    });
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "Nhập Token theo định dạng: Bearer {accessToken}",
+        Name = "Authorization",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference 
+                { 
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, 
+                    Id = "Bearer" 
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
-// 5. Pipeline Middlewares
+// 6. Pipeline Middlewares
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<Rfc7807ExceptionMiddleware>();
 
@@ -62,6 +131,7 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseCors("AllowClientApp");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger/index.html"));

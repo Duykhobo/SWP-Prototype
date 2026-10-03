@@ -1226,6 +1226,37 @@ public class VideoSessionWhiteBoxTests
         Assert.Equal(initialReceiptNumber, retryResp.Receipt.ReceiptNumber);
         Assert.Contains("trước đó", retryResp.Message);
     }
+
+    [Fact]
+    public async Task GuestSession_StrangerNotInSnapshot_ThrowsForbiddenException()
+    {
+        var config = CreateTestConfiguration();
+        var liveKitService = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var timeLockService = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var videoSessionService = new VideoSessionService(liveKitService, timeLockService, config, NullLogger<VideoSessionService>.Instance);
+
+        var caseId = Guid.NewGuid();
+        var designatedBen = Guid.NewGuid();
+        var strangerBen = Guid.NewGuid();
+        var executorId = Guid.NewGuid();
+
+        var sessionResp = await videoSessionService.RequestSessionAsync(new CreateVideoSessionRequest
+        {
+            CaseId = caseId,
+            Purpose = VideoSessionPurpose.HANDOVER_VERIFICATION,
+            SubjectUserId = designatedBen,
+            AssignedVerifierId = executorId
+        }, designatedBen);
+
+        // Vault đã được chốt chỉ định với designatedBen
+        await videoSessionService.ConfigureVaultAsync(caseId, RecipientMode.SINGLE_RECIPIENT, new[] { designatedBen });
+
+        // Người lạ (strangerBen) cố tạo guest session -> Phải bị từ chối
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            videoSessionService.GetOrCreateGuestSessionAsync(caseId, strangerBen, executorId, sessionResp.SessionId));
+
+        Assert.Contains(ErrorCodes.ERR_AUTH_FORBIDDEN, ex.Message);
+    }
     #endregion
 }
 

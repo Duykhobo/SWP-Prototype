@@ -1616,10 +1616,9 @@ public class VideoSessionService : IVideoSessionService
                 return Task.FromResult(existing);
 
             var vault = GetOrCreateVaultConfig(caseId, caseId, beneficiaryId);
-            vault.DesignatedRecipientIds.Add(beneficiaryId);
-            if (vault.DesignatedRecipientIds.Count > 1)
+            if (!vault.DesignatedRecipientIds.Contains(beneficiaryId))
             {
-                vault.RecipientMode = RecipientMode.CO_OWNED;
+                throw new InvalidOperationException($"Người thụ hưởng {beneficiaryId} không nằm trong danh sách chỉ định bất biến của kho bàn giao {vault.BundleId}. [{ErrorCodes.ERR_AUTH_FORBIDDEN}]");
             }
 
             var guestSession = new GuestHandoverSession

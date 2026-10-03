@@ -11,6 +11,8 @@ public static class ErrorCodes
     public const string ERR_ROLE_THREE_PERSON_CONFLICT = "ERR_ROLE_THREE_PERSON_CONFLICT";
     public const string ERR_BENEFICIARY_ROLE_CONFLICT = "ERR_BENEFICIARY_ROLE_CONFLICT";
 
+    public const string FORBIDDEN_RECIPIENT_NOT_IN_SNAPSHOT = "FORBIDDEN_RECIPIENT_NOT_IN_SNAPSHOT";
+
     // Kho & Tài sản
     public const string ERR_ASSET_VERSION_LOCKED = "ERR_ASSET_VERSION_LOCKED";
     public const string ERR_FILE_SIZE_EXCEEDS_LIMIT = "ERR_FILE_SIZE_EXCEEDS_LIMIT";
@@ -49,3 +51,4 @@ public static class ErrorCodes
     public const string ERR_VALIDATION_FAILED = "ERR_VALIDATION_FAILED";
     public const string ERR_INTERNAL_SERVER_ERROR = "ERR_INTERNAL_SERVER_ERROR";
 }
+

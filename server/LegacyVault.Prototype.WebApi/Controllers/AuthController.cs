@@ -1,21 +1,35 @@
-using System.Collections.Concurrent;
-using System.Security.Cryptography;
-using System.Text;
+using System.ComponentModel.DataAnnotations;
 using LegacyVault.Prototype.Application.Interfaces;
+using LegacyVault.Prototype.Infrastructure.Persistence;
+using LegacyVault.Prototype.WebApi.Security;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace LegacyVault.Prototype.WebApi.Controllers;
 
 [ApiController]
+[AllowAnonymous]
+[EnableRateLimiting("auth")]
 [Route("api/v1/auth")]
 public class AuthController : ControllerBase
 {
     private readonly IOidcValidationService _oidcService;
+    private readonly LegacyVaultDbContext _db;
+    private readonly JwtTokenIssuer _tokens;
+    private readonly PasswordHasher<UserRecord> _passwords = new();
+    private readonly bool _demoEnabled;
 
-    // Bộ nhớ RAM lưu trữ User & Persona phục vụ Prototype demo
-    private static readonly ConcurrentDictionary<string, UserModel> _users = new(StringComparer.OrdinalIgnoreCase);
+    public AuthController(IOidcValidationService oidcService, LegacyVaultDbContext db, JwtTokenIssuer tokens,
+        IWebHostEnvironment environment, IConfiguration configuration)
+    {
+        _oidcService = oidcService; _db = db; _tokens = tokens;
+        _demoEnabled = environment.IsDevelopment() && configuration.GetValue<bool>("DemoMode:EnablePersonaLogin");
+    }
 
-    // Danh sách 5 vai diễn chuẩn định dạng theo Quy tắc 3 người độc lập (ASSIGN-06)
     private static readonly Dictionary<string, PersonaModel> _personas = new(StringComparer.OrdinalIgnoreCase)
     {
         ["OWNER"] = new PersonaModel
@@ -70,243 +84,103 @@ public class AuthController : ControllerBase
         }
     };
 
-    static AuthController()
-    {
-        // Khởi tạo sẵn một tài khoản thường mẫu
-        var defaultSalt = Guid.NewGuid().ToString("N");
-        _users["user.demo@legacyvault.vn"] = new UserModel
-        {
-            PersonId = Guid.NewGuid(),
-            Email = "user.demo@legacyvault.vn",
-            FullName = "Người Dùng Mẫu Form",
-            PasswordHash = HashPassword("Demo@123456", defaultSalt),
-            PasswordSalt = defaultSalt,
-            Roles = new[] { "OWNER" },
-            CreatedAt = DateTime.UtcNow
-        };
-    }
-
-    public AuthController(IOidcValidationService oidcService)
-    {
-        _oidcService = oidcService;
-    }
-
-    /// <summary>
-    /// 1. Demo Login nhanh theo Role ID (1-Click Persona Switcher cho buổi bảo vệ đồ án)
-    /// </summary>
-    [HttpPost("demo-login")]
-    public IActionResult DemoLogin([FromBody] DemoLoginRequest request)
-    {
-        var roleKey = request.Role?.Trim().ToUpperInvariant() ?? "OWNER";
-        if (!_personas.TryGetValue(roleKey, out var persona))
-        {
-            return BadRequest(new 
-            { 
-                success = false, 
-                message = $"Vai trò '{request.Role}' không hợp lệ. Hỗ trợ: OWNER, EXECUTOR, VERIFIER, BENEFICIARY, ADMIN." 
-            });
-        }
-
-        var token = "jwt_demo_" + persona.Role.ToLowerInvariant() + "_" + Guid.NewGuid().ToString("N");
-
-        return Ok(new
-        {
-            success = true,
-            authMethod = "DEMO_ROLE_SWITCHER",
-            accessToken = token,
-            persona = persona,
-            threePersonRuleCompliant = true,
-            message = $"Đã đăng nhập thành công với vai trò demo: {persona.FullName} ({persona.Role})"
-        });
-    }
-
-    /// <summary>
-    /// 2. Xác thực Google OIDC Token kèm cơ chế Tự tạo tài khoản Just-In-Time (JIT Auto-Provisioning)
-    /// </summary>
-    [HttpPost("google-oidc")]
-    public async Task<IActionResult> ValidateGoogleOidc([FromBody] GoogleOidcRequest request, CancellationToken ct)
-    {
-        if (string.IsNullOrWhiteSpace(request.IdToken))
-        {
-            return BadRequest(new { success = false, message = "ID Token is required." });
-        }
-
-        var userInfo = await _oidcService.ValidateGoogleIdTokenAsync(request.IdToken, request.ClientId, ct);
-        if (!userInfo.IsValid)
-        {
-            return Unauthorized(new { success = false, message = "Google ID Token không hợp lệ hoặc đã hết hạn." });
-        }
-
-        // Cơ chế JIT Auto-Provisioning:
-        // Nếu email này chưa từng có trong hệ thống, tự động tạo hồ sơ Person & User mới
-        bool isNewUser = false;
-        var user = _users.GetOrAdd(userInfo.Email, email =>
-        {
-            isNewUser = true;
-            return new UserModel
-            {
-                PersonId = Guid.NewGuid(),
-                Email = email,
-                FullName = userInfo.Name,
-                Avatar = userInfo.Picture,
-                Roles = new[] { "OWNER", "BENEFICIARY" },
-                IsOidcAccount = true,
-                CreatedAt = DateTime.UtcNow
-            };
-        });
-
-        var token = "jwt_oidc_" + Guid.NewGuid().ToString("N");
-
-        if (!userInfo.IsValid)
-            return Unauthorized(new { success = false, message = "Google ID Token is invalid." });
-
-        return Ok(new
-        {
-            success = true,
-            authMethod = "GOOGLE_OIDC_GIS",
-            isNewUser = isNewUser,
-            provisioningAction = isNewUser ? "JUST_IN_TIME_CREATED" : "EXISTING_USER_LOGGED_IN",
-            user = new
-            {
-                personId = user.PersonId,
-                email = user.Email,
-                name = user.FullName,
-                picture = userInfo.Picture,
-                roles = user.Roles
-            },
-            accessToken = token,
-            message = isNewUser 
-                ? $"Chào mừng {user.FullName}! Tài khoản vừa được tự động khởi tạo từ Google Identity."
-                : $"Chào mừng trở lại {user.FullName}!"
-        });
-    }
-
-    /// <summary>
-    /// 3. Đăng ký tài khoản thường bằng Form (Email + Password)
-    /// </summary>
     [HttpPost("register")]
-    public IActionResult Register([FromBody] RegisterRequest request)
+    public async Task<IActionResult> Register(RegisterRequest request, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains('@'))
-        {
-            return BadRequest(new { success = false, message = "Địa chỉ email không hợp lệ." });
-        }
-
-        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
-        {
-            return BadRequest(new { success = false, message = "Mật khẩu phải chứa ít nhất 6 ký tự." });
-        }
-
-        if (_users.ContainsKey(request.Email))
-        {
-            return Conflict(new { success = false, message = "Email này đã được đăng ký trong hệ thống." });
-        }
-
-        var salt = Guid.NewGuid().ToString("N");
-        var newUser = new UserModel
-        {
-            PersonId = Guid.NewGuid(),
-            Email = request.Email.Trim(),
-            FullName = string.IsNullOrWhiteSpace(request.FullName) ? request.Email.Split('@')[0] : request.FullName.Trim(),
-            Phone = request.Phone?.Trim(),
-            PasswordHash = HashPassword(request.Password, salt),
-            PasswordSalt = salt,
-            Roles = new[] { "OWNER", "BENEFICIARY" },
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _users[newUser.Email] = newUser;
-        var token = "jwt_form_" + Guid.NewGuid().ToString("N");
-
-        return Ok(new
-        {
-            success = true,
-            authMethod = "FORM_REGISTRATION",
-            accessToken = token,
-            user = new
-            {
-                personId = newUser.PersonId,
-                email = newUser.Email,
-                name = newUser.FullName,
-                roles = newUser.Roles
-            },
-            message = "Đăng ký tài khoản thành công! Mật khẩu được băm bảo mật theo chuẩn SEC-02."
-        });
+        var email = request.Email.Trim();
+        if (email.Length > 320 || !new EmailAddressAttribute().IsValid(email))
+            return BadRequest(new { success = false, message = "Email không hợp lệ." });
+        if (request.Password.Length is < 12 or > 128 || request.FullName.Length > 200 || request.Phone?.Length > 30)
+            return BadRequest(new { success = false, message = "Mật khẩu cần 12–128 ký tự; tên tối đa 200 ký tự; số điện thoại tối đa 30 ký tự." });
+        var normalized = email.ToUpperInvariant();
+        if (await _db.Users.AnyAsync(x => x.NormalizedEmail == normalized, ct)) return EmailConflict();
+        var person = new PersonRecord { Id = Guid.NewGuid(), FullName = string.IsNullOrWhiteSpace(request.FullName) ? email.Split('@')[0] : request.FullName.Trim(), Phone = request.Phone?.Trim() };
+        var user = new UserRecord { Id = Guid.NewGuid(), Person = person, PersonId = person.Id, Email = email, NormalizedEmail = normalized };
+        user.PasswordHash = _passwords.HashPassword(user, request.Password);
+        _db.Users.Add(user);
+        try { await _db.SaveChangesAsync(ct); }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex)) { return EmailConflict(); }
+        return LoginResponse(user, "FORM_REGISTRATION");
     }
 
-    /// <summary>
-    /// 4. Đăng nhập bằng Form thông thường (Email + Password)
-    /// </summary>
     [HttpPost("password-login")]
-    public IActionResult PasswordLogin([FromBody] PasswordLoginRequest request)
+    public async Task<IActionResult> PasswordLogin(PasswordLoginRequest request, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+        if (string.IsNullOrWhiteSpace(request.Email) || request.Password.Length is < 1 or > 128)
+            return InvalidCredentials();
+        var normalized = request.Email.Trim().ToUpperInvariant();
+        var user = await _db.Users.Include(x => x.Person).SingleOrDefaultAsync(x => x.NormalizedEmail == normalized, ct);
+        if (user == null || user.IsDisabled || user.IsDemo || user.PasswordHash == null) return InvalidCredentials();
+        var result = _passwords.VerifyHashedPassword(user, user.PasswordHash, request.Password);
+        if (result == PasswordVerificationResult.Failed) return InvalidCredentials();
+        if (result == PasswordVerificationResult.SuccessRehashNeeded)
         {
-            return BadRequest(new { success = false, message = "Email và mật khẩu không được để trống." });
+            user.PasswordHash = _passwords.HashPassword(user, request.Password);
+            await _db.SaveChangesAsync(ct);
         }
-
-        if (!_users.TryGetValue(request.Email.Trim(), out var user) || user.IsOidcAccount)
-        {
-            return Unauthorized(new { success = false, message = "Email hoặc mật khẩu không chính xác." });
-        }
-
-        var computedHash = HashPassword(request.Password, user.PasswordSalt);
-        if (computedHash != user.PasswordHash)
-        {
-            return Unauthorized(new { success = false, message = "Email hoặc mật khẩu không chính xác." });
-        }
-
-        var token = "jwt_form_" + Guid.NewGuid().ToString("N");
-
-        return Ok(new
-        {
-            success = true,
-            authMethod = "FORM_PASSWORD_LOGIN",
-            accessToken = token,
-            user = new
-            {
-                personId = user.PersonId,
-                email = user.Email,
-                name = user.FullName,
-                roles = user.Roles
-            },
-            message = "Đăng nhập thành công!"
-        });
+        return LoginResponse(user, "FORM_PASSWORD_LOGIN");
     }
 
-    /// <summary>
-    /// 5. Lấy danh sách toàn bộ các vai trò và persona mẫu
-    /// </summary>
+    [HttpPost("google-oidc")]
+    public async Task<IActionResult> ValidateGoogleOidc(GoogleOidcRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.IdToken)) return BadRequest(new { success = false, message = "ID Token is required." });
+        // Audience is configured by the server; request.ClientId is retained only for wire compatibility.
+        var info = await _oidcService.ValidateGoogleIdTokenAsync(request.IdToken, null, ct);
+        if (!info.IsValid || string.IsNullOrWhiteSpace(info.Subject) || string.IsNullOrWhiteSpace(info.Email)) return InvalidCredentials();
+        var user = await _db.Users.Include(x => x.Person).SingleOrDefaultAsync(x => x.GoogleSubject == info.Subject, ct);
+        var isNew = user == null;
+        if (isNew)
+        {
+            var normalized = info.Email.Trim().ToUpperInvariant();
+            // Never implicitly link a Google identity to an existing password/demo account by email.
+            if (await _db.Users.AnyAsync(x => x.NormalizedEmail == normalized, ct)) return EmailConflict();
+            var person = new PersonRecord { Id = Guid.NewGuid(), FullName = info.Name.Length > 200 ? info.Name[..200] : info.Name };
+            user = new UserRecord { Id = Guid.NewGuid(), Person = person, PersonId = person.Id, Email = info.Email.Trim(), NormalizedEmail = normalized, GoogleSubject = info.Subject };
+            _db.Users.Add(user);
+            try { await _db.SaveChangesAsync(ct); }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex)) { return EmailConflict(); }
+        }
+        if (user!.IsDisabled || user.IsDemo) return InvalidCredentials();
+        return LoginResponse(user, "GOOGLE_OIDC_GIS", isNew);
+    }
+
+    [HttpPost("demo-login")]
+    public async Task<IActionResult> DemoLogin(DemoLoginRequest request, CancellationToken ct)
+    {
+        if (!_demoEnabled) return NotFound();
+        if (!_personas.TryGetValue(request.Role.Trim(), out var persona)) return BadRequest(new { success = false, message = "Vai trò demo không hợp lệ." });
+        var normalized = persona.Email.ToUpperInvariant();
+        var user = await _db.Users.Include(x => x.Person).SingleOrDefaultAsync(x => x.NormalizedEmail == normalized, ct);
+        if (user == null)
+        {
+            var person = new PersonRecord { Id = persona.PersonId, FullName = persona.FullName };
+            user = new UserRecord { Id = Guid.NewGuid(), Person = person, PersonId = person.Id, Email = persona.Email, NormalizedEmail = normalized, Roles = persona.Role, IsDemo = true };
+            _db.Users.Add(user);
+            try { await _db.SaveChangesAsync(ct); }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex)) { return EmailConflict(); }
+        }
+        if (!user.IsDemo || user.IsDisabled || user.PersonId != persona.PersonId || user.Roles != persona.Role) return Forbid();
+        var token = _tokens.Issue(user);
+        return Ok(new { success = true, authMethod = "DEMO_ROLE_SWITCHER", accessToken = token.Token, expiresAt = token.ExpiresAt, persona });
+    }
+
     [HttpGet("personas")]
-    public IActionResult GetPersonas()
-    {
-        return Ok(new
-        {
-            success = true,
-            personas = _personas.Values,
-            separationRule = "Tam quyền phân lập theo ASSIGN-06: Owner, Executor, Verifier bắt buộc là 3 Person ID khác nhau"
-        });
-    }
+    public IActionResult GetPersonas() => _demoEnabled ? Ok(new { success = true, personas = _personas.Values }) : NotFound();
 
     [HttpGet("roles")]
-    public IActionResult GetAvailableRoles()
-    {
-        return Ok(new[]
-        {
-            new { role = "OWNER", description = "Chủ sở hữu kho di sản" },
-            new { role = "EXECUTOR", description = "Người thực thi di sản" },
-            new { role = "VERIFIER", description = "Công chứng viên / Người thẩm định chứng tử" },
-            new { role = "BENEFICIARY", description = "Người thụ hưởng / nhận di sản" },
-            new { role = "ADMIN", description = "Quản trị viên hệ thống (Không nắm khóa giải mã)" }
-        });
-    }
+    public IActionResult GetAvailableRoles() => Ok(_personas.Values.Select(x => new { role = x.Role, description = x.Description }));
 
-    private static string HashPassword(string password, string salt)
+    private IActionResult LoginResponse(UserRecord user, string method, bool isNewUser = false)
     {
-        using var sha256 = SHA256.Create();
-        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password + ":" + salt));
-        return Convert.ToHexString(bytes);
+        Response.Headers["Cache-Control"] = "no-store";
+        var token = _tokens.Issue(user);
+        return Ok(new { success = true, authMethod = method, isNewUser, accessToken = token.Token, expiresAt = token.ExpiresAt,
+            user = new { userId = user.Id, personId = user.PersonId, email = user.Email, name = user.Person.FullName, roles = user.Roles.Split(',') } });
     }
+    private IActionResult InvalidCredentials() => Unauthorized(new { success = false, message = "Thông tin đăng nhập không hợp lệ." });
+    private IActionResult EmailConflict() => Conflict(new { success = false, message = "Email đã có tài khoản. Hãy đăng nhập bằng phương thức đã đăng ký." });
+    private static bool IsUniqueViolation(DbUpdateException ex) => ex.InnerException is SqlException { Number: 2601 or 2627 };
 }
 
 public class GoogleOidcRequest
@@ -345,16 +219,3 @@ public class PersonaModel
     public string Avatar { get; set; } = string.Empty;
 }
 
-public class UserModel
-{
-    public Guid PersonId { get; set; }
-    public string Email { get; set; } = string.Empty;
-    public string FullName { get; set; } = string.Empty;
-    public string? Phone { get; set; }
-    public string PasswordHash { get; set; } = string.Empty;
-    public string PasswordSalt { get; set; } = string.Empty;
-    public string[] Roles { get; set; } = Array.Empty<string>();
-    public string? Avatar { get; set; }
-    public bool IsOidcAccount { get; set; }
-    public DateTime CreatedAt { get; set; }
-}

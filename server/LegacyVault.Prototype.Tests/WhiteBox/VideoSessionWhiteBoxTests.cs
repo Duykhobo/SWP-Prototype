@@ -441,6 +441,8 @@ public class VideoSessionWhiteBoxTests
             AssignedVerifierId = executorId
         }, subjectId);
 
+        await videoSessionService.ConfigureVaultAsync(caseId, RecipientMode.SINGLE_RECIPIENT, new[] { subjectId }, executorId);
+
         // Tạo Guest Session
         var guestSession = await videoSessionService.GetOrCreateGuestSessionAsync(caseId, subjectId, executorId, sessionResp.SessionId);
         Assert.NotNull(guestSession.GuestToken);
@@ -503,7 +505,7 @@ public class VideoSessionWhiteBoxTests
     }
 
     [Fact]
-    public async Task GetJoinToken_MultiParty_AllowsExecutor_CoBeneficiary_Notary_AndAssignsUniqueIdentities()
+    public async Task GetJoinToken_UsesAssignmentAndDesignation_AndRejectsUnassignedObserver()
     {
         // Arrange
         var config = CreateTestConfiguration();
@@ -525,42 +527,15 @@ public class VideoSessionWhiteBoxTests
             AssignedVerifierId = executorId
         }, executorId);
 
-        // Act 1: Executor tham gia
-        var execToken = await videoSessionService.GetJoinTokenAsync(
-            sessionResp.SessionId, executorId, "Người thực thi Trần Văn A", null, "EXECUTOR");
+        await videoSessionService.ConfigureVaultAsync(caseId, RecipientMode.CO_OWNED,
+            new[] { primaryBeneficiaryId, coBeneficiaryId }, executorId);
+        var host = await videoSessionService.GetJoinTokenAsync(sessionResp.SessionId, executorId, "Host", null, "EXECUTOR");
+        var primary = await videoSessionService.GetJoinTokenAsync(sessionResp.SessionId, primaryBeneficiaryId, "Primary", null, "BENEFICIARY_GUEST");
+        var co = await videoSessionService.GetJoinTokenAsync(sessionResp.SessionId, coBeneficiaryId, "Co", null, "CO_BENEFICIARY");
+        Assert.Equal(3, new[] { host.ParticipantIdentity, primary.ParticipantIdentity, co.ParticipantIdentity }.Distinct().Count());
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => videoSessionService.GetJoinTokenAsync(sessionResp.SessionId, notaryId, "Observer", null, "NOTARY_OBSERVER"));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => videoSessionService.GetJoinTokenAsync(sessionResp.SessionId, notaryId, "Forged host", null, "EXECUTOR"));
 
-        // Act 2: Người thụ hưởng chính tham gia
-        var benToken = await videoSessionService.GetJoinTokenAsync(
-            sessionResp.SessionId, primaryBeneficiaryId, "Người thụ hưởng Nguyễn Văn B", null, "BENEFICIARY_GUEST");
-
-        // Act 3: Đồng thừa kế thứ 2 tham gia
-        var coBenToken = await videoSessionService.GetJoinTokenAsync(
-            sessionResp.SessionId, coBeneficiaryId, "Đồng thừa kế Lê Thị C", null, "CO_BENEFICIARY");
-
-        // Act 4: Luật sư / Công chứng viên giám sát tham gia
-        var notaryToken = await videoSessionService.GetJoinTokenAsync(
-            sessionResp.SessionId, notaryId, "Công chứng viên Hoàng Văn D", null, "NOTARY_OBSERVER");
-
-        // Assert: Cả 4 bên đều được cấp token thành công và có ParticipantIdentity duy nhất
-        Assert.NotNull(execToken.Token);
-        Assert.NotNull(benToken.Token);
-        Assert.NotNull(coBenToken.Token);
-        Assert.NotNull(notaryToken.Token);
-
-        Assert.Equal("Người thực thi Trần Văn A", execToken.ParticipantName);
-        Assert.Equal("Người thụ hưởng Nguyễn Văn B", benToken.ParticipantName);
-        Assert.Equal("Đồng thừa kế Lê Thị C", coBenToken.ParticipantName);
-        Assert.Equal("Công chứng viên Hoàng Văn D", notaryToken.ParticipantName);
-
-        // Đảm bảo không ai bị trùng identity (tránh bị LiveKit disconnect khi vào chung phòng)
-        var identities = new HashSet<string>
-        {
-            execToken.ParticipantIdentity,
-            benToken.ParticipantIdentity,
-            coBenToken.ParticipantIdentity,
-            notaryToken.ParticipantIdentity
-        };
-        Assert.Equal(4, identities.Count);
     }
 
     #region SRS v3.11.0: KIỂM THỬ ĐỒNG SỞ HỮU (CO-OWNERSHIP CONSENSUS CEREMONY)
@@ -1227,5 +1202,29 @@ public class VideoSessionWhiteBoxTests
         Assert.Contains("trước đó", retryResp.Message);
     }
     #endregion
+    [Fact]
+    public async Task GuestInvitation_RejectsOutsiderWithoutChangingDesignation_AndLocksAfterInvitation()
+    {
+        var config = CreateTestConfiguration();
+        var live = new LiveKitVideoService(config, new HttpClient(), NullLogger<LiveKitVideoService>.Instance);
+        var clock = new TimeLockRescueService(NullLogger<TimeLockRescueService>.Instance);
+        var service = new VideoSessionService(live, clock, config, NullLogger<VideoSessionService>.Instance);
+        var caseId = Guid.NewGuid(); var recipient = Guid.NewGuid(); var executor = Guid.NewGuid(); var outsider = Guid.NewGuid();
+        var session = await service.RequestSessionAsync(new CreateVideoSessionRequest { CaseId = caseId, SubjectUserId = recipient, AssignedVerifierId = executor }, executor);
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => service.GetOrCreateGuestSessionAsync(caseId, recipient, executor, session.SessionId));
+        var vault = await service.ConfigureVaultAsync(caseId, RecipientMode.SINGLE_RECIPIENT, new[] { recipient }, executor);
+        await Assert.ThrowsAsync<RecipientNotInSnapshotException>(() => service.GetOrCreateGuestSessionAsync(caseId, outsider, executor, session.SessionId));
+        Assert.Equal(new[] { recipient }, vault.DesignatedRecipientIds);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.GetOrCreateGuestSessionAsync(caseId, recipient, outsider, session.SessionId));
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.GetOrCreateGuestSessionAsync(caseId, recipient, executor, Guid.NewGuid()));
+        var guest = await service.GetOrCreateGuestSessionAsync(caseId, recipient, executor, session.SessionId);
+        Assert.Same(guest, await service.GetOrCreateGuestSessionAsync(caseId, recipient, executor, session.SessionId));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ConfigureVaultAsync(caseId, RecipientMode.CO_OWNED, new[] { recipient, outsider }));
+        guest.ExpiresAt = DateTime.UtcNow.AddMinutes(-1);
+        await Assert.ThrowsAsync<UnauthorizedAccessException>(() => service.GetJoinTokenAsync(session.SessionId, recipient, null, guest.GuestToken));
+        Assert.NotEqual(guest.GuestToken, (await service.GetOrCreateGuestSessionAsync(caseId, recipient, executor, session.SessionId)).GuestToken);
+    }
+
 }
+
 

@@ -37,6 +37,7 @@ public class VideoSessionService : IVideoSessionService
 
     private readonly HashSet<string> _processedWebhookEvents = new();
     private readonly object _lockObj = new();
+    private readonly HashSet<Guid> _invitedBundles = new();
 
     private readonly ILiveKitVideoService _liveKitService;
     private readonly ITimeLockRescueService _timeLockRescueService;
@@ -115,63 +116,36 @@ public class VideoSessionService : IVideoSessionService
         ParticipantRoleInCall role;
         string participantName;
 
-        if (session.AssignedVerifierId == currentUserId || requestedRole == "EXECUTOR" || requestedRole == "VERIFIER")
+        if (!string.IsNullOrWhiteSpace(guestToken))
+        {
+            if (!_guestSessions.TryGetValue(guestToken, out var guest) || guest.Status != GuestSessionStatus.ACTIVE ||
+                guest.ExpiresAt <= DateTime.UtcNow || guest.SessionId != sessionId || guest.CaseId != session.CaseId ||
+                guest.BeneficiaryId != currentUserId)
+                throw new UnauthorizedAccessException("Phiên khách không hợp lệ hoặc không thuộc phòng này.");
+            role = ParticipantRoleInCall.SUBJECT_USER;
+            participantName = customParticipantName ?? guest.BeneficiaryName;
+        }
+        else if (session.AssignedVerifierId == currentUserId)
         {
             role = ParticipantRoleInCall.HOST_VERIFIER;
-            participantName = !string.IsNullOrWhiteSpace(customParticipantName)
-                ? customParticipantName
-                : (requestedRole == "EXECUTOR" ? "Người thực thi (Host Executor)" : "Thẩm định viên (Verifier)");
+            participantName = customParticipantName ?? "Thẩm định viên";
         }
-        else if (session.SubjectUserId == currentUserId && string.IsNullOrEmpty(guestToken) && (requestedRole == "OWNER" || requestedRole == null))
+        else if (session.SubjectUserId == currentUserId)
         {
             role = ParticipantRoleInCall.SUBJECT_USER;
-            participantName = !string.IsNullOrWhiteSpace(customParticipantName)
-                ? customParticipantName
-                : (session.Purpose == VideoSessionPurpose.OWNER_RESCUE ? "Chủ kho (Owner)" : "Đương sự / Người thụ hưởng");
+            participantName = customParticipantName ?? "Người tham gia được chỉ định";
         }
-        else if (!string.IsNullOrEmpty(guestToken) && _guestSessions.TryGetValue(guestToken, out var guestSession) && guestSession.Status != GuestSessionStatus.REVOKED)
+        else if (_vaultConfigs.TryGetValue(session.CaseId, out var vault) && vault.DesignatedRecipientIds.Contains(currentUserId))
         {
-            role = ParticipantRoleInCall.SUBJECT_USER;
-            participantName = !string.IsNullOrWhiteSpace(customParticipantName)
-                ? customParticipantName
-                : guestSession.BeneficiaryName;
-        }
-        else if (requestedRole is "CO_BENEFICIARY" or "NOTARY_OBSERVER" or "OBSERVER" or "BENEFICIARY_GUEST")
-        {
-            // Cho phép phòng họp nhiều người (Multi-party): Đồng thừa kế / Luật sư công chứng / Người giám sát / Khách mời
-            role = requestedRole switch
-            {
-                "CO_BENEFICIARY" => ParticipantRoleInCall.CO_BENEFICIARY,
-                "NOTARY_OBSERVER" => ParticipantRoleInCall.NOTARY_OBSERVER,
-                "BENEFICIARY_GUEST" => ParticipantRoleInCall.SUBJECT_USER,
-                _ => ParticipantRoleInCall.OBSERVER
-            };
-
-            participantName = !string.IsNullOrWhiteSpace(customParticipantName)
-                ? customParticipantName
-                : requestedRole switch
-                {
-                    "CO_BENEFICIARY" => "Đồng thừa kế (Co-Beneficiary)",
-                    "NOTARY_OBSERVER" => "Công chứng viên / Luật sư giám sát",
-                    "BENEFICIARY_GUEST" => "Người thụ hưởng (Guest)",
-                    _ => $"Người tham dự #{currentUserId.ToString()[..4]}"
-                };
+            role = ParticipantRoleInCall.CO_BENEFICIARY;
+            participantName = customParticipantName ?? "Đồng thừa hưởng";
         }
         else
         {
-            throw new UnauthorizedAccessException("Người dùng không có quyền tham gia phiên gọi này.");
+            throw new UnauthorizedAccessException("Danh tính chưa được chỉ định tham gia phiên này.");
         }
-
-        // Ghi nhận trước participant role nếu chưa tồn tại
         if (!session.Participants.Any(p => p.UserId == currentUserId))
-        {
-            session.Participants.Add(new VideoSessionParticipant
-            {
-                SessionId = session.Id,
-                UserId = currentUserId,
-                Role = role
-            });
-        }
+            session.Participants.Add(new VideoSessionParticipant { SessionId = session.Id, UserId = currentUserId, Role = role });
 
         // 2. Kiểm tra trạng thái phiên: nếu đã kết thúc hoặc hủy -> Chặn tuyệt đối
         if (session.Status is VideoSessionStatus.COMPLETED or VideoSessionStatus.CANCELLED or VideoSessionStatus.TERMINATED or VideoSessionStatus.EXPIRED)
@@ -567,6 +541,8 @@ public class VideoSessionService : IVideoSessionService
         lock (_lockObj)
         {
             var vault = GetOrCreateVaultConfig(bundleOrCaseId);
+            if (_invitedBundles.Contains(vault.BundleId))
+                throw new InvalidOperationException("Không thể đổi danh sách người nhận sau khi phát hành lời mời.");
             vault.RecipientMode = mode;
             vault.DesignatedRecipientIds = new HashSet<Guid>(designatedRecipientIds);
             if (assignedExecutorId.HasValue && assignedExecutorId.Value != Guid.Empty)
@@ -1611,21 +1587,25 @@ public class VideoSessionService : IVideoSessionService
     {
         lock (_lockObj)
         {
-            var existing = _guestSessions.Values.FirstOrDefault(g => g.CaseId == caseId && g.BeneficiaryId == beneficiaryId && g.Status == GuestSessionStatus.ACTIVE);
-            if (existing != null)
-                return Task.FromResult(existing);
-
-            var vault = GetOrCreateVaultConfig(caseId, caseId, beneficiaryId);
-            vault.DesignatedRecipientIds.Add(beneficiaryId);
-            if (vault.DesignatedRecipientIds.Count > 1)
-            {
-                vault.RecipientMode = RecipientMode.CO_OWNED;
-            }
+            // Invitation never creates a vault or changes recipient designation.
+            if (!_vaultConfigs.TryGetValue(caseId, out var vault))
+                throw new KeyNotFoundException("Chưa có snapshot người nhận cho gói bàn giao.");
+            if (!vault.DesignatedRecipientIds.Contains(beneficiaryId))
+                throw new RecipientNotInSnapshotException();
+            if (vault.AssignedExecutorId == Guid.Empty || vault.AssignedExecutorId != executorId)
+                throw new UnauthorizedAccessException("Executor không được phân công cho gói này.");
+            if (!_sessions.TryGetValue(sessionId, out var workSession) || workSession.CaseId != vault.CaseId)
+                throw new UnauthorizedAccessException("Phiên họp không thuộc hồ sơ của gói này.");
+            var existing = _guestSessions.Values.FirstOrDefault(g => g.BundleId == vault.BundleId &&
+                g.SessionId == sessionId && g.BeneficiaryId == beneficiaryId && g.ExecutorId == executorId &&
+                g.Status == GuestSessionStatus.ACTIVE && g.ExpiresAt > DateTime.UtcNow);
+            if (existing != null) return Task.FromResult(existing);
+            _invitedBundles.Add(vault.BundleId);
 
             var guestSession = new GuestHandoverSession
             {
                 GuestToken = $"gst_{Guid.NewGuid():N}",
-                CaseId = caseId,
+                CaseId = vault.CaseId,
                 BundleId = vault.BundleId,
                 SessionId = sessionId,
                 BeneficiaryId = beneficiaryId,
@@ -1708,3 +1688,4 @@ public class VideoSessionService : IVideoSessionService
         Participants = s.Participants.ToList()
     };
 }
+

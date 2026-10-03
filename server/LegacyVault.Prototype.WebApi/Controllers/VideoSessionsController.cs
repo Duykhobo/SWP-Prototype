@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+using LegacyVault.Prototype.WebApi.Security;
 using System.Security.Claims;
 using System.Text.Json;
 using LegacyVault.Prototype.Application.DTOs;
@@ -39,6 +41,7 @@ public class VideoSessionsController : ControllerBase
     /// Thẩm định viên (Verifier) xác nhận chốt lịch hẹn
     /// </summary>
     [HttpPost("{sessionId}/confirm-schedule")]
+    [Authorize(Roles = "VERIFIER")]
     public async Task<IActionResult> ConfirmSchedule(
         [FromRoute] Guid sessionId, 
         [FromBody] ConfirmScheduleDto dto)
@@ -52,6 +55,7 @@ public class VideoSessionsController : ControllerBase
     /// Cấp Access Token ngắn hạn (TTL 5 phút) để gia nhập phòng LiveKit Cloud
     /// </summary>
     [HttpPost("{sessionId}/join-token")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetJoinToken(
         [FromRoute] Guid sessionId, 
         [FromQuery] Guid? userId = null,
@@ -63,13 +67,24 @@ public class VideoSessionsController : ControllerBase
         Response.Headers.Append("Cache-Control", "no-store, no-cache");
         Response.Headers.Append("Pragma", "no-cache");
 
-        var currentUserId = GetCurrentUserId(userId);
+        Guid currentUserId;
+        if (!string.IsNullOrWhiteSpace(guestToken))
+        {
+            var guest = await _videoSessionService.ValidateGuestSessionAsync(guestToken);
+            if (guest == null || guest.SessionId != sessionId) return Unauthorized();
+            currentUserId = guest.BeneficiaryId;
+        }
+        else
+        {
+            if (User.Identity?.IsAuthenticated != true) return Unauthorized();
+            currentUserId = GetCurrentUserId();
+        }
         var tokenResponse = await _videoSessionService.GetJoinTokenAsync(
             sessionId, 
             currentUserId, 
             participantName, 
             guestToken, 
-            role);
+            null);
         return Ok(tokenResponse);
     }
 
@@ -77,6 +92,7 @@ public class VideoSessionsController : ControllerBase
     /// Verifier ghi nhận kết quả thẩm định (PASS, FAIL, REQUIRE_MORE_DOCS, INCONCLUSIVE) kèm Checklist
     /// </summary>
     [HttpPost("{sessionId}/submit-verdict")]
+    [Authorize(Roles = "VERIFIER")]
     public async Task<IActionResult> SubmitVerdict(
         [FromRoute] Guid sessionId, 
         [FromBody] SubmitVerdictRequest request,
@@ -142,6 +158,8 @@ public class VideoSessionsController : ControllerBase
         req.ClientIpAddress ??= HttpContext.Connection.RemoteIpAddress?.ToString();
         req.UserAgent ??= Request.Headers.UserAgent.ToString();
 
+        req.RecipientId = currentUserId;
+        req.GuestToken = null;
         var result = await _videoSessionService.AcceptHandoverAsync(sessionId, currentUserId, req);
         if (!result.Success)
         {
@@ -155,6 +173,7 @@ public class VideoSessionsController : ControllerBase
     /// P0: Owner kích hoạt Emergency Hold và tự động mở phiên xác minh cứu hộ khẩn cấp
     /// </summary>
     [HttpPost("rescue/hold")]
+    [Authorize(Roles = "OWNER")]
     public async Task<IActionResult> TriggerRescueHold([FromBody] TriggerRescueHoldDto dto)
     {
         var currentUserId = GetCurrentUserId(dto.OwnerId);
@@ -166,6 +185,7 @@ public class VideoSessionsController : ControllerBase
     /// P0: Verifier phân xử giải tỏa Hold sau khi xác minh (APPROVED_ALIVE hoặc REJECTED_FRAUD)
     /// </summary>
     [HttpPost("rescue/adjudicate")]
+    [Authorize(Roles = "VERIFIER")]
     public async Task<IActionResult> AdjudicateRescueHold([FromBody] ResumeHoldRequest request, [FromQuery] Guid? verifierId = null)
     {
         var currentVerifierId = GetCurrentUserId(verifierId);
@@ -181,6 +201,7 @@ public class VideoSessionsController : ControllerBase
     /// Webhook nhận sự kiện người tham gia từ LiveKit Cloud với xác minh chữ ký SHA256 JWT
     /// </summary>
     [HttpPost("/api/webhooks/livekit")]
+    [AllowAnonymous]
     public async Task<IActionResult> LiveKitWebhook()
     {
         Request.EnableBuffering();
@@ -229,20 +250,8 @@ public class VideoSessionsController : ControllerBase
         }
     }
 
-    private Guid GetCurrentUserId(Guid? fallbackUserId = null)
-    {
-        var subClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                       ?? User.FindFirst("sub")?.Value;
+    private Guid GetCurrentUserId(Guid? ignoredClientId = null) => CurrentPerson.Id(User);
 
-        if (Guid.TryParse(subClaim, out var parsed))
-            return parsed;
-
-        if (fallbackUserId.HasValue && fallbackUserId.Value != Guid.Empty)
-            return fallbackUserId.Value;
-
-        // Fallback mặc định cho Swagger Prototype Testing
-        return Guid.Parse("11111111-1111-1111-1111-111111111111");
-    }
 }
 
 public class ConfirmScheduleDto
@@ -257,3 +266,4 @@ public class TriggerRescueHoldDto
     public Guid? OwnerId { get; set; }
     public string? Reason { get; set; }
 }
+

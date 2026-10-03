@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
+using LegacyVault.Prototype.WebApi.Security;
 using LegacyVault.Prototype.Application.DTOs;
 using LegacyVault.Prototype.Application.Interfaces;
 using LegacyVault.Prototype.Domain;
@@ -23,7 +25,7 @@ public class PaymentController : ControllerBase
     [HttpPost("orders")]
     public async Task<IActionResult> CreateOrder([FromBody] CreatePaymentOrderRequest request)
     {
-        var personId = request.PersonId ?? Guid.NewGuid();
+        var personId = CurrentPerson.Id(User);
         var order = await _paymentService.CreateOrderAsync(request.PlanTier, personId);
 
         return Ok(new
@@ -36,7 +38,7 @@ public class PaymentController : ControllerBase
     [HttpGet("orders")]
     public IActionResult GetAllOrders()
     {
-        return Ok(_paymentService.GetAllOrders());
+        return Ok(_paymentService.GetAllOrders().Where(x => x.PersonId == CurrentPerson.Id(User)));
     }
 
     [HttpGet("orders/{id:guid}")]
@@ -55,12 +57,14 @@ public class PaymentController : ControllerBase
             });
         }
 
+        if (order.PersonId != CurrentPerson.Id(User)) return Forbid();
         return Ok(order);
     }
 
     /// <summary>
     /// Webhook nhận thông báo giao dịch trực tiếp từ SePay Server-to-Server
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("webhook")]
     public async Task<IActionResult> ProcessSePayWebhook(
         [FromBody] SePayWebhookPayload payload,
@@ -92,6 +96,9 @@ public class PaymentController : ControllerBase
     {
         try
         {
+            var existing = await _paymentService.GetOrderByIdAsync(orderId);
+            if (existing == null) return NotFound();
+            if (existing.PersonId != CurrentPerson.Id(User)) return Forbid();
             var order = await _paymentService.SimulatePaymentSuccessAsync(orderId);
             return Ok(new
             {
@@ -113,3 +120,4 @@ public class PaymentController : ControllerBase
         }
     }
 }
+

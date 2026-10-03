@@ -1,0 +1,55 @@
+name: Backend build and SQL integration tests
+on:
+  pull_request:
+    paths: ['server/**', 'client/**', '.github/workflows/backend.yml']
+  push:
+    branches: ['codex/step2-identity-persistence']
+    paths: ['server/**', 'client/**', '.github/workflows/backend.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: Y
+          MSSQL_SA_PASSWORD: 'LegacyVault_CI_123!'
+        ports: ['1433:1433']
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P LegacyVault_CI_123! -C -Q select@@version"
+          --health-interval 10s --health-timeout 5s --health-retries 20
+    env:
+      # Public test-only credentials for a disposable CI database.
+      ConnectionStrings__LegacyVault: 'Server=localhost,1433;Database=LegacyVaultCI;User Id=sa;Password=LegacyVault_CI_123!;TrustServerCertificate=True'
+      Jwt__SigningKeyBase64: 'MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI='
+      DemoMode__EnablePersonaLogin: 'false'
+      DemoMode__EnableLegacyTestbench: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet restore server/LegacyVault.Prototype.sln
+      - run: dotnet build server/LegacyVault.Prototype.sln --no-restore --configuration Release
+      - run: dotnet test server/LegacyVault.Prototype.sln --no-build --configuration Release --logger 'trx;LogFileName=backend.trx'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: server/LegacyVault.Prototype.Tests/TestResults/*.trx
+  client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+      - run: npm ci
+      - run: npm run build

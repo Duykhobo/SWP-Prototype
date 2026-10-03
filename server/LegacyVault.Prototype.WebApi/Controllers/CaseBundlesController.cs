@@ -1,3 +1,6 @@
+using LegacyVault.Prototype.Domain;
+using Microsoft.AspNetCore.Authorization;
+using LegacyVault.Prototype.WebApi.Security;
 using System.Security.Claims;
 using LegacyVault.Prototype.Application.DTOs;
 using LegacyVault.Prototype.Application.Interfaces;
@@ -28,6 +31,7 @@ public class CaseBundlesController : ControllerBase
     /// Kiểm tra điều kiện bàn giao di sản trong hoặc ngoài phòng gọi video (Zero-Trust)
     /// Hỗ trợ xác thực qua GuestToken, Claims hoặc Query UserId.
     /// </summary>
+    [AllowAnonymous]
     [HttpGet("{caseBundleId}/eligibility")]
     public async Task<IActionResult> CheckEligibility(
         [FromRoute] Guid caseBundleId, 
@@ -51,6 +55,7 @@ public class CaseBundlesController : ControllerBase
     /// Người nhận (Beneficiary) bấm "Chấp nhận nhận di sản" (Bước 4 và 5 của quy trình bàn giao)
     /// Backend kiểm tra toàn bộ điều kiện, chống race condition với Rescue Hold, ghi Commitment và cấp AccessGrant.
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("{caseBundleId}/accept")]
     public async Task<IActionResult> AcceptHandover(
         [FromRoute] Guid caseBundleId, 
@@ -100,6 +105,7 @@ public class CaseBundlesController : ControllerBase
     /// Kênh bảo mật riêng cấp phát vật liệu giải mã di sản (Key Envelope / Salt / IV).
     /// Hoàn toàn tách biệt khỏi LiveKit Video Socket; chỉ cấp khi AccessGrant ACTIVE và không có Rescue Hold.
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("{caseBundleId}/decrypt-key")]
     public async Task<IActionResult> GetDecryptionKey(
         [FromRoute] Guid caseBundleId,
@@ -171,6 +177,7 @@ public class CaseBundlesController : ControllerBase
     /// Bước 6 & 7: Người nhận bấm "Tôi xác nhận đã nhận đầy đủ và muốn kết thúc phiên"
     /// Backend kiểm tra đã tải đủ file bắt buộc (có đối soát token), ghi Biên nhận, đóng quyền truy cập của người này và thu hồi phiên khách.
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("{caseBundleId}/finalize-handover")]
     public async Task<IActionResult> FinalizeHandover(
         [FromRoute] Guid caseBundleId,
@@ -207,6 +214,7 @@ public class CaseBundlesController : ControllerBase
     /// <summary>
     /// Khởi tạo hoặc lấy link mời phiên khách giới hạn (không cần đăng nhập Google)
     /// </summary>
+    [Authorize(Roles = "EXECUTOR")]
     [HttpPost("{caseBundleId}/guest-session")]
     public async Task<IActionResult> CreateGuestSession(
         [FromRoute] Guid caseBundleId,
@@ -214,17 +222,23 @@ public class CaseBundlesController : ControllerBase
         [FromQuery] Guid? executorId = null,
         [FromQuery] Guid? sessionId = null)
     {
-        var benId = beneficiaryId ?? Guid.Parse("11111111-1111-1111-1111-111111111111");
-        var execId = executorId ?? Guid.Parse("22222222-2222-2222-2222-222222222222");
-        var sId = sessionId ?? Guid.NewGuid();
-
-        var guest = await _videoSessionService.GetOrCreateGuestSessionAsync(caseBundleId, benId, execId, sId);
-        return Ok(guest);
+        if (!beneficiaryId.HasValue || beneficiaryId == Guid.Empty || !sessionId.HasValue || sessionId == Guid.Empty)
+            return BadRequest(new { success = false, message = "beneficiaryId và sessionId là bắt buộc." });
+        try
+        {
+            var guest = await _videoSessionService.GetOrCreateGuestSessionAsync(caseBundleId, beneficiaryId.Value, CurrentPerson.Id(User), sessionId.Value);
+            Response.Headers["Cache-Control"] = "no-store";
+            return Ok(guest);
+        }
+        catch (RecipientNotInSnapshotException) { return StatusCode(403, new { success = false, errorCode = ErrorCodes.FORBIDDEN_RECIPIENT_NOT_IN_SNAPSHOT }); }
+        catch (UnauthorizedAccessException ex) { return StatusCode(403, new { success = false, message = ex.Message }); }
+        catch (KeyNotFoundException ex) { return NotFound(new { success = false, message = ex.Message }); }
     }
 
     /// <summary>
     /// Xác thực phiên khách giới hạn bằng guestToken
     /// </summary>
+    [AllowAnonymous]
     [HttpGet("guest/{guestToken}")]
     public async Task<IActionResult> ValidateGuest([FromRoute] string guestToken)
     {
@@ -240,6 +254,7 @@ public class CaseBundlesController : ControllerBase
     /// Tải tệp bản mã (Ciphertext) của di sản.
     /// Yêu cầu có DownloadToken hợp lệ đã được cấp từ AccessGrant; ghi nhận nhật ký tải trên server để đối soát khi phát hành Biên nhận.
     /// </summary>
+    [AllowAnonymous]
     [HttpGet("{caseBundleId}/assets/{assetId}/download")]
     public async Task<IActionResult> DownloadEncryptedAsset(
         [FromRoute] Guid caseBundleId, 
@@ -280,7 +295,7 @@ public class CaseBundlesController : ControllerBase
                 return new AuthContextResult(false, 401, "Phiên khách (Guest Token) không hợp lệ, đã hết hạn hoặc đã hoàn tất.", Guid.Empty, false, null);
             }
 
-            if (guest.BundleId != caseBundleId && guest.CaseId != caseBundleId)
+            if (guest.BundleId != caseBundleId)
             {
                 return new AuthContextResult(false, 403, "Phiên khách không có quyền hạn trên kho di sản này.", Guid.Empty, false, null);
             }
@@ -294,39 +309,18 @@ public class CaseBundlesController : ControllerBase
         }
 
         // 2. Nếu không có Guest Token, kiểm tra JWT Claims
-        var subClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+        var subClaim = User.Identity?.IsAuthenticated == true ? User.FindFirst("person_id")?.Value : null;
         if (!string.IsNullOrEmpty(subClaim) && Guid.TryParse(subClaim, out var parsed))
         {
             if (isExecutorAction)
             {
-                bool isExecutor = User.IsInRole("EXECUTOR") || User.IsInRole("VERIFIER") ||
-                                  User.HasClaim(c => (c.Type == "role" || c.Type == ClaimTypes.Role) &&
-                                                     (c.Value == "EXECUTOR" || c.Value == "VERIFIER"));
+                bool isExecutor = User.IsInRole("EXECUTOR");
                 if (!isExecutor)
                 {
-                    return new AuthContextResult(false, 403, "Tài khoản không có vai trò Executor hoặc Verifier để thực hiện thao tác này.", Guid.Empty, false, null);
+                    return new AuthContextResult(false, 403, "Tài khoản không có vai trò Executor để thực hiện thao tác này.", Guid.Empty, false, null);
                 }
             }
             return new AuthContextResult(true, 200, null, parsed, false, null);
-        }
-
-        // 3. Môi trường phát triển (Development Only): Hỗ trợ chạy Testbench hoặc giả lập có kiểm soát
-        if (_env.IsDevelopment())
-        {
-            bool isSimMode = (Request.Headers.TryGetValue("X-Simulation-Mode", out var simVal) && simVal == "true")
-                          || (Request.Headers.TryGetValue("X-Demo-Simulate", out var demoVal) && demoVal == "true");
-
-            if (isSimMode || (explicitUserId.HasValue && explicitUserId.Value != Guid.Empty))
-            {
-                var simulatedUserId = explicitUserId.HasValue && explicitUserId.Value != Guid.Empty
-                    ? explicitUserId.Value
-                    : (isExecutorAction ? Guid.Parse("22222222-2222-2222-2222-222222222222") : Guid.Parse("11111111-1111-1111-1111-111111111111"));
-
-                _logger.LogWarning("[DEV SIMULATION] Chấp nhận danh tính mô phỏng {UserId} cho thao tác (isExecutor: {IsExecutor}).",
-                    simulatedUserId, isExecutorAction);
-
-                return new AuthContextResult(true, 200, null, simulatedUserId, false, null);
-            }
         }
 
         // 4. Môi trường Production hoặc không bật cờ giả lập: BỎ TOÀN BỘ FALLBACK, BẮT BUỘC XÁC THỰC
@@ -334,7 +328,7 @@ public class CaseBundlesController : ControllerBase
             false, 
             401, 
             isExecutorAction
-                ? "Yêu cầu phiên đã xác thực của Executor/Verifier hoặc bật cờ giả lập môi trường phát triển (X-Simulation-Mode)."
+                ? "Yêu cầu phiên đã xác thực của Executor."
                 : "Yêu cầu phiên khách (Guest Token) hoặc JWT của người thụ hưởng để thực hiện thao tác.", 
             Guid.Empty, 
             false, 
@@ -353,3 +347,4 @@ public class CaseBundlesController : ControllerBase
         return proof.Length >= 16;
     }
 }
+

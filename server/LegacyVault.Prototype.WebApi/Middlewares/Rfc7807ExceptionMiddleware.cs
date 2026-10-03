@@ -37,7 +37,8 @@ public class Rfc7807ExceptionMiddleware
         int statusCode = exception switch
         {
             KeyNotFoundException => (int)HttpStatusCode.NotFound,
-            UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
+            UnauthorizedAccessException => (int)HttpStatusCode.Forbidden,
+            InvalidOperationException => (int)HttpStatusCode.Conflict,
             ArgumentException => (int)HttpStatusCode.BadRequest,
             _ => (int)HttpStatusCode.InternalServerError
         };
@@ -45,6 +46,7 @@ public class Rfc7807ExceptionMiddleware
         string errorCode = exception switch
         {
             KeyNotFoundException => ErrorCodes.ERR_PAYMENT_ORDER_NOT_FOUND,
+            RecipientNotInSnapshotException => ErrorCodes.FORBIDDEN_RECIPIENT_NOT_IN_SNAPSHOT,
             UnauthorizedAccessException => ErrorCodes.ERR_AUTH_FORBIDDEN,
             ArgumentException => ErrorCodes.ERR_VALIDATION_FAILED,
             _ => ErrorCodes.ERR_INTERNAL_SERVER_ERROR
@@ -55,7 +57,7 @@ public class Rfc7807ExceptionMiddleware
             Type = $"https://legacyvault.vn/errors/{errorCode.ToLowerInvariant()}",
             Title = exception.GetType().Name,
             Status = statusCode,
-            Detail = exception.Message,
+            Detail = statusCode == 500 ? "An internal error occurred. Use the correlation ID when reporting this error." : exception.Message,
             ErrorCode = errorCode,
             CorrelationId = correlationId,
             Instance = context.Request.Path,
@@ -67,3 +69,4 @@ public class Rfc7807ExceptionMiddleware
         await context.Response.WriteAsync(json);
     }
 }
+

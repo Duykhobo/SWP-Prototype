@@ -1,3 +1,10 @@
+using LegacyVault.Prototype.Infrastructure.Persistence;
+using LegacyVault.Prototype.WebApi.Security;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.RateLimiting;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using LegacyVault.Prototype.Application.Interfaces;
@@ -31,6 +38,43 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Fail closed: no development signing key or in-memory account fallback.
+var connection = builder.Configuration.GetConnectionString("LegacyVault");
+if (string.IsNullOrWhiteSpace(connection)) throw new InvalidOperationException("ConnectionStrings:LegacyVault is required.");
+builder.Services.AddDbContext<LegacyVaultDbContext>(options => options.UseSqlServer(connection));
+var tokens = new JwtTokenIssuer(builder.Configuration);
+builder.Services.AddSingleton(tokens);
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.MapInboundClaims = false;
+    options.TokenValidationParameters = tokens.ValidationParameters;
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var principal = context.Principal!;
+            if (!Guid.TryParse(principal.FindFirst("sub")?.Value, out var userId) ||
+                !Guid.TryParse(principal.FindFirst("person_id")?.Value, out var personId))
+            { context.Fail("Missing account/person identity."); return; }
+            var db = context.HttpContext.RequestServices.GetRequiredService<LegacyVaultDbContext>();
+            var account = await db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Id == userId, context.HttpContext.RequestAborted);
+            var demoAllowed = builder.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("DemoMode:EnablePersonaLogin");
+            if (account == null || account.IsDisabled || account.PersonId != personId || (account.IsDemo && !demoAllowed) ||
+                !account.Roles.Split(',').OrderBy(x => x).SequenceEqual(principal.FindAll("role").Select(x => x.Value).OrderBy(x => x)))
+                context.Fail("Account is disabled or token claims are stale.");
+        }
+    };
+});
+builder.Services.AddAuthorization(options => options.FallbackPolicy = new AuthorizationPolicyBuilder()
+    .RequireAuthenticatedUser().RequireClaim("sub").RequireClaim("person_id").Build());
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("auth", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown", _ => new FixedWindowRateLimiterOptions
+        { PermitLimit = 12, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+});
+
 // 3. Đăng ký Services & DI
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<IEnvelopeEncryptionService, EnvelopeEncryptionService>();
@@ -62,9 +106,23 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseCors("AllowClientApp");
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
+// These controllers still use mock keys and process-local handover state (Step 3/4).
+// They require an explicit development opt-in even after authentication.
+app.Use(async (context, next) =>
+{
+    var controller = context.GetEndpoint()?.Metadata.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>()?.ControllerName;
+    if (controller is "VideoSessions" or "CaseBundles" or "TimeLock" or "Crypto")
+    {
+        if (!app.Environment.IsDevelopment() || !app.Configuration.GetValue<bool>("DemoMode:EnableLegacyTestbench"))
+        { context.Response.StatusCode = StatusCodes.Status404NotFound; return; }
+    }
+    await next(context);
+});
 app.MapControllers();
-app.MapGet("/", () => Results.Redirect("/swagger/index.html"));
+app.MapGet("/", () => Results.Redirect("/swagger/index.html")).AllowAnonymous();
 app.Run();
 
 static void LoadDotEnv()
@@ -105,3 +163,6 @@ static void LoadDotEnv()
     }
 }
 
+
+
+public partial class Program { }

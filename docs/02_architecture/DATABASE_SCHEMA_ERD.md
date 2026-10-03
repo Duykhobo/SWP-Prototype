@@ -2,9 +2,9 @@
 
 ## DỰ ÁN: LEGACYVAULT — HỆ THỐNG LƯU GIỮ VÀ BÀN GIAO TÀI SẢN SỐ
 
-### Phiên bản: Chuẩn Hóa Theo SRS v3.11.0 (26/09/2026) — .NET 10 LTS & SQL Server 2022
+### Phiên bản: Chuẩn Hóa Kiến Trúc Luồng Bàn Giao Nghiệp Vụ & Snapshot Bất Biến (03/10/2026) — .NET 10 LTS & SQL Server 2022
 
-### Thiết kế: Đầy đủ 25 thực thể cơ sở dữ liệu, Khóa phiên bản chỉ định phân cấp, Quota tài sản & Lịch bàn giao toàn hồ sơ
+### Thiết kế: Tách bạch Case & CaseBundle, Snapshot bất biến (Asset + Version + Recipient), Cam kết nhóm N Decision -> 1 Commitment, Xác thực ủy quyền Executor và Ranh giới mật mã Shamir 2/3.
 
 ---
 
@@ -27,24 +27,37 @@ erDiagram
 
     Assets ||--|{ ContentVersions : "phiên bản nội dung tệp mã hóa (1:N)"
     Assets ||--o{ AssetDesignationVersions : "được chỉ định trong kế hoạch"
-    Assets ||--o{ HandoverBundleItems : "nằm trong kho bàn giao"
+    Assets ||--o{ CaseBundleItems : "nằm trong gói bàn giao hồ sơ"
     Assets ||--o{ CaseAssetSnapshots : "bản chụp bất biến khi nộp hồ sơ"
 
     EstatePlans ||--|{ EstatePlanVersions : "phiên bản kế hoạch (1:N)"
     EstatePlanVersions ||--|{ AssetDesignationVersions : "chỉ định theo tài sản (1:N)"
-    EstatePlanVersions ||--o{ HandoverVaults : "gom nhóm kho bàn giao (1:N)"
+    EstatePlanVersions ||--o{ Bundles : "chuẩn bị gom nhóm kho bàn giao"
 
     AssetDesignationVersions ||--|{ DesignationVersionRecipients : "danh sách người nhận"
 
-    HandoverVaults ||--o{ HandoverBundleItems : "chứa tài sản bàn giao"
-    HandoverVaults ||--o{ TransferChoices : "chuyển quyền 1:1"
-    HandoverVaults ||--o{ BeneficiaryHandoverDecisions : "quyết định từng người (7 ngày & 2 năm)"
-    HandoverVaults ||--o{ AccessGrants : "cấp quyền tải giải mã"
-
+    Cases ||--o{ CaseBundles : "chứa 1..N gói bàn giao hồ sơ"
     Cases ||--|{ DeathCertificates : "phiên bản giấy chứng tử"
     Cases ||--|{ CaseLegalAttestations : "hai cam kết pháp lý (DEATH-02)"
     Cases ||--|{ CaseAssetSnapshots : "bản chụp bất biến khi nộp hồ sơ"
     Cases ||--o{ HandoverSchedules : "lịch hẹn bàn giao chung toàn hồ sơ"
+
+    Bundles ||--o{ CaseBundles : "kế thừa cấu hình khi nộp hồ sơ"
+    CaseBundles ||--|{ CaseBundleItems : "chốt snapshot bất biến (Asset, ContentVersion, DesignationVersion)"
+    CaseBundles ||--o{ WorkSessions : "tổ chức phiên họp gia đình / thẩm định"
+    CaseBundles ||--o{ BeneficiaryHandoverDecisions : "ghi nhận quyết định từng người"
+    CaseBundles ||--o{ Commitments : "lịch sử cam kết đồng thuận"
+    CaseBundles ||--o{ RecipientAuthorizations : "ủy quyền danh tính từng người"
+    CaseBundles ||--o{ TransferChoices : "chuyển quyền 1:1"
+
+    WorkSessions ||--|{ SessionParticipants : "gồm Executor, Verifier & Beneficiaries"
+    SessionParticipants ||--o| GuestHandoverSessions : "phiên khách mời qua token"
+    RecipientAuthorizations }o--|| WorkSessions : "căn cứ xác minh danh tính qua phiên"
+
+    Commitments o|--|{ BeneficiaryHandoverDecisions : "chốt các quyết định hợp lệ (N Decision -> 1 Commitment)"
+    Commitments ||--o{ AccessGrants : "căn cứ cấp quyền tải (72h)"
+    AccessGrants ||--o{ DownloadEvents : "máy chủ phục vụ dữ liệu / ký phát URL"
+    AccessGrants ||--o| HandoverReceipts : "người nhận ký xác nhận hoàn tất"
 
     PersonalVaults ||--o{ PersonalVaultItems : "lưu tài sản đã nhận"
     AccessGrants ||--o{ PersonalVaultItems : "nguồn cấp quyền nhập kho"
@@ -201,13 +214,23 @@ classDiagram
 
 ---
 
-### 2.3. Phân Hệ Kho Bàn Giao Bất Biến & Lịch Bàn Giao Chung Toàn Hồ Sơ
+### 2.3. Phân Hệ Gói Bàn Giao (`CaseBundles`), Cam Kết Nhóm (`Commitments`) & Cấp Quyền (`AccessGrants`)
 
 ```mermaid
 classDiagram
-    class HandoverVaults {
+    class Bundles {
         uniqueidentifier Id PK
         uniqueidentifier EstatePlanVersionId FK
+        nvarchar(200) Title
+        nvarchar(50) RecipientMode
+        nvarchar(500) NormalizedRecipientSet
+        datetime2 CreatedAt
+    }
+
+    class CaseBundles {
+        uniqueidentifier Id PK
+        uniqueidentifier CaseId FK
+        uniqueidentifier SourceBundleId FK
         nvarchar(200) Title
         nvarchar(50) RecipientMode
         nvarchar(500) NormalizedRecipientSet
@@ -216,15 +239,127 @@ classDiagram
         datetime2 InitialResponseDueAt
         datetime2 FreezeStartedAt
         datetime2 FreezeExpiresAt
+        binary(8) RowVersion
         datetime2 CreatedAt
     }
 
-    class HandoverBundleItems {
+    class CaseBundleItems {
         uniqueidentifier Id PK
-        uniqueidentifier HandoverVaultId FK
+        uniqueidentifier CaseBundleId FK
         uniqueidentifier AssetId FK
         uniqueidentifier ContentVersionId FK
+        uniqueidentifier AssetDesignationVersionId FK
         datetime2 AddedAt
+    }
+
+    class WorkSessions {
+        uniqueidentifier Id PK
+        uniqueidentifier CaseBundleId FK
+        uniqueidentifier CaseId FK
+        varchar(100) LiveKitRoomName UK
+        nvarchar(50) Status
+        nvarchar(50) VerificationOutcome
+        varchar(500) RecordingStorageKey
+        datetime2 StartedAt
+        datetime2 EndedAt
+    }
+
+    class SessionParticipants {
+        uniqueidentifier Id PK
+        uniqueidentifier WorkSessionId FK
+        uniqueidentifier PersonId FK
+        nvarchar(50) Role
+        datetime2 JoinedAt
+        datetime2 LeftAt
+        bit IdentityVerified
+    }
+
+    class GuestHandoverSessions {
+        varchar(64) GuestToken PK
+        uniqueidentifier CaseBundleId FK
+        uniqueidentifier WorkSessionId FK
+        uniqueidentifier BeneficiaryPersonId FK
+        nvarchar(50) Status
+        datetime2 CreatedAt
+        datetime2 ExpiresAt
+    }
+
+    class RecipientAuthorizations {
+        uniqueidentifier Id PK
+        uniqueidentifier CaseBundleId FK
+        uniqueidentifier BeneficiaryPersonId FK
+        uniqueidentifier ExecutorPersonId FK
+        uniqueidentifier WorkSessionId FK
+        bit IsAuthorized
+        datetime2 AuthorizedAt
+        bit FaceMatched
+        bit NationalIdMatched
+        bit InteractiveChallengePassed
+        nvarchar(500) Notes
+    }
+
+    class BeneficiaryHandoverDecisions {
+        uniqueidentifier Id PK
+        uniqueidentifier CaseBundleId FK
+        uniqueidentifier RecipientPersonId FK
+        uniqueidentifier CommitmentId FK
+        nvarchar(50) DecisionStatus
+        datetime2 DecidedAt
+        datetime2 ReconsideredAt
+        bit LegalAcknowledgment
+        nvarchar(max) RejectionReason
+        nvarchar(max) Note
+    }
+
+    class Commitments {
+        uniqueidentifier Id PK
+        uniqueidentifier CaseBundleId FK
+        uniqueidentifier CaseId FK
+        uniqueidentifier WorkSessionId FK
+        nvarchar(50) PolicyMode
+        datetime2 CommittedAt
+        nvarchar(max) LegalAcknowledgment
+        varchar(45) ClientIpAddress
+        nvarchar(500) UserAgent
+    }
+
+    class AccessGrants {
+        uniqueidentifier Id PK
+        uniqueidentifier CaseBundleId FK
+        uniqueidentifier CaseId FK
+        uniqueidentifier RecipientPersonId FK
+        uniqueidentifier CommitmentId FK
+        nvarchar(50) Status
+        varchar(64) DownloadToken UK
+        datetime2 IssuedAt
+        datetime2 ExpiresAt
+    }
+
+    class DownloadEvents {
+        uniqueidentifier Id PK
+        uniqueidentifier AccessGrantId FK
+        uniqueidentifier CaseBundleId FK
+        uniqueidentifier AssetId FK
+        uniqueidentifier ContentVersionId FK
+        datetime2 ServedAt
+        bigint BytesServed
+        varchar(45) ClientIpAddress
+        nvarchar(500) UserAgent
+    }
+
+    class HandoverReceipts {
+        uniqueidentifier Id PK
+        uniqueidentifier AccessGrantId FK
+        uniqueidentifier CaseBundleId FK
+        uniqueidentifier BeneficiaryPersonId FK
+        nvarchar(50) ReceiptNumber UK
+        datetime2 ReceivedAt
+        nvarchar(max) ConfirmedAssetIdsJson
+        nvarchar(50) SignatureType
+        nvarchar(max) RecipientSignatureData
+        varchar(64) SignatureHash
+        varchar(64) ReceiptContentHash
+        varchar(128) ReceiptAuditDigest
     }
 
     class HandoverSchedules {
@@ -240,48 +375,80 @@ classDiagram
 
     class TransferChoices {
         uniqueidentifier Id PK
-        uniqueidentifier HandoverVaultId FK
+        uniqueidentifier CaseBundleId FK
         uniqueidentifier SourceRecipientPersonId FK
         uniqueidentifier TargetRecipientPersonId FK
         nvarchar(50) Status
         datetime2 CreatedAt
         datetime2 FinalizedAt
     }
-
-    class BeneficiaryHandoverDecisions {
-        uniqueidentifier Id PK
-        uniqueidentifier HandoverVaultId FK
-        uniqueidentifier RecipientPersonId FK
-        nvarchar(50) DecisionStatus
-        datetime2 DecidedAt
-        datetime2 ReconsideredAt
-        nvarchar(max) Note
-    }
-
-    class AccessGrants {
-        uniqueidentifier Id PK
-        uniqueidentifier HandoverVaultId FK
-        uniqueidentifier RecipientPersonId FK
-        nvarchar(50) Status
-        datetime2 GrantedAt
-        datetime2 ExpiresAt
-    }
 ```
 
-* **Ràng buộc duy nhất tạo kho bàn giao:**
-  $$
-  \mathbf{UNIQUE(EstatePlanVersionId, NormalizedRecipientSet)}
-  $$
-* **Lịch hẹn bàn giao chung toàn hồ sơ (`HandoverSchedules` - Chuẩn hóa P1):**
-  * SRS quy định **một ngày bàn giao duy nhất cho toàn bộ hồ sơ**, không đặt lịch lẻ theo từng kho bàn giao.
-  * `HandoverSchedules` gắn trực tiếp với `CaseId`, quản lý phiên bản `ScheduleVersion` và lý do dời lịch (`RescheduledReason`).
-  * Ràng buộc: $\mathbf{UNIQUE(CaseId, ScheduleVersion)}$.
-  * Mọi kho `HandoverVaults` trong cùng hồ sơ đều kế thừa và đồng bộ ngày bàn giao hiệu lực từ bản ghi có `IsActive = true`.
-  * `Executor` chỉ được kích hoạt bắt đầu bàn giao khi thời điểm hiện tại: $\text{now} \ge \text{ScheduledDeliveryDate}$.
-* **Quy tắc mốc thời gian đóng băng 2 năm (SRS v3.11.0 & TIME-01):**
-  * `HandoverVaults.FreezeStartedAt`: Được ghi nhận khi có người đầu tiên bấm **Từ chối (`REJECTED`)** HOẶC khi hết 168 giờ (`InitialResponseDueAt`) mà kho còn người **Chưa phản hồi (`EXPIRED`)**.
-  * `HandoverVaults.FreezeExpiresAt`: Được tính chính xác bằng **2 năm lịch** kể từ `FreezeStartedAt`.
-  * **Ranh giới hết hạn chuẩn xác (`TIME-01`):** Thao tác ký Nhận chỉ hợp lệ khi $\text{now} < \text{FreezeExpiresAt}$. Tại đúng hoặc sau mốc hết hạn ($\text{now} \ge \text{FreezeExpiresAt}$), hệ thống từ chối và khóa vĩnh viễn.
+* **1. Tách bạch `CaseId` và `CaseBundleId`**:
+  * `Case`: Đại diện cho tiến trình pháp lý xác thực tử vong toàn hồ sơ.
+  * `CaseBundle`: Đại diện cho một gói bàn giao độc lập với nhóm người nhận cụ thể (`NormalizedRecipientSet`).
+  * Một `Case` có thể chứa $1..N$ `CaseBundle`. Chính sách đồng nhận `All-or-Nothing` chỉ áp dụng **cô lập trong từng `CaseBundle`**, không làm phong tỏa các Bundle độc lập khác của cùng một hồ sơ.
+
+* **2. Ràng buộc Snapshot Bất Biến Người Nhận & Mốc Khóa Snapshot**:
+  * **Mốc khóa Snapshot (`SubmittedAt / SnapshottedAt`):** Khi hồ sơ ở trạng thái nháp (`Draft`), danh mục tài sản và người nhận có thể điều chỉnh; nhưng ngay khi `Case` được nộp thẩm định (`SubmittedAt`), hệ thống đóng băng toàn bộ bộ ba `(AssetId, ContentVersionId, AssetDesignationVersionId)` vào `CaseBundleItems`.
+  * Sau mốc này, danh sách người nhận `DesignationVersionRecipients` liên đới trở thành **bất biến tuyệt đối**; mọi thay đổi về sau phải tạo `Case` hoặc phiên bản mới theo quy trình pháp lý, không được sửa đè snapshot cũ.
+  * **Kiểm soát lời mời (`GuestHandoverSessions`):** Hệ thống chỉ cho phép tạo token lời mời khi `BeneficiaryPersonId` (hoặc Email/CCCD) **đã nằm trong snapshot** của `CaseBundleItem`. Mọi thao tác tự ý thêm người nhận lúc tạo phiên khách đều bị chặn và trả mã lỗi `ErrorCodes.FORBIDDEN_RECIPIENT_NOT_IN_SNAPSHOT`.
+
+* **3. Tách Biệt Trạng Thái Quyết Định Cá Nhân & Cam Kết Nhóm**:
+  * Trong `BeneficiaryHandoverDecisions`, `DecisionStatus` biểu diễn quyết định cá nhân (`PENDING`, `ACCEPTED`, `REJECTED`, `EXPIRED`).
+  * Khi người nhận bấm đồng ý (`ACCEPTED`), bản ghi chưa tự động sinh quyền truy cập; cột `CommitmentId` vẫn là `NULL` để biểu thị trạng thái **"Đang chờ cam kết nhóm (Awaiting Group Consensus)"**.
+  * Chỉ khi 100% người đồng nhận trong cùng `CaseBundle` đều `ACCEPTED`, một bản ghi `Commitments` mới được tạo và cập nhật `CommitmentId` cho các quyết định liên quan.
+
+* **4. Bảy (07) Điều Kiện Cần Và Đủ Để Phát Hành `AccessGrant`**:
+  Hệ thống chỉ tạo và kích hoạt `AccessGrant` khi thỏa mãn đồng thời 7 tiêu chí:
+  1. `Cases.Status == 'APPROVED'` (Hồ sơ chứng tử đã được phê duyệt pháp lý).
+  2. `CaseBundleItems` toàn vẹn đúng snapshot bất biến của hồ sơ.
+  3. `BeneficiaryPersonId` có tên trong danh sách chỉ định hợp lệ của Bundle.
+  4. Có bản ghi `RecipientAuthorizations` hợp lệ do Executor xác nhận từ phiên họp.
+  5. Cam kết nhóm (`Commitments`) đạt đủ 100% người đồng thuận (`Commitments o|--|{ BeneficiaryHandoverDecisions`).
+  6. Thời điểm hiện tại đã đến hoặc sau ngày hẹn bàn giao (`now >= HandoverSchedules.ScheduledDeliveryDate`).
+  7. **Không có bất kỳ lệnh phong tỏa nào** còn hiệu lực (`RescueHold == false`, `SecurityHold == false`, `LegalHold == false`).
+
+* **5. Cơ Chế Phối Hợp & Concurrency Trên `CaseId` (Chống Race Condition)**:
+  * **Giới hạn của `rowversion`:** Concurrency token (`rowversion`) của EF Core chỉ phát hiện xung đột khi `UPDATE` hoặc `DELETE`; **không tự động ngăn chặn** xung đột khi hai luồng đồng thời cùng `INSERT` (ví dụ: luồng A kiểm tra "không Hold" rồi chuẩn bị `INSERT AccessGrant`, trong khi luồng B vừa `INSERT RescueHold`).
+  * **Cơ chế phối hợp bắt buộc:**
+    * Mọi thao tác đặt/gỡ Hold, cấp Grant, cấp URL tải và cấp vật liệu khóa **bắt buộc phải phối hợp tuần tự theo `CaseId`**.
+    * Khóa bản ghi `Cases` mục tiêu trong Database Transaction ngắn bằng `UPDLOCK, HOLDLOCK` (hoặc Transaction Isolation Level `Serializable` có phạm vi).
+    * Đọc lại trạng thái `Case` và tất cả các bản ghi Hold hiệu lực ngay trong transaction trước khi cho phép chèn `AccessGrants`.
+    * Ràng buộc duy nhất tại CSDL: $\mathbf{UNIQUE(CaseBundleId, RecipientPersonId, CommitmentId)}$ chống cấp trùng.
+    * **Ranh giới tài nguyên:** Không giữ transaction DB suốt cuộc gọi video LiveKit hay tác vụ stream/mạng dài; chỉ mở transaction ở bước kiểm tra và commit cuối cùng.
+
+* **6. Chuẩn Hóa Mốc Thời Gian & Quy Tắc Đóng Băng 2 Năm**:
+  * **Hạn `AccessGrant`:** Mặc định cố định **72 giờ** kể từ thời điểm phát hành. Trong 72 giờ này người thụ hưởng có quyền yêu cầu phát hành URL tải và khóa bọc. Hết 72h, Grant chuyển trạng thái `EXPIRED`.
+  * **Hạn Presigned URL R2:** Cố định **15 phút**. Tách biệt hoàn toàn hạn của Grant với hạn của URL tải nhị phân trực tiếp từ Cloudflare R2.
+  * **Thời hạn phản hồi 7 ngày & Đóng băng 2 năm (SRS v3.11.0 & TIME-01):**
+    * Người nhận có **7 ngày** (`InitialResponseDueAt = now + 7 ngày`) để đưa ra quyết định chấp nhận hoặc từ chối.
+    * Nếu hết 7 ngày mà chưa phản hồi (`EXPIRED`) HOẶC có người bấm từ chối (`REJECTED`), gói bàn giao bước vào giai đoạn đóng băng bảo vệ di sản (`FreezeStartedAt = now`, `FreezeExpiresAt = now + 2 năm`).
+    * **Tuyệt đối không tự coi việc im lặng là tranh chấp.** Trong suốt 2 năm đóng băng, người nhận vẫn có quyền đổi ý ký nhận lại (`ReconsideredAt`). Sau đúng 2 năm ($\text{now} \ge \text{FreezeExpiresAt}$), quyền nhận tài sản mới chính thức hết hiệu lực vĩnh viễn.
+
+* **7. Phân Tách Ba (03) Loại Phong Tỏa & Quy Tắc Rescue Hold Chặt Chẽ**:
+  * **`RescueHold`**: Do Owner kích hoạt khi phát hiện tài khoản có dấu hiệu bị chiếm đoạt / kích hoạt hồ sơ nhầm.
+    * **Quy tắc giải tỏa an toàn:** Check-in của Chủ sở hữu được ghi nhận là bằng chứng Owner còn hoạt động (`AliveDistressSignal`). **Check-in KHÔNG ĐƯỢC TỰ ĐỘNG giải tỏa Hold hoặc tự mở lại bàn giao.** Hệ thống giữ nguyên Hold và chuyển sang quy trình xác minh khẩn cấp; người có thẩm quyền (hoặc quy trình xác minh 2 lớp) ra quyết định phê duyệt thì mới hủy hồ sơ hoặc giải tỏa Hold theo phạm vi.
+  * **`SecurityHold`**: Do hệ thống tự động kích hoạt khi phát hiện brute-force, gian lận IP/vị trí hoặc xâm nhập. Yêu cầu xác minh kỹ thuật từ Security Administrator.
+  * **`LegalHold`**: Do Tòa án, Trọng tài thương mại hoặc Cơ quan điều tra ban hành. **Chủ sở hữu check-in DMS KHÔNG ĐƯỢC PHÉP tự ý giải tỏa `LegalHold`**. Chỉ khi có văn bản hủy bỏ phong tỏa hợp pháp thì trạng thái này mới được gỡ bỏ.
+  * **Nguyên tắc độc lập:** Khi một Case có nhiều loại Hold đồng thời, việc giải tỏa `RescueHold` **vẫn phải giữ nguyên** các lệnh `SecurityHold` hoặc `LegalHold` đang có hiệu lực.
+
+* **8. Phân Tách Ghi Nhận Máy Chủ (`DownloadEvents`) & Biên Nhận Người Nhận (`HandoverReceipts`)**:
+  * `DownloadEvents`: Ghi vết ở tầng máy chủ khi server phục vụ byte dữ liệu hoặc ký phát Presigned URL từ R2 (chứng minh hệ thống đã bàn giao tệp về mặt kỹ thuật).
+  * `HandoverReceipts`: Biên nhận pháp lý điện tử do chính người nhận ký xác nhận sau khi đã mở/tải thành công trên client (chứng minh người nhận đã tiếp nhận đầy đủ di sản).
+
+* **9. Ranh Giới Mật Mã Học & Thiết Kế Đề Xuất Phân Phối Khóa (Cryptographic Trust Boundary)**:
+  * **Ranh giới hiện hành (Theo tài liệu `KIEN_TRUC_MAT_MA_VA_LUU_TRU_DI_SAN.md`):** Mô hình gốc là *Server-side Decryption with Client-side Passphrase Processing*. Backend giải mã tệp trong RAM và stream qua TLS 1.3 tới Client; Emergency Share do người giữ bản cứu hộ/người thừa kế giữ. Hệ thống bảo vệ dữ liệu khi nghỉ (Data-at-Rest), không thể bảo vệ dữ liệu trước quản trị viên có quyền kiểm soát toàn diện máy chủ (Host Administrator).
+  * **Thiết kế đề xuất phân phối khóa (Proposed Key Distribution Protocol):**
+    * *Cung cấp Emergency Share:* Mảnh 3 (Emergency Share) do Người giữ bản cứu hộ nộp lên hệ thống kèm xác thực danh tính sau khi hồ sơ đạt `Case.Status == APPROVED` (phê duyệt hồ sơ không tự động làm xuất hiện mảnh khóa này).
+    * *Ràng buộc Public Key Người nhận:* Khóa công khai của người nhận phải được đăng ký và gắn chặt chẽ với bộ định danh `(GuestSession, BeneficiaryPersonId, CaseBundleId, AccessGrantId)` kèm Proof-of-Possession (PoP) signature challenge để chứng minh người nhận thực sự sở hữu private key tương ứng; tuyệt đối không tiếp nhận public key tùy ý.
+    * *Bộ thuật toán mật mã chuẩn:*
+      * **Phương án ECDH:** Sử dụng **ECDH trên đường cong P-256 (hoặc X25519)** để tạo Shared Secret giữa Backend và Client $\rightarrow$ dùng **HKDF-SHA256** dẫn xuất Key-Encryption-Key (KEK tạm) $\rightarrow$ bọc DEK bằng **AES-256-KW (NIST SP 800-38F)** hoặc **AES-256-GCM**.
+      * **Phương án RSA:** Sử dụng **RSA-OAEP-256** với SHA-256 làm hàm băm và MGF1.
+    * *Ranh giới bảo mật thực tế:* Backend vẫn phải nắm KEK/DEK trong RAM lúc giải bọc và bọc lại, do đó luồng này là *Server-assisted Key Recovery + Client-side File Decryption*, không phải End-to-End Zero-Knowledge đối với máy chủ.
+  * **Giới hạn thực tế của việc thu hồi & dọn dẹp vùng nhớ:**
+    * Lệnh Hold chỉ chặn phát hành Grant hoặc URL mới sau thời điểm commit; **không thể thu hồi** tệp hoặc khóa đã gửi tới thiết bị client. URL đã cấp (15 phút) có thể vẫn còn hiệu lực cho tới khi hết hạn.
+    * `CryptographicOperations.ZeroMemory()` chỉ ghi đè mảng byte được chỉ định trong RAM do ứng dụng .NET quản lý; **không chứng minh** mọi bản sao ngầm ở tầng socket/TLS buffer của OS hoặc tiến trình bị crash dump đã bị xóa sạch.
 
 ---
 
@@ -333,7 +500,7 @@ classDiagram
         uniqueidentifier ContentVersionId FK
         uniqueidentifier AssetDesignationVersionId FK
         uniqueidentifier EstatePlanVersionId FK
-        uniqueidentifier HandoverVaultId FK
+        uniqueidentifier CaseBundleId FK
         nvarchar(500) NormalizedRecipientSet
         datetime2 CreatedAt
     }
@@ -343,7 +510,7 @@ classDiagram
 
   * `CaseAssetSnapshots` khóa cứng bộ bốn liên kết: `(AssetId, ContentVersionId, AssetDesignationVersionId, EstatePlanVersionId)`.
   * Ràng buộc duy nhất: $\mathbf{UNIQUE(CaseId, AssetId)}$.
-  * Truy vết 100% minh bạch: Từ snapshot, hệ thống biết chính xác bản mã tệp tin (`ContentVersionId`), cấu hình chỉ định và danh sách người nhận tại thời điểm nộp hồ sơ (`AssetDesignationVersionId` $\rightarrow$ `DesignationVersionRecipients`), và kho bàn giao tương ứng (`HandoverVaultId`).
+  * Truy vết 100% minh bạch: Từ snapshot, hệ thống biết chính xác bản mã tệp tin (`ContentVersionId`), cấu hình chỉ định và danh sách người nhận tại thời điểm nộp hồ sơ (`AssetDesignationVersionId` $\rightarrow$ `DesignationVersionRecipients`), và gói bàn giao tương ứng (`CaseBundleId`).
 * **Hai bản ghi cam kết pháp lý độc lập (`DEATH-02`):**
 
   1. `Role = 'EXECUTOR'`: Cam kết của Người thực thi khi nộp hồ sơ.

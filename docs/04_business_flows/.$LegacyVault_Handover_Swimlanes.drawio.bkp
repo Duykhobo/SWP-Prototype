@@ -1,0 +1,543 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="Electron" version="24.0.0">
+  <diagram name="Tab A — Bàn giao một người thụ hưởng" id="tab-a-single-recipient">
+    <mxGraphModel dx="1600" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="3800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title_a" parent="1" vertex="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=2;fontSize=15;fontFamily=Arial;fontStyle=1;fillColor=#0B291E;fontColor=#FFFFFF;strokeColor=#051711;" value="TAB A · QUY TRÌNH BÀN GIAO DI SẢN CHO MỘT NGƯỜI THỤ HƯỞNG (SINGLE RECIPIENT HANDOVER FLOW)">
+          <mxGeometry x="50" y="20" width="1600" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="desc_a" parent="1" vertex="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;strokeWidth=1;fontSize=11;fontFamily=Arial;fillColor=#F8FAFC;fontColor=#334155;strokeColor=#CBD5E1;spacingLeft=15;" value="Kiến trúc luồng bàn giao khép kín cho kho 1 người (SINGLE_RECIPIENT): Mời qua link khách giới hạn → Đối chiếu nhân thân video call → Executor xác nhận quyền → Beneficiary duyệt điều khoản &amp; nhận → Sinh Grant &amp; DownloadToken độc lập → Tải bản mã &amp; log server → Ký biên nhận điện tử (gắn mã băm chữ ký &amp; nội dung) → Finalize &amp; thu hồi phiên khách → Đóng phòng LiveKit khi xác nhận.">
+          <mxGeometry x="50" y="78" width="1600" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_a_lane_beneficiary" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#EBF3EE;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#0B291E;" value="1. NGƯỜI THỤ HƯỞNG&amp;lt;br/&amp;gt;(Beneficiary)">
+          <mxGeometry x="50" y="145" width="260" height="3600" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_a_lane_executor" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FEF7EC;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#8C5817;" value="2. NGƯỜI THỰC THI (EXECUTOR)&amp;lt;br/&amp;gt;(Estate Executor / Verifier)">
+          <mxGeometry x="310" y="145" width="260" height="3600" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_a_lane_frontend" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#F0F4F8;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#1E3A8A;" value="3. FRONTEND REACT&amp;lt;br/&amp;gt;(Client Web App)">
+          <mxGeometry x="570" y="145" width="280" height="3600" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_a_lane_backend" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#F5F3FF;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#581C87;" value="4. BACKEND ASP.NET CORE&amp;lt;br/&amp;gt;(WebApi &amp; VideoSessionService)">
+          <mxGeometry x="850" y="145" width="300" height="3600" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_a_lane_storage" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FDF2F8;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#831843;" value="5. DATABASE &amp; STORAGE&amp;lt;br/&amp;gt;(In-Memory Prototype / Blob)">
+          <mxGeometry x="1150" y="145" width="260" height="3600" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_a_lane_livekit" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#F0FDFA;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#134E4A;" value="6. LIVEKIT SERVER&amp;lt;br/&amp;gt;(WebRTC Cloud Server)">
+          <mxGeometry x="1410" y="145" width="240" height="3600" as="geometry" />
+        </mxCell>
+        <mxCell id="a_start" parent="lane_a_lane_beneficiary" vertex="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#10B981;strokeColor=#047857;strokeWidth=2;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=#FFFFFF;" value="BẮT ĐẦU&amp;lt;br/&amp;gt;Mở link mời nhận di sản&amp;lt;br/&amp;gt;(?token=guest_tok_...)">
+          <mxGeometry x="30" y="60" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_call_validate" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="01 · Gửi yêu cầu xác thực phiên&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;GET /api/video-sessions/guest-link&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;Params: { token: guestToken }">
+          <mxGeometry x="20" y="60" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_be_validate" parent="lane_a_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="02 · ValidateGuestSessionAsync&amp;lt;br/&amp;gt;• Kiểm tra token, TTL, Status==ACTIVE&amp;lt;br/&amp;gt;• Kiểm tra Case: APPROVED_FOR_DELIVERY&amp;lt;br/&amp;gt;• Kiểm tra Time-lock == 0 &amp;amp; Rescue Hold">
+          <mxGeometry x="20" y="60" width="260" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_dec_valid" parent="lane_a_lane_backend" vertex="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#92400E;" value="Token &amp;amp; Case&amp;lt;br/&amp;gt;hợp lệ?">
+          <mxGeometry x="80" y="170" width="140" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_reject_token" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#991B1B;" value="Hiển thị thông báo lỗi&amp;lt;br/&amp;gt;401 / 403 / 423 Locked&amp;lt;br/&amp;gt;Từ chối truy cập phòng">
+          <mxGeometry x="20" y="175" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_end_rejected" parent="lane_a_lane_beneficiary" vertex="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EF4444;strokeColor=#B91C1C;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#FFFFFF;" value="KẾT THÚC&amp;lt;br/&amp;gt;Phiên bị từ chối">
+          <mxGeometry x="40" y="175" width="180" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_prejoin" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="03 · Render Pre-join Desk&amp;lt;br/&amp;gt;• Kiểm tra Camera / Micro cục bộ&amp;lt;br/&amp;gt;• Hiển thị thông tin hồ sơ di sản&amp;lt;br/&amp;gt;(Chưa có nội dung file &amp;amp; khóa)">
+          <mxGeometry x="20" y="285" width="240" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_ben_join" parent="lane_a_lane_beneficiary" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="04 · Bấm 'Vào phòng xác minh'&amp;lt;br/&amp;gt;Xác nhận kết nối video với Executor">
+          <mxGeometry x="30" y="290" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_get_room_token" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="05 · Xin token phòng LiveKit&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;POST /api/video-sessions/{id}/join-token&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;Kèm GuestToken xác thực">
+          <mxGeometry x="20" y="395" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_be_issue_room_token" parent="lane_a_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="06 · Sinh LiveKit Room Token&amp;lt;br/&amp;gt;Gán Identity = BeneficiaryId,&amp;lt;br/&amp;gt;Claim: role=GUEST_BENEFICIARY">
+          <mxGeometry x="20" y="395" width="260" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_lk_connect_ben" parent="lane_a_lane_livekit" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="07 · LiveKit Room Connect&amp;lt;br/&amp;gt;Beneficiary gia nhập phòng;&amp;lt;br/&amp;gt;Publish Audio/Video tracks">
+          <mxGeometry x="20" y="395" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_exe_login" parent="lane_a_lane_executor" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="08 · Executor đăng nhập JWT&amp;lt;br/&amp;gt;Được kiểm tra đúng quyền phân công&amp;lt;br/&amp;gt;vào phòng xác minh">
+          <mxGeometry x="30" y="500" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_be_check_exe" parent="lane_a_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="09 · Đối chiếu phân công Executor&amp;lt;br/&amp;gt;Khớp AssignedVerifierId / AssignedExecutorId.&amp;lt;br/&amp;gt;Chặn beneficiary đóng giả Executor!">
+          <mxGeometry x="20" y="500" width="260" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_lk_connect_exe" parent="lane_a_lane_livekit" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="10 · Thiết lập P2P Video Mesh&amp;lt;br/&amp;gt;Kênh WebRTC trực tiếp hai chiều&amp;lt;br/&amp;gt;giữa Executor và Beneficiary">
+          <mxGeometry x="20" y="590" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_exe_eval" parent="lane_a_lane_executor" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="11 · Đối chiếu CCCD &amp;amp; Khuôn mặt&amp;lt;br/&amp;gt;Thực hiện challenge tương tác trực tiếp;&amp;lt;br/&amp;gt;Loại trừ nguy cơ Deepfake">
+          <mxGeometry x="30" y="680" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_dec_id_match" parent="lane_a_lane_executor" vertex="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#92400E;" value="Nhân thân&amp;lt;br/&amp;gt;chính xác?">
+          <mxGeometry x="60" y="780" width="140" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_exe_reject" parent="lane_a_lane_executor" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#991B1B;" value="Từ chối xác minh / Yêu cầu bổ sung&amp;lt;br/&amp;gt;Ghi chú lý do nghi vấn">
+          <mxGeometry x="30" y="890" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="a_exe_allow" parent="lane_a_lane_executor" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#166534;" value="12 · Bấm 'Xác nhận nhân thân &amp;amp;&amp;lt;br/&amp;gt;Cho phép nhận di sản'&amp;lt;br/&amp;gt;trên giao diện Executor">
+          <mxGeometry x="30" y="980" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_send_allow" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="13 · Gửi lệnh phê chuẩn nhân thân&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;POST /api/case-bundles/{id}/executor-allow&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;Headers: { Authorization: Bearer JWT }">
+          <mxGeometry x="20" y="980" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_be_save_allow" parent="lane_a_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="14 · AuthorizeRecipientByExecutorAsync&amp;lt;br/&amp;gt;• Đánh dấu session.EvaluatedAt&amp;lt;br/&amp;gt;• Set gs.IsExecutorAuthorized = true&amp;lt;br/&amp;gt;• &amp;lt;b&amp;gt;KHÔNG tự mở Time-lock/Duyệt Case&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="980" width="260" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_render_handover" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="15 · Kích hoạt Bảng Bàn Giao Di Sản&amp;lt;br/&amp;gt;Hiển thị điều khoản pháp lý, ô cam kết&amp;lt;br/&amp;gt;và nút 'Chấp nhận nhận di sản'">
+          <mxGeometry x="20" y="1090" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_ben_accept" parent="lane_a_lane_beneficiary" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="16 · Bấm 'Đồng ý nhận di sản'&amp;lt;br/&amp;gt;Đọc điều khoản, tick cam kết trách nhiệm&amp;lt;br/&amp;gt;&amp;lt;i&amp;gt;Kèm Passkey FIDO2 [MÔ PHỎNG]&amp;lt;/i&amp;gt;">
+          <mxGeometry x="30" y="1180" width="200" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_send_accept" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="17 · Gửi quyết định nhận di sản&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;POST /api/video-sessions/{id}/accept-handover&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;Payload: { legalAck: true, secondFactorProof: ... }">
+          <mxGeometry x="20" y="1180" width="240" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_be_accept" parent="lane_a_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="18 · AcceptHandoverAsync (Atomic)&amp;lt;br/&amp;gt;• Kiểm tra IsExecutorAuthorized == true&amp;lt;br/&amp;gt;• Kiểm tra Rescue Hold == false &amp;amp; TimeLock == 0&amp;lt;br/&amp;gt;• Ghi nhận Decision = ACCEPT&amp;lt;br/&amp;gt;• Tạo HANDOVER_COMMITTED">
+          <mxGeometry x="20" y="1180" width="260" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="a_be_create_grant" parent="lane_a_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="19 · Cấp AccessGrant &amp;amp; DownloadToken&amp;lt;br/&amp;gt;• Status = ACTIVE (Hạn 7 ngày)&amp;lt;br/&amp;gt;• Sinh DownloadToken ngẫu nhiên bảo mật&amp;lt;br/&amp;gt;• Gán đúng BeneficiaryId &amp;amp; BundleId">
+          <mxGeometry x="20" y="1300" width="260" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_store_grant" parent="lane_a_lane_storage" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#BE185D;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;strokeDasharray=3 3;" value="20 · Lưu trữ AccessGrant&amp;lt;br/&amp;gt;&amp;lt;i&amp;gt;[MÔ PHỎNG IN-MEMORY]&amp;lt;/i&amp;gt;&amp;lt;br/&amp;gt;Lưu vào _grants &amp;amp; _grantsByDownloadToken&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;(Chưa lưu Database bền vững)&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="1300" width="220" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_render_files" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="21 · Hiển thị Danh Sách Tệp Di Sản&amp;lt;br/&amp;gt;Gắn DownloadToken vào nút tải từng tệp;&amp;lt;br/&amp;gt;Đánh dấu tệp Bắt Buộc (Mandatory)">
+          <mxGeometry x="20" y="1410" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_ben_download_click" parent="lane_a_lane_beneficiary" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="22 · Bấm 'Giải mã &amp;amp; Tải về'&amp;lt;br/&amp;gt;Tải từng tệp di sản bản mã">
+          <mxGeometry x="30" y="1510" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_req_download" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="23 · Yêu cầu tải bản mã qua HTTPS&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;GET /api/case-bundles/{id}/assets/{assetId}/download&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;Params: { downloadToken: ... }">
+          <mxGeometry x="20" y="1510" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_be_serve_asset" parent="lane_a_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="24 · VerifyAndServeEncryptedAssetAsync&amp;lt;br/&amp;gt;• Kiểm tra DownloadToken &amp;amp; Grant Status==ACTIVE&amp;lt;br/&amp;gt;• Kiểm tra TTL (7 ngày) &amp;amp; Rescue Hold&amp;lt;br/&amp;gt;• Kiểm tra Asset thuộc Manifest kho di sản&amp;lt;br/&amp;gt;• &amp;lt;b&amp;gt;Ghi Server Log: _verifiedAssetDownloads&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="1510" width="260" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_decrypt_mock" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#92400E;strokeDasharray=3 3;" value="25 · Xử lý tải về thiết bị&amp;lt;br/&amp;gt;&amp;lt;i&amp;gt;[MÔ PHỎNG GIẢI MÃ RAM PROTOTYPE]&amp;lt;/i&amp;gt;&amp;lt;br/&amp;gt;Tạo Blob URL từ bản mã tải về&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;(Chưa chạy WebCrypto AES-GCM thật)&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="1640" width="240" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_ben_sign_canvas" parent="lane_a_lane_beneficiary" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="26 · Ký tay trên Canvas&amp;lt;br/&amp;gt;Ký xác nhận đã mở &amp;amp; lưu đủ tệp bắt buộc;&amp;lt;br/&amp;gt;Tick xác nhận nội dung biên nhận">
+          <mxGeometry x="30" y="1750" width="200" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_send_finalize" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="27 · Gửi yêu cầu hoàn tất biên nhận&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;POST /api/case-bundles/{id}/finalize&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;Payload: { clientConfirmedAssetIds, sigData: data:image/png;base64... }">
+          <mxGeometry x="20" y="1750" width="240" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_be_finalize" parent="lane_a_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="28 · FinalizeHandoverSessionAsync&amp;lt;br/&amp;gt;• Bước 0: Kiểm tra Idempotency Retry&amp;lt;br/&amp;gt;• Kiểm tra chữ ký: format base64, size &amp;amp;lt;= 512KB&amp;lt;br/&amp;gt;• Đối soát đủ tệp: Server log == Client confirm&amp;lt;br/&amp;gt;• &amp;lt;b&amp;gt;SignatureHash = SHA256(sigData)&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;• &amp;lt;b&amp;gt;ReceiptContentHash = SHA256(canonical)&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="1750" width="260" height="105" as="geometry" />
+        </mxCell>
+        <mxCell id="a_be_close_session" parent="lane_a_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="29 · Cập nhật trạng thái bảo mật&amp;lt;br/&amp;gt;• Grant.Status = FINALIZED (Đóng quyền tải)&amp;lt;br/&amp;gt;• GuestSession.Status = COMPLETED (Thu hồi)&amp;lt;br/&amp;gt;• Session.Status = COMPLETED">
+          <mxGeometry x="20" y="1890" width="260" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_store_receipt" parent="lane_a_lane_storage" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#BE185D;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;strokeDasharray=3 3;" value="30 · Lưu Biên nhận điện tử&amp;lt;br/&amp;gt;&amp;lt;i&amp;gt;[MÔ PHỎNG IN-MEMORY]&amp;lt;/i&amp;gt;&amp;lt;br/&amp;gt;Lưu Receipt &amp;amp; Audit Digest vào RAM&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;(Cần lưu Database vĩnh viễn ở giai đoạn sau)&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="1890" width="220" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_be_delete_room" parent="lane_a_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="31 · Yêu cầu LiveKit hủy phòng&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;await DeleteRoomAsync(roomId)&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;Chờ phản hồi trước khi trả kết quả">
+          <mxGeometry x="20" y="2000" width="260" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_lk_destroy" parent="lane_a_lane_livekit" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0D9488;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="32 · Giải phóng phòng WebRTC&amp;lt;br/&amp;gt;Đóng các luồng video/audio tracks;&amp;lt;br/&amp;gt;Trả về xác nhận CLOSED">
+          <mxGeometry x="20" y="2000" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="a_fe_show_receipt" parent="lane_a_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#166534;" value="33 · Hiển thị Biên Nhận Hoàn Tất&amp;lt;br/&amp;gt;• Hiển thị ReceiptContentHash (SHA-256)&amp;lt;br/&amp;gt;• Hiển thị SignatureHash &amp;amp; Ảnh chữ ký&amp;lt;br/&amp;gt;• Trạng thái phòng: CLOSED">
+          <mxGeometry x="20" y="2100" width="240" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a_end_success" parent="lane_a_lane_beneficiary" vertex="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#10B981;strokeColor=#047857;strokeWidth=2;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=#FFFFFF;" value="KẾT THÚC&amp;lt;br/&amp;gt;Bàn giao thành công&amp;lt;br/&amp;gt;Biên nhận đã phát hành">
+          <mxGeometry x="30" y="2105" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_1" parent="1" edge="1" source="a_start" target="a_fe_call_validate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Mở link">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_2" parent="1" edge="1" source="a_fe_call_validate" target="a_be_validate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="HTTPS GET">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_3" parent="1" edge="1" source="a_be_validate" target="a_dec_valid" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_4" parent="1" edge="1" source="a_dec_valid" target="a_fe_reject_token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Sai/Hết hạn/Hold">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_5" parent="1" edge="1" source="a_fe_reject_token" target="a_end_rejected" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_6" parent="1" edge="1" source="a_dec_valid" target="a_fe_prejoin" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Hợp lệ (200 OK)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_7" parent="1" edge="1" source="a_fe_prejoin" target="a_ben_join" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Sẵn sàng">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_8" parent="1" edge="1" source="a_ben_join" target="a_fe_get_room_token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Vào phòng">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_9" parent="1" edge="1" source="a_fe_get_room_token" target="a_be_issue_room_token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Xin token">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_10" parent="1" edge="1" source="a_be_issue_room_token" target="a_lk_connect_ben" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Cấp token">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_11" parent="1" edge="1" source="a_exe_login" target="a_be_check_exe" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="JWT Auth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_12" parent="1" edge="1" source="a_be_check_exe" target="a_lk_connect_exe" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Đúng phân công">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_13" parent="1" edge="1" source="a_lk_connect_exe" target="a_exe_eval" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Video trực tiếp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_14" parent="1" edge="1" source="a_exe_eval" target="a_dec_id_match" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_15" parent="1" edge="1" source="a_dec_id_match" target="a_exe_reject" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Nghi vấn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_16" parent="1" edge="1" source="a_dec_id_match" target="a_exe_allow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Khớp CCCD">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_17" parent="1" edge="1" source="a_exe_allow" target="a_fe_send_allow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Bấm duyệt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_18" parent="1" edge="1" source="a_fe_send_allow" target="a_be_save_allow" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="POST /executor-allow">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_19" parent="1" edge="1" source="a_be_save_allow" target="a_fe_render_handover" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="IsExecutorAuthorized = true">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_20" parent="1" edge="1" source="a_fe_render_handover" target="a_ben_accept" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Mở panel">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_21" parent="1" edge="1" source="a_ben_accept" target="a_fe_send_accept" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Bấm Nhận">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_22" parent="1" edge="1" source="a_fe_send_accept" target="a_be_accept" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="POST /accept-handover">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_23" parent="1" edge="1" source="a_be_accept" target="a_be_create_grant" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Đủ điều kiện">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_24" parent="1" edge="1" source="a_be_create_grant" target="a_store_grant" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Lưu Grant">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_25" parent="1" edge="1" source="a_be_create_grant" target="a_fe_render_files" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="DownloadToken">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_26" parent="1" edge="1" source="a_fe_render_files" target="a_ben_download_click" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Từng file">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_27" parent="1" edge="1" source="a_ben_download_click" target="a_fe_req_download" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Tải về">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_28" parent="1" edge="1" source="a_fe_req_download" target="a_be_serve_asset" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="GET /assets/.../download">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_29" parent="1" edge="1" source="a_be_serve_asset" target="a_fe_decrypt_mock" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Bản mã (200 OK)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_30" parent="1" edge="1" source="a_fe_decrypt_mock" target="a_ben_sign_canvas" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Đủ file">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_31" parent="1" edge="1" source="a_ben_sign_canvas" target="a_fe_send_finalize" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Ký biên nhận">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_32" parent="1" edge="1" source="a_fe_send_finalize" target="a_be_finalize" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="POST /finalize">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_33" parent="1" edge="1" source="a_be_finalize" target="a_be_close_session" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Khớp hash &amp; log">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_34" parent="1" edge="1" source="a_be_finalize" target="a_store_receipt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Lưu Receipt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_35" parent="1" edge="1" source="a_be_close_session" target="a_be_delete_room" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Đóng phiên">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_36" parent="1" edge="1" source="a_be_delete_room" target="a_lk_destroy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="DeleteRoom">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_37" parent="1" edge="1" source="a_lk_destroy" target="a_fe_show_receipt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="CLOSED (Xong)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_a_38" parent="1" edge="1" source="a_fe_show_receipt" target="a_end_success" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Hoàn tất">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Tab B — Bàn giao nhóm đồng thụ hưởng" id="tab-b-co-owned">
+    <mxGraphModel dx="1600" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="3200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title_b" parent="1" vertex="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=2;fontSize=15;fontFamily=Arial;fontStyle=1;fillColor=#8C5817;fontColor=#FFFFFF;strokeColor=#54330B;" value="TAB B · QUY TRÌNH BÀN GIAO CHO NHÓM ĐỒNG THỤ HƯỞNG (CO-OWNED HANDOVER &amp;amp; CONSENSUS FREEZE)">
+          <mxGeometry x="50" y="20" width="1600" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="desc_b" parent="1" vertex="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;strokeWidth=1;fontSize=11;fontFamily=Arial;fillColor=#F8FAFC;fontColor=#334155;strokeColor=#CBD5E1;spacingLeft=15;" value="Tuân thủ SRS v3.11.0: Kho CO_OWNED yêu cầu 100% người được chỉ định phải được xác minh và ĐỒNG Ý NHẬN trước khi cấp bất kỳ Grant nào. Một người đồng ý → Ghi nhận nhưng CHƯA CẤP GRANT. Một người từ chối hoặc hết 7 ngày → ĐÓNG BĂNG 2 NĂM SUY NGHĨ LẠI. Đủ đồng thuận trong 2 năm → Cam kết bàn giao đồng thời.">
+          <mxGeometry x="50" y="78" width="1600" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_b_lane_beneficiary" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#EBF3EE;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#0B291E;" value="1. NGƯỜI THỤ HƯỞNG&amp;lt;br/&amp;gt;(Beneficiary)">
+          <mxGeometry x="50" y="145" width="260" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_b_lane_executor" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FEF7EC;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#8C5817;" value="2. NGƯỜI THỰC THI (EXECUTOR)&amp;lt;br/&amp;gt;(Estate Executor / Verifier)">
+          <mxGeometry x="310" y="145" width="260" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_b_lane_frontend" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#F0F4F8;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#1E3A8A;" value="3. FRONTEND REACT&amp;lt;br/&amp;gt;(Client Web App)">
+          <mxGeometry x="570" y="145" width="280" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_b_lane_backend" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#F5F3FF;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#581C87;" value="4. BACKEND ASP.NET CORE&amp;lt;br/&amp;gt;(WebApi &amp; VideoSessionService)">
+          <mxGeometry x="850" y="145" width="300" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_b_lane_storage" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FDF2F8;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#831843;" value="5. DATABASE &amp; STORAGE&amp;lt;br/&amp;gt;(In-Memory Prototype / Blob)">
+          <mxGeometry x="1150" y="145" width="260" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_b_lane_livekit" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#F0FDFA;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#134E4A;" value="6. LIVEKIT SERVER&amp;lt;br/&amp;gt;(WebRTC Cloud Server)">
+          <mxGeometry x="1410" y="145" width="240" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="b_start" parent="lane_b_lane_beneficiary" vertex="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#10B981;strokeColor=#047857;strokeWidth=2;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=#FFFFFF;" value="BẮT ĐẦU&amp;lt;br/&amp;gt;Nhóm đồng thụ hưởng&amp;lt;br/&amp;gt;(Beneficiary B &amp;amp; C)">
+          <mxGeometry x="30" y="60" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="b_exe_verify_both" parent="lane_b_lane_executor" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="01 · Executor đối chiếu nhân thân&amp;lt;br/&amp;gt;Xác minh CCCD &amp;amp; khuôn mặt&amp;lt;br/&amp;gt;cho cả B và C qua video room">
+          <mxGeometry x="30" y="60" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="b_exe_allow_both" parent="lane_b_lane_executor" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#166534;" value="02 · Duyệt nhân thân cho B &amp;amp; C&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;POST /api/case-bundles/{id}/executor-allow&amp;lt;/b&amp;gt;">
+          <mxGeometry x="30" y="160" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="b_ben_b_accept" parent="lane_b_lane_beneficiary" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="03 · Người B bấm ĐỒNG Ý NHẬN&amp;lt;br/&amp;gt;Tick ô cam kết trách nhiệm&amp;lt;br/&amp;gt;&amp;lt;i&amp;gt;Kèm Passkey [MÔ PHỎNG]&amp;lt;/i&amp;gt;">
+          <mxGeometry x="30" y="260" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="b_fe_send_b_accept" parent="lane_b_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="04 · Gửi quyết định của B&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;POST /api/video-sessions/{id}/accept-handover&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="260" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="b_be_record_b" parent="lane_b_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="05 · Ghi nhận Decision[B] = ACCEPT&amp;lt;br/&amp;gt;Kiểm tra đồng thuận nhóm:&amp;lt;br/&amp;gt;• B: ACCEPT (Đạt)&amp;lt;br/&amp;gt;• C: PENDING (Chưa quyết định)">
+          <mxGeometry x="20" y="260" width="260" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="b_be_hold_grant_b" parent="lane_b_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#92400E;" value="06 · CHƯA CẤP GRANT CHO B!&amp;lt;br/&amp;gt;Set isConsensusComplete = false&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;Tuân thủ SRS: Chờ đủ đồng thuận&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="370" width="260" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="b_fe_waiting_c" parent="lane_b_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="07 · Thông báo cho người B:&amp;lt;br/&amp;gt;Đã ghi nhận chấp nhận của bạn.&amp;lt;br/&amp;gt;Đang chờ người C xác nhận.">
+          <mxGeometry x="20" y="370" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="b_dec_c_action" parent="lane_b_lane_beneficiary" vertex="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#92400E;" value="Quyết định&amp;lt;br/&amp;gt;người C?">
+          <mxGeometry x="60" y="480" width="140" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="b_ben_c_reject" parent="lane_b_lane_beneficiary" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#991B1B;" value="08a · Người C TỪ CHỐI NHẬN&amp;lt;br/&amp;gt;(Hoặc hết 7 ngày không phản hồi)&amp;lt;br/&amp;gt;POST isReject: true">
+          <mxGeometry x="30" y="590" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="b_be_freeze_2y" parent="lane_b_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#991B1B;" value="09a · ĐÓNG BĂNG 2 NĂM SUY NGHĨ LẠI&amp;lt;br/&amp;gt;• IsFrozenForReconsideration = true&amp;lt;br/&amp;gt;• ReconsiderationExpiresAt = Now + 2y&amp;lt;br/&amp;gt;• &amp;lt;b&amp;gt;CHẶN BÀN GIAO TOÀN BỘ KHO&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="590" width="260" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="b_dec_reconsider" parent="lane_b_lane_beneficiary" vertex="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#92400E;" value="C đổi ý sang NHẬN&amp;lt;br/&amp;gt;trong vòng 2 năm?">
+          <mxGeometry x="40" y="700" width="180" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="b_be_cancel_forever" parent="lane_b_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#64748B;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#334155;" value="10a · Hết hạn 2 năm suy nghĩ lại&amp;lt;br/&amp;gt;HỦY BÀN GIAO TOÀN BỘ KHO&amp;lt;br/&amp;gt;(CANCELLED_WITHOUT_DELIVERY)">
+          <mxGeometry x="20" y="705" width="260" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="b_end_cancelled" parent="lane_b_lane_beneficiary" vertex="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#64748B;strokeColor=#334155;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#FFFFFF;" value="KẾT THÚC&amp;lt;br/&amp;gt;Kho bị hủy bàn giao">
+          <mxGeometry x="40" y="820" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="b_ben_c_accept" parent="lane_b_lane_beneficiary" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#166534;" value="08b · Người C ĐỒNG Ý NHẬN&amp;lt;br/&amp;gt;(Xác minh &amp;amp; chấp nhận nhận kho)&amp;lt;br/&amp;gt;POST accept-handover">
+          <mxGeometry x="30" y="930" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="b_be_consensus_ok" parent="lane_b_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#166534;" value="09b · ĐỦ 100% ĐỒNG THUẬN!&amp;lt;br/&amp;gt;• allDecisionsAccepted == true&amp;lt;br/&amp;gt;• Tạo HANDOVER_COMMITTED&amp;lt;br/&amp;gt;• Cấp Grant &amp;amp; DownloadToken RIÊNG BIỆT&amp;lt;br/&amp;gt;cho cả Người B và Người C">
+          <mxGeometry x="20" y="930" width="260" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="b_store_grants" parent="lane_b_lane_storage" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#BE185D;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;strokeDasharray=3 3;" value="10b · Lưu Grants của B và C&amp;lt;br/&amp;gt;&amp;lt;i&amp;gt;[MÔ PHỎNG IN-MEMORY]&amp;lt;/i&amp;gt;&amp;lt;br/&amp;gt;Mỗi người sở hữu token &amp;amp; hạn tải riêng">
+          <mxGeometry x="20" y="930" width="220" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="b_ben_both_download" parent="lane_b_lane_beneficiary" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="11b · B và C tải tệp độc lập&amp;lt;br/&amp;gt;Mỗi người tải bản mã &amp;amp; ký biên nhận riêng;&amp;lt;br/&amp;gt;Không phụ thuộc tốc độ của nhau">
+          <mxGeometry x="30" y="1050" width="200" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="b_end_success" parent="lane_b_lane_beneficiary" vertex="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#10B981;strokeColor=#047857;strokeWidth=2;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=#FFFFFF;" value="KẾT THÚC&amp;lt;br/&amp;gt;Bàn giao đồng sở hữu&amp;lt;br/&amp;gt;thành công cho cả nhóm">
+          <mxGeometry x="30" y="1170" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_1" parent="1" edge="1" source="b_start" target="b_exe_verify_both" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_2" parent="1" edge="1" source="b_exe_verify_both" target="b_exe_allow_both" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Xác minh đạt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_3" parent="1" edge="1" source="b_exe_allow_both" target="b_ben_b_accept" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Mở quyền">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_4" parent="1" edge="1" source="b_ben_b_accept" target="b_fe_send_b_accept" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_5" parent="1" edge="1" source="b_fe_send_b_accept" target="b_be_record_b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="POST accept">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_6" parent="1" edge="1" source="b_be_record_b" target="b_be_hold_grant_b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="C chưa trả lời">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_7" parent="1" edge="1" source="b_be_hold_grant_b" target="b_fe_waiting_c" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Chờ đồng thuận">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_8" parent="1" edge="1" source="b_fe_waiting_c" target="b_dec_c_action" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Đến lượt C">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_9" parent="1" edge="1" source="b_dec_c_action" target="b_ben_c_reject" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Từ chối / Hết 7 ngày">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_10" parent="1" edge="1" source="b_ben_c_reject" target="b_be_freeze_2y" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Kích hoạt freeze">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_11" parent="1" edge="1" source="b_be_freeze_2y" target="b_dec_reconsider" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Đếm ngược 2 năm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_12" parent="1" edge="1" source="b_dec_reconsider" target="b_be_cancel_forever" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Hết 2 năm (Không)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_13" parent="1" edge="1" source="b_be_cancel_forever" target="b_end_cancelled" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_14" parent="1" edge="1" source="b_dec_reconsider" target="b_ben_c_accept" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Đổi sang Nhận">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_15" parent="1" edge="1" source="b_dec_c_action" target="b_ben_c_accept" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Đồng ý nhận ngay">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_16" parent="1" edge="1" source="b_ben_c_accept" target="b_be_consensus_ok" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Đủ 100%">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_17" parent="1" edge="1" source="b_be_consensus_ok" target="b_store_grants" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Lưu Grants">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_18" parent="1" edge="1" source="b_be_consensus_ok" target="b_ben_both_download" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Cấp quyền tải">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eb_19" parent="1" edge="1" source="b_ben_both_download" target="b_end_success" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Cùng nhận file">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Tab C — Rescue Hold, Retry &amp; Kết thúc phiên" id="tab-c-hold-retry-lifecycle">
+    <mxGraphModel dx="1600" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="3200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title_c" parent="1" vertex="1" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;strokeWidth=2;fontSize=15;fontFamily=Arial;fontStyle=1;fillColor=#1E3A8A;fontColor=#FFFFFF;strokeColor=#0F172A;" value="TAB C · CƠ CHẾ RESCUE HOLD KHẨN CẤP, RETRY IDEMPOTENCY &amp;amp; QUẢN LÝ VÒNG ĐỜI PHÒNG LIVEKIT">
+          <mxGeometry x="50" y="20" width="1600" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="desc_c" parent="1" vertex="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;align=left;verticalAlign=middle;strokeWidth=1;fontSize=11;fontFamily=Arial;fillColor=#F8FAFC;fontColor=#334155;strokeColor=#CBD5E1;spacingLeft=15;" value="Bao phủ 3 cơ chế an toàn trọng yếu: (1) Emergency Rescue Hold do Chủ sở hữu kích hoạt ngay lập tức đóng băng quyền tải; (2) Cơ chế Retry Biên nhận Idempotent - không tạo biên nhận trùng, cho phép truy xuất biên nhận sau khi đã FINALIZED mà không mở lại quyền tải; (3) Quản lý đóng phòng LiveKit độc lập giữa các người nhận, chỉ xóa phòng khi LiveKit xác nhận.">
+          <mxGeometry x="50" y="78" width="1600" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_c_lane_beneficiary" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#EBF3EE;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#0B291E;" value="1. NGƯỜI THỤ HƯỞNG&amp;lt;br/&amp;gt;(Beneficiary)">
+          <mxGeometry x="50" y="145" width="260" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_c_lane_executor" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FEF7EC;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#8C5817;" value="2. NGƯỜI THỰC THI (EXECUTOR)&amp;lt;br/&amp;gt;(Estate Executor / Verifier)">
+          <mxGeometry x="310" y="145" width="260" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_c_lane_frontend" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#F0F4F8;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#1E3A8A;" value="3. FRONTEND REACT&amp;lt;br/&amp;gt;(Client Web App)">
+          <mxGeometry x="570" y="145" width="280" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_c_lane_backend" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#F5F3FF;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#581C87;" value="4. BACKEND ASP.NET CORE&amp;lt;br/&amp;gt;(WebApi &amp; VideoSessionService)">
+          <mxGeometry x="850" y="145" width="300" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_c_lane_storage" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#FDF2F8;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#831843;" value="5. DATABASE &amp; STORAGE&amp;lt;br/&amp;gt;(In-Memory Prototype / Blob)">
+          <mxGeometry x="1150" y="145" width="260" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_c_lane_livekit" parent="1" vertex="1" style="swimlane;horizontal=1;startSize=40;rounded=0;collapsible=0;whiteSpace=wrap;html=1;swimlaneFillColor=#F0FDFA;strokeColor=#94A3B8;strokeWidth=1.5;fontSize=11;fontStyle=1;align=center;verticalAlign=middle;fontColor=#FFFFFF;fillColor=#134E4A;" value="6. LIVEKIT SERVER&amp;lt;br/&amp;gt;(WebRTC Cloud Server)">
+          <mxGeometry x="1410" y="145" width="240" height="3000" as="geometry" />
+        </mxCell>
+        <mxCell id="c_sec1_title" parent="lane_c_lane_beneficiary" vertex="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#FEF2F2;strokeColor=#EF4444;strokeWidth=2;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=#991B1B;" value="KHỐI 1 · RESCUE HOLD KHẨN CẤP&amp;lt;br/&amp;gt;(Chủ sở hữu báo còn sống / Có tranh chấp)">
+          <mxGeometry x="10" y="60" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c_owner_trigger_hold" parent="lane_c_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#EF4444;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="01 · Owner kích hoạt Emergency Hold&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;POST /api/video-sessions/{id}/emergency-hold&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="130" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="c_be_lock_hold" parent="lane_c_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#991B1B;" value="02 · Khóa toàn bộ tiến trình bàn giao&amp;lt;br/&amp;gt;• Grant.Status = SUSPENDED_RESCUE_HOLD&amp;lt;br/&amp;gt;• Cập nhật _caseActiveHoldMap[caseId]&amp;lt;br/&amp;gt;• &amp;lt;b&amp;gt;Chặn tải file ngay lập tức (423 Locked)&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="130" width="260" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="c_ben_download_blocked" parent="lane_c_lane_beneficiary" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#991B1B;" value="03 · Người nhận bị ngắt kết nối tải&amp;lt;br/&amp;gt;Màn hình hiển thị: 423 Locked&amp;lt;br/&amp;gt;Kho đang bị tạm giữ khẩn cấp">
+          <mxGeometry x="30" y="240" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="c_sec2_title" parent="lane_c_lane_beneficiary" vertex="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;strokeWidth=2;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=#1E40AF;" value="KHỐI 2 · RETRY BIÊN NHẬN IDEMPOTENT&amp;lt;br/&amp;gt;(Mạng chập chờn / Mất kết nối khi finalize)">
+          <mxGeometry x="10" y="340" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c_ben_retry_click" parent="lane_c_lane_beneficiary" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="04 · Beneficiary bấm Retry Finalize&amp;lt;br/&amp;gt;Gửi lại yêu cầu hoàn tất biên nhận&amp;lt;br/&amp;gt;khi kết nối vừa phục hồi">
+          <mxGeometry x="30" y="410" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="c_fe_send_retry" parent="lane_c_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#3B82F6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="05 · Gửi lại POST /finalize&amp;lt;br/&amp;gt;Kèm GuestToken (đã COMPLETED)&amp;lt;br/&amp;gt;hoặc GrantId đã FINALIZED">
+          <mxGeometry x="20" y="410" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="c_be_step0_check" parent="lane_c_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#166534;" value="06 · Bước 0 Idempotency Check&amp;lt;br/&amp;gt;• ValidateGuestSessionAsync(allowCompleted: true)&amp;lt;br/&amp;gt;• Tìm thấy receipt trong _receiptsByGrantAndRecipient&amp;lt;br/&amp;gt;• &amp;lt;b&amp;gt;KHÔNG ném lỗi Grant không Active&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="410" width="260" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="c_be_return_existing" parent="lane_c_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="07 · Trả về Biên Nhận Đã Có&amp;lt;br/&amp;gt;IsNewReceipt = false&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;KHÔNG mở lại quyền tải; Giữ nguyên hash&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="520" width="260" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="c_fe_render_existing" parent="lane_c_lane_frontend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#166534;" value="08 · Hiển thị lại Biên Nhận gốc&amp;lt;br/&amp;gt;Người nhận nhận lại biên nhận&amp;lt;br/&amp;gt;mà không bị gián đoạn">
+          <mxGeometry x="20" y="520" width="240" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="c_sec3_title" parent="lane_c_lane_beneficiary" vertex="1" style="rounded=1;arcSize=6;whiteSpace=wrap;html=1;fillColor=#FDF4FF;strokeColor=#A855F7;strokeWidth=2;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=#6B21A8;" value="KHỐI 3 · QUẢN LÝ ĐÓNG PHÒNG LIVEKIT&amp;lt;br/&amp;gt;(Bảo vệ phòng của người đồng thụ hưởng khác)">
+          <mxGeometry x="10" y="620" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c_ben_b_finalizes" parent="lane_c_lane_beneficiary" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#10B981;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="09 · Người B hoàn tất phiên trước&amp;lt;br/&amp;gt;Ký biên nhận và đóng quyền của B">
+          <mxGeometry x="30" y="690" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="c_be_check_others" parent="lane_c_lane_backend" vertex="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#92400E;" value="Người C còn&amp;lt;br/&amp;gt;hoạt động không?&amp;lt;br/&amp;gt;(areOtherBeneficiariesStillActive)">
+          <mxGeometry x="40" y="680" width="220" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="c_be_keep_room_open" parent="lane_c_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#166534;" value="10a · GIỮ PHÒNG MỞ (RoomStatus: OPEN)&amp;lt;br/&amp;gt;Chỉ thu hồi phiên của B;&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;KHÔNG đóng phòng LiveKit của C!&amp;lt;/b&amp;gt;">
+          <mxGeometry x="20" y="790" width="260" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="c_be_close_room_call" parent="lane_c_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8B5CF6;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#1E293B;" value="10b · Tất cả đã hoàn tất!&amp;lt;br/&amp;gt;&amp;lt;b&amp;gt;await DeleteRoomAsync(roomId)&amp;lt;/b&amp;gt;&amp;lt;br/&amp;gt;Gửi yêu cầu hủy phòng tới LiveKit">
+          <mxGeometry x="20" y="890" width="260" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="c_lk_delete_result" parent="lane_c_lane_livekit" vertex="1" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;strokeWidth=2;fontSize=11;fontFamily=Arial;fontStyle=1;fontColor=#92400E;" value="LiveKit Cloud&amp;lt;br/&amp;gt;xác nhận xóa?">
+          <mxGeometry x="40" y="880" width="160" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="c_be_room_closed" parent="lane_c_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#166534;" value="11b · Trả kết quả: CLOSED&amp;lt;br/&amp;gt;IsRoomClosed = true&amp;lt;br/&amp;gt;RoomStatus = 'CLOSED'">
+          <mxGeometry x="20" y="990" width="260" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="c_be_room_failed" parent="lane_c_lane_backend" vertex="1" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#EF4444;strokeWidth=1.5;fontSize=11;fontFamily=Arial;fontColor=#991B1B;" value="11c · Trả kết quả: CLOSING / FAILED&amp;lt;br/&amp;gt;Ghi log cảnh báo&amp;lt;br/&amp;gt;RoomStatus = 'CLOSING'">
+          <mxGeometry x="20" y="1080" width="260" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="c_end" parent="lane_c_lane_beneficiary" vertex="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#10B981;strokeColor=#047857;strokeWidth=2;fontSize=12;fontFamily=Arial;fontStyle=1;fontColor=#FFFFFF;" value="KẾT THÚC VÒNG ĐỜI&amp;lt;br/&amp;gt;An toàn &amp;amp; Bảo mật">
+          <mxGeometry x="30" y="1080" width="200" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_1" parent="1" edge="1" source="c_owner_trigger_hold" target="c_be_lock_hold" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Emergency Hold">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_2" parent="1" edge="1" source="c_be_lock_hold" target="c_ben_download_blocked" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="423 Locked">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_3" parent="1" edge="1" source="c_ben_retry_click" target="c_fe_send_retry" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Bấm lại">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_4" parent="1" edge="1" source="c_fe_send_retry" target="c_be_step0_check" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="POST /finalize">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_5" parent="1" edge="1" source="c_be_step0_check" target="c_be_return_existing" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Đã có receipt">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_6" parent="1" edge="1" source="c_be_return_existing" target="c_fe_render_existing" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="200 OK">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_7" parent="1" edge="1" source="c_ben_b_finalizes" target="c_be_check_others" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="B xong">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_8" parent="1" edge="1" source="c_be_check_others" target="c_be_keep_room_open" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="C còn Active">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_9" parent="1" edge="1" source="c_be_check_others" target="c_be_close_room_call" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="C cũng xong">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_10" parent="1" edge="1" source="c_be_close_room_call" target="c_lk_delete_result" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="DeleteRoom">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_11" parent="1" edge="1" source="c_lk_delete_result" target="c_be_room_closed" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Thành công">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_12" parent="1" edge="1" source="c_lk_delete_result" target="c_be_room_failed" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="Lỗi/Timeout">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ec_13" parent="1" edge="1" source="c_be_room_closed" target="c_end" style="edgeStyle=orthogonalEdgeStyle;rounded=1;jettySize=auto;orthogonalLoop=1;html=1;strokeColor=#475569;strokeWidth=1.5;fontSize=10;fontFamily=Arial;fontColor=#1E293B;" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

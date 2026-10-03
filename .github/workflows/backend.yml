@@ -18,7 +18,7 @@ jobs:
           MSSQL_SA_PASSWORD: 'LegacyVault_CI_123!'
         ports: ['1433:1433']
         options: >-
-          --health-cmd '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "LegacyVault_CI_123!" -C -Q "SELECT 1"'
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P LegacyVault_CI_123! -C -Q select@@version"
           --health-interval 10s --health-timeout 5s --health-retries 20
     env:
       # Public test-only credentials for a disposable CI database.

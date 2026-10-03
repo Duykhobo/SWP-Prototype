@@ -1,3 +1,4 @@
+import { KeyRound } from 'lucide-react';
 /**
  * @file VideoVerificationTestbench.tsx
  * @description Thành phần kiểm thử Xác minh Danh tính & Cứu hộ qua Video 1–1 (LiveKit Cloud)
@@ -1962,3 +1963,4 @@ export const VideoVerificationTestbench: React.FC = () => {
     </div>
   );
 };
+

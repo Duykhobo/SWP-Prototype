@@ -61,6 +61,7 @@ public class CaseBundleItemRecord
 
 public class CaseBundleItemRecipientRecord
 {
+    public Guid CaseBundleId { get; set; }
     public Guid CaseBundleItemId { get; set; }
     public CaseBundleItemRecord CaseBundleItem { get; set; } = null!;
     public Guid RecipientPersonId { get; set; }
@@ -106,4 +107,12 @@ public class AccessGrantRecord
     // Store the digest, never a bearer download credential in plaintext.
     public string DownloadTokenHash { get; set; } = "";
     public byte[] RowVersion { get; set; } = [];
+}
+
+public class AccessGrantItemRecord
+{
+    public Guid AccessGrantId { get; set; }
+    public Guid CaseBundleItemId { get; set; }
+    public Guid CaseBundleId { get; set; }
+    public Guid RecipientPersonId { get; set; }
 }

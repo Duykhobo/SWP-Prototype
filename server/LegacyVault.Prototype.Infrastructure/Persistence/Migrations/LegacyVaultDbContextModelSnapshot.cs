@@ -73,14 +73,17 @@ public class LegacyVaultDbContextModelSnapshot : ModelSnapshot
             e.Property<Guid>("ContentVersionId").HasColumnType("uniqueidentifier");
             e.Property<Guid>("DesignationVersionId").HasColumnType("uniqueidentifier");
             e.HasKey("Id");
+            e.HasAlternateKey("CaseBundleId", "Id");
             e.HasIndex("CaseBundleId", "AssetId").IsUnique();
             e.ToTable("CaseBundleItems");
         });
         b.Entity("LegacyVault.Prototype.Infrastructure.Persistence.CaseBundleItemRecipientRecord", e =>
         {
+            e.Property<Guid>("CaseBundleId").HasColumnType("uniqueidentifier");
             e.Property<Guid>("CaseBundleItemId").HasColumnType("uniqueidentifier");
             e.Property<Guid>("RecipientPersonId").HasColumnType("uniqueidentifier");
             e.HasKey("CaseBundleItemId", "RecipientPersonId");
+            e.HasAlternateKey("CaseBundleId", "CaseBundleItemId", "RecipientPersonId");
             e.HasIndex("RecipientPersonId");
             e.ToTable("CaseBundleItemRecipients");
         });
@@ -134,11 +137,23 @@ public class LegacyVaultDbContextModelSnapshot : ModelSnapshot
             e.Property<string>("DownloadTokenHash").IsRequired().HasMaxLength(64).IsUnicode(false).HasColumnType("varchar(64)");
             e.Property<byte[]>("RowVersion").IsRequired().IsConcurrencyToken().ValueGeneratedOnAddOrUpdate().HasColumnType("rowversion");
             e.HasKey("Id");
+            e.HasAlternateKey("CaseBundleId", "Id", "RecipientPersonId");
             e.HasIndex("CaseBundleId", "RecipientPersonId", "CommitmentId").IsUnique();
             e.HasIndex("CaseBundleId", "CommitmentId");
             e.HasIndex("RecipientPersonId");
             e.HasIndex("DownloadTokenHash").IsUnique();
             e.ToTable("AccessGrants");
+        });
+        b.Entity("LegacyVault.Prototype.Infrastructure.Persistence.AccessGrantItemRecord", e =>
+        {
+            e.Property<Guid>("AccessGrantId").HasColumnType("uniqueidentifier");
+            e.Property<Guid>("CaseBundleItemId").HasColumnType("uniqueidentifier");
+            e.Property<Guid>("CaseBundleId").HasColumnType("uniqueidentifier");
+            e.Property<Guid>("RecipientPersonId").HasColumnType("uniqueidentifier");
+            e.HasKey("AccessGrantId", "CaseBundleItemId");
+            e.HasIndex("CaseBundleId", "AccessGrantId", "RecipientPersonId");
+            e.HasIndex("CaseBundleId", "CaseBundleItemId", "RecipientPersonId");
+            e.ToTable("AccessGrantItems");
         });
         b.Entity("LegacyVault.Prototype.Infrastructure.Persistence.UserRecord", e =>
         {
@@ -162,7 +177,7 @@ public class LegacyVaultDbContextModelSnapshot : ModelSnapshot
         });
         b.Entity("LegacyVault.Prototype.Infrastructure.Persistence.CaseBundleItemRecipientRecord", e =>
         {
-            e.HasOne("LegacyVault.Prototype.Infrastructure.Persistence.CaseBundleItemRecord", "CaseBundleItem").WithMany().HasForeignKey("CaseBundleItemId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+            e.HasOne("LegacyVault.Prototype.Infrastructure.Persistence.CaseBundleItemRecord", "CaseBundleItem").WithMany().HasForeignKey("CaseBundleId", "CaseBundleItemId").HasPrincipalKey("CaseBundleId", "Id").OnDelete(DeleteBehavior.Restrict).IsRequired();
         });
         b.Entity("LegacyVault.Prototype.Infrastructure.Persistence.CaseBundleItemRecipientRecord", e =>
         {
@@ -207,6 +222,14 @@ public class LegacyVaultDbContextModelSnapshot : ModelSnapshot
         b.Entity("LegacyVault.Prototype.Infrastructure.Persistence.AccessGrantRecord", e =>
         {
             e.HasOne("LegacyVault.Prototype.Infrastructure.Persistence.CommitmentRecord", null).WithMany().HasForeignKey("CaseBundleId", "CommitmentId").HasPrincipalKey("CaseBundleId", "Id").OnDelete(DeleteBehavior.Restrict).IsRequired();
+        });
+        b.Entity("LegacyVault.Prototype.Infrastructure.Persistence.AccessGrantItemRecord", e =>
+        {
+            e.HasOne("LegacyVault.Prototype.Infrastructure.Persistence.AccessGrantRecord", null).WithMany().HasForeignKey("CaseBundleId", "AccessGrantId", "RecipientPersonId").HasPrincipalKey("CaseBundleId", "Id", "RecipientPersonId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+        });
+        b.Entity("LegacyVault.Prototype.Infrastructure.Persistence.AccessGrantItemRecord", e =>
+        {
+            e.HasOne("LegacyVault.Prototype.Infrastructure.Persistence.CaseBundleItemRecipientRecord", null).WithMany().HasForeignKey("CaseBundleId", "CaseBundleItemId", "RecipientPersonId").HasPrincipalKey("CaseBundleId", "CaseBundleItemId", "RecipientPersonId").OnDelete(DeleteBehavior.Restrict).IsRequired();
         });
     }
 }

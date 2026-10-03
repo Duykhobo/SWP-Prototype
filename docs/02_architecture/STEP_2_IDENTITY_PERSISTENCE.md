@@ -8,7 +8,8 @@
 - Google được định danh bằng subject đã xác thực; audience lấy từ cấu hình server. Không tự liên kết tài khoản đã có chỉ vì trùng email.
 - Axios nhận access token từ các response đăng nhập và gửi Bearer token cho API; token chỉ giữ trong RAM của tab, reload cần đăng nhập lại. Không dùng localStorage/sessionStorage.
 - Danh tính caller không lấy từ query/body/header mô phỏng. Role trong giao diện không tạo ra quyền backend. ID tài nguyên đích, như người được mời, vẫn được truyền để backend kiểm tra.
-- Migration khởi tạo `Persons`, `Users`, `Cases`, `CaseBundles`, `CaseBundleItems`, `CaseBundleItemRecipients`, `BeneficiaryHandoverDecisions`, `RecipientAuthorizations`, `Commitments`, `AccessGrants`. Có FK, unique index, rowversion và FK ghép giữ Decision/Grant cùng Bundle với Commitment.
+- Migration khởi tạo `Persons`, `Users`, `Cases`, `CaseBundles`, `CaseBundleItems`, `CaseBundleItemRecipients`, `BeneficiaryHandoverDecisions`, `RecipientAuthorizations`, `Commitments`, `AccessGrants`, `AccessGrantItems`. Có FK, unique index, rowversion và FK ghép giữ Decision/Grant cùng Bundle với Commitment.
+- AccessGrantItems có FK ghép kiểm tra cùng Bundle và đúng RecipientPersonId trong CaseBundleItemRecipients. API phát URL thật theo item chưa triển khai; service mock không sử dụng bảng này.
 - Lời mời khách trong service prototype không tạo vault hoặc thêm người nhận. Kiểm tra snapshot có sẵn, Executor, phiên họp và hạn phiên. Khi đã phát lời mời, service chặn chỉnh danh sách qua `ConfigureVaultAsync`.
 - API mock bàn giao/video/timelock/crypto chỉ mở khi Development **và** `DemoMode:EnableLegacyTestbench=true`. Đăng nhập persona cũng cần Development **và** cờ riêng `EnablePersonaLogin=true`. Mặc định cả hai tắt; query/header không thể bật chúng.
 
@@ -41,7 +42,7 @@ Rowversion/unique index không thay cho transaction khóa Cases khi cấp Grant 
 
 ## Kiểm thử
 
-Workflow `.github/workflows/backend.yml` chạy restore/build và toàn bộ test trên .NET 8 với SQL Server 2022 dùng một database CI tạm thời. Integration tests áp migration, kiểm tra model drift, tài khoản tồn tại sau tạo host mới, token giả, tài khoản bị khóa, persona mặc định tắt và FK chặn Commitment khác Bundle.
+Workflow `.github/workflows/backend.yml` chạy restore/build và toàn bộ test trên .NET 8 với SQL Server 2022 dùng một database CI tạm thời. Integration tests áp migration, kiểm tra model drift, tài khoản tồn tại sau tạo host mới, token giả, tài khoản bị khóa, persona mặc định tắt và FK chặn Commitment khác Bundle, scope item sai Bundle/người nhận và xóa cascade.
 
 Chạy riêng unit tests khi không có SQL Server:
 

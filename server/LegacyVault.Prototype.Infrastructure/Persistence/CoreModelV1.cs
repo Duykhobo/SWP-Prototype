@@ -49,6 +49,7 @@ internal static class CoreModelV1
         b.Entity<CaseBundleItemRecord>(e =>
         {
             e.ToTable("CaseBundleItems"); e.HasKey(x => x.Id);
+            e.HasAlternateKey(x => new { x.CaseBundleId, x.Id });
             e.Property(x => x.Id).ValueGeneratedNever();
             e.HasIndex(x => new { x.CaseBundleId, x.AssetId }).IsUnique();
             e.HasOne(x => x.CaseBundle).WithMany().HasForeignKey(x => x.CaseBundleId).OnDelete(DeleteBehavior.Restrict);
@@ -57,7 +58,9 @@ internal static class CoreModelV1
         {
             e.ToTable("CaseBundleItemRecipients");
             e.HasKey(x => new { x.CaseBundleItemId, x.RecipientPersonId });
-            e.HasOne(x => x.CaseBundleItem).WithMany().HasForeignKey(x => x.CaseBundleItemId).OnDelete(DeleteBehavior.Restrict);
+            e.HasAlternateKey(x => new { x.CaseBundleId, x.CaseBundleItemId, x.RecipientPersonId });
+            e.HasOne(x => x.CaseBundleItem).WithMany().HasForeignKey(x => new { x.CaseBundleId, x.CaseBundleItemId })
+                .HasPrincipalKey(x => new { x.CaseBundleId, x.Id }).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<PersonRecord>().WithMany().HasForeignKey(x => x.RecipientPersonId).OnDelete(DeleteBehavior.Restrict);
         });
         b.Entity<CommitmentRecord>(e =>
@@ -91,6 +94,7 @@ internal static class CoreModelV1
         b.Entity<AccessGrantRecord>(e =>
         {
             e.ToTable("AccessGrants"); e.HasKey(x => x.Id);
+            e.HasAlternateKey(x => new { x.CaseBundleId, x.Id, x.RecipientPersonId });
             e.Property(x => x.Id).ValueGeneratedNever();
             e.Property(x => x.Status).HasMaxLength(30);
             e.Property(x => x.DownloadTokenHash).HasMaxLength(64).IsUnicode(false);
@@ -101,6 +105,15 @@ internal static class CoreModelV1
             e.HasOne<PersonRecord>().WithMany().HasForeignKey(x => x.RecipientPersonId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<CommitmentRecord>().WithMany().HasForeignKey(x => new { x.CaseBundleId, x.CommitmentId })
                 .HasPrincipalKey(x => new { x.CaseBundleId, x.Id }).OnDelete(DeleteBehavior.Restrict);
+        });
+        b.Entity<AccessGrantItemRecord>(e =>
+        {
+            e.ToTable("AccessGrantItems");
+            e.HasKey(x => new { x.AccessGrantId, x.CaseBundleItemId });
+            e.HasOne<AccessGrantRecord>().WithMany().HasForeignKey(x => new { x.CaseBundleId, x.AccessGrantId, x.RecipientPersonId })
+                .HasPrincipalKey(x => new { x.CaseBundleId, x.Id, x.RecipientPersonId }).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<CaseBundleItemRecipientRecord>().WithMany().HasForeignKey(x => new { x.CaseBundleId, x.CaseBundleItemId, x.RecipientPersonId })
+                .HasPrincipalKey(x => new { x.CaseBundleId, x.CaseBundleItemId, x.RecipientPersonId }).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

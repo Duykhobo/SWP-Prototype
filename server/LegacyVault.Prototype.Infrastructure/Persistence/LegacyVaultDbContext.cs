@@ -15,5 +15,7 @@ public class LegacyVaultDbContext(DbContextOptions<LegacyVaultDbContext> options
     public DbSet<CommitmentRecord> Commitments => Set<CommitmentRecord>();
     public DbSet<AccessGrantRecord> AccessGrants => Set<AccessGrantRecord>();
 
+    public DbSet<AccessGrantItemRecord> AccessGrantItems => Set<AccessGrantItemRecord>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder) => CoreModelV1.Configure(modelBuilder);
 }

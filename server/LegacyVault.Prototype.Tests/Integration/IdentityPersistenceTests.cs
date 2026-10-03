@@ -91,4 +91,34 @@ public class IdentityPersistenceTests(SqlServerFixture fixture)
         // A commitment in bundle A cannot issue a grant in bundle B.
         await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
     }
+    [Fact]
+    public async Task GrantItems_EnforceBundleAndSnapshotRecipient_AndPreventCascadeDelete()
+    {
+        await using var db = fixture.CreateContext();
+        var owner = new PersonRecord { Id = Guid.NewGuid(), FullName = "Owner scope" };
+        var other = new PersonRecord { Id = Guid.NewGuid(), FullName = "Other scope" };
+        var legalCase = new CaseRecord { Id = Guid.NewGuid(), OwnerPersonId = owner.Id, ExecutorPersonId = other.Id };
+        var bundle = new CaseBundleRecord { Id = Guid.NewGuid(), Case = legalCase, CaseId = legalCase.Id, Name = "Scope" };
+        var item = new CaseBundleItemRecord { Id = Guid.NewGuid(), CaseBundle = bundle, CaseBundleId = bundle.Id,
+            AssetId = Guid.NewGuid(), ContentVersionId = Guid.NewGuid(), DesignationVersionId = Guid.NewGuid() };
+        var recipient = new CaseBundleItemRecipientRecord { CaseBundleId = bundle.Id, CaseBundleItem = item, CaseBundleItemId = item.Id, RecipientPersonId = owner.Id };
+        var commitment = new CommitmentRecord { Id = Guid.NewGuid(), CaseBundleId = bundle.Id, CommittedAt = DateTimeOffset.UtcNow };
+        var grant = new AccessGrantRecord { Id = Guid.NewGuid(), CaseBundleId = bundle.Id, RecipientPersonId = owner.Id, CommitmentId = commitment.Id,
+            IssuedAt = DateTimeOffset.UtcNow, ExpiresAt = DateTimeOffset.UtcNow.AddHours(72), DownloadTokenHash = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N") };
+        db.AddRange(owner, other, legalCase, bundle, item, recipient, commitment, grant); await db.SaveChangesAsync();
+        db.AccessGrantItems.Add(new AccessGrantItemRecord { AccessGrantId = grant.Id, CaseBundleId = bundle.Id, CaseBundleItemId = item.Id, RecipientPersonId = other.Id });
+        await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+        db.ChangeTracker.Clear();
+        db.AccessGrantItems.Add(new AccessGrantItemRecord { AccessGrantId = grant.Id, CaseBundleId = Guid.NewGuid(), CaseBundleItemId = item.Id, RecipientPersonId = owner.Id });
+        await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+        db.ChangeTracker.Clear();
+        db.AccessGrantItems.Add(new AccessGrantItemRecord { AccessGrantId = grant.Id, CaseBundleId = bundle.Id, CaseBundleItemId = item.Id, RecipientPersonId = owner.Id });
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+        db.Persons.Remove(new PersonRecord { Id = owner.Id });
+        await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+        db.ChangeTracker.Clear();
+        Assert.Equal(1, await db.AccessGrantItems.CountAsync(x => x.AccessGrantId == grant.Id));
+    }
+
 }

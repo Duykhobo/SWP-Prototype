@@ -1,15 +1,19 @@
 namespace LegacyVault.Prototype.Domain;
 
 /// <summary>
-/// 5 gói dịch vụ chuẩn theo SRS v3.11.0 của LegacyVault
+/// Các gói dịch vụ chuẩn theo SRS v3.11.0 và mở rộng gói đa niên hạn (5 năm, 10 năm) của LegacyVault
 /// </summary>
 public enum SubscriptionTier
 {
-    OWNER_FREE,      // 0 đ / Vĩnh viễn (3 tài sản / 20 MiB - Không lập di sản)
-    LEGACY_XS,       // 199.000 đ / 365 ngày (20 tài sản / 200 MiB - Lập di sản, bàn giao)
-    LEGACY_XS_MAX,   // 399.000 đ / 365 ngày (50 tài sản / 500 MiB - Xuất PDF kế hoạch an toàn)
-    RECIPIENT_FREE,  // 0 đ / Vĩnh viễn (2 tài sản / 20 MiB - Lưu tài sản đã nhận)
-    RECIPIENT_PLUS   // 49.000 đ / 30 ngày (10 tài sản / 200 MiB - Lưu tài sản đã nhận)
+    OWNER_FREE,         // 0 đ / Vĩnh viễn (3 tài sản / 20 MiB - Không lập di sản)
+    LEGACY_XS,          // 199.000 đ / 365 ngày (20 tài sản / 200 MiB - Lập di sản, bàn giao)
+    LEGACY_XS_5Y,       // 799.000 đ / 1.825 ngày (25 tài sản / 250 MiB - Tiết kiệm 20%)
+    LEGACY_XS_10Y,      // 1.290.000 đ / 3.650 ngày (30 tài sản / 300 MiB - Tiết kiệm 35%, khóa giá 10 năm)
+    LEGACY_XS_MAX,      // 399.000 đ / 365 ngày (50 tài sản / 500 MiB - Xuất PDF kế hoạch an toàn)
+    LEGACY_XS_MAX_5Y,   // 1.590.000 đ / 1.825 ngày (60 tài sản / 600 MiB - Tiết kiệm 20%)
+    LEGACY_XS_MAX_10Y,  // 2.490.000 đ / 3.650 ngày (100 tài sản / 1.000 MiB - Tiết kiệm 38%)
+    RECIPIENT_FREE,     // 0 đ / Vĩnh viễn (2 tài sản / 20 MiB - Lưu tài sản đã nhận)
+    RECIPIENT_PLUS      // 49.000 đ / 30 ngày (10 tài sản / 200 MiB - Lưu tài sản đã nhận)
 }
 
 public enum PaymentStatus

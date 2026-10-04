@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>/ — graphify tree viewer</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f9f9f9;
+      color: #333;
+    }
+    h1 {
+      margin: 20px 0 0 24px;
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #1e3a56;
+    }
+    .controls {
+      margin: 20px 0 15px 24px;
+    }
+    button {
+      margin-right: 10px;
+      padding: 8px 18px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s ease-in-out;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    button:active {
+      background: #004085;
+    }
+    #tree-container {
+      width: calc(100vw - 48px); /* Adjust for body margin/padding */
+      height: 85vh;
+      overflow: auto;
+      border-radius: 8px;
+      background: #fff;
+      margin-left: 24px;
+      margin-right: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #ddd;
+    }
+    svg {
+      background: #fff;
+      border-radius: 8px;
+      display: block; /* Important for D3 */
+    }
+    .node circle {
+      stroke-width: 2.5px;
+    }
+    .node text { /* Base style for the <text> container */
+      font: 13px 'Segoe UI', sans-serif;
+      paint-order: stroke fill; /* Ensures text is readable over lines */
+      stroke: #fff; /* White halo */
+      stroke-width: 3px; /* Halo thickness */
+      stroke-linejoin: round;
+      stroke-opacity: 0.85; /* Halo opacity */
+    }
+    .link {
+      fill: none;
+      stroke-opacity: 0.7;
+      stroke-width: 2px;
+    }
+  </style>
+</head>
+<body>
+  <h1>/ — Knowledge Graph</h1>
+  <div class="controls">
+    <button onclick="expandAll()">Expand All</button>
+    <button onclick="collapseAll()">Collapse All</button>
+    <button onclick="resetView()">Reset View</button>
+  </div>
+  <div id="tree-container">
+    <svg id="tree-svg" width="6000" height="8000"></svg>
+  </div>
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script>
+    const initialJsonData = {"name":"/","total_count":1195,"children":[{"name":"client","total_count":129,"children":[{"name":"src","total_count":128,"children":[{"name":"App.tsx","total_count":1,"children":[{"name":"App()","total_count":1,"children":[]}]},{"name":"components","total_count":8,"children":[{"name":"modals","total_count":5,"children":[{"name":"NewAssetModal.tsx","total_count":3,"children":[{"name":"AssetItem","total_count":1,"children":[]},{"name":"NewAssetModal()","total_count":1,"children":[]},{"name":"NewAssetModalProps","total_count":1,"children":[]}]},{"name":"SePayPaymentModal.tsx","total_count":2,"children":[{"name":"SePayPaymentModal()","total_count":1,"children":[]},{"name":"SePayPaymentModalProps","total_count":1,"children":[]}]}]},{"name":"navigation","total_count":3,"children":[{"name":"MainNavbar.tsx","total_count":3,"children":[{"name":"MainNavbar()","total_count":1,"children":[]},{"name":"MainNavbarProps","total_count":1,"children":[]},{"name":"MainNavTab","total_count":1,"children":[]}]}]}]},{"name":"features","total_count":48,"children":[{"name":"auth-oidc","total_count":3,"children":[{"name":"GoogleOidcTestbench.tsx","total_count":3,"children":[{"name":"GoogleOidcTestbench()","total_count":1,"children":[]},{"name":"OidcResponse","total_count":1,"children":[]},{"name":"Window","total_count":1,"children":[]}]}]},{"name":"crypto-envelope","total_count":2,"children":[{"name":"CryptoEnvelopeTestbench.tsx","total_count":2,"children":[{"name":"CryptoEnvelopeTestbench()","total_count":1,"children":[]},{"name":"EncryptMetadata","total_count":1,"children":[]}]}]},{"name":"ekyc-verification","total_count":18,"children":[{"name":"ClientMediaPipeFacePoc.tsx","total_count":1,"children":[{"name":"ClientMediaPipeFacePoc()","total_count":1,"children":[]}]},{"name":"ClientTesseractOcrPoc.tsx","total_count":5,"children":[{"name":"ClientTesseractOcrPoc()","total_count":1,"children":[]},{"name":"CropBox","total_count":1,"children":[]},{"name":"ExtractedFields","total_count":1,"children":[]},{"name":"ROI_PRESETS","total_count":1,"children":[]},{"name":"RoiPreset","total_count":1,"children":[]}]},{"name":"EkycTestbench.tsx","total_count":4,"children":[{"name":"EkycTestbench()","total_count":1,"children":[]},{"name":"EkycTestbenchProps","total_count":1,"children":[]},{"name":"LivenessData","total_count":1,"children":[]},{"name":"OcrData","total_count":1,"children":[]}]},{"name":"ManualIdentityVerificationFlow.tsx","total_count":3,"children":[{"name":"AuditRecord","total_count":1,"children":[]},{"name":"ManualIdentityVerificationFlow()","total_count":1,"children":[]},{"name":"VerificationStatus","total_count":1,"children":[]}]},{"name":"TesseractBenchmarkSuite.tsx","total_count":5,"children":[{"name":"BENCHMARK_TEST_CASES","total_count":1,"children":[]},{"name":"BenchmarkResultItem","total_count":1,"children":[]},{"name":"BenchmarkTestCase","total_count":1,"children":[]},{"name":"computeSimilarity()","total_count":1,"children":[]},{"name":"TesseractBenchmarkSuite()","total_count":1,"children":[]}]}]},{"name":"fpt-marketplace","total_count":7,"children":[{"name":"FptMarketplaceTestbench.tsx","total_count":7,"children":[{"name":"CLAUSE_PRESETS","total_count":1,"children":[]},{"name":"ClauseReviewResponse","total_count":1,"children":[]},{"name":"FptMarketplaceTestbench()","total_count":1,"children":[]},{"name":"FptModelDto","total_count":1,"children":[]},{"name":"FptModelListResponse","total_count":1,"children":[]},{"name":"SyntheticClausePreset","total_count":1,"children":[]},{"name":"VisionExtractResponse","total_count":1,"children":[]}]}]},{"name":"notification-mailkit","total_count":2,"children":[{"name":"MailKitTestbench.tsx","total_count":2,"children":[{"name":"DispatchedEmail","total_count":1,"children":[]},{"name":"MailKitTestbench()","total_count":1,"children":[]}]}]},{"name":"payment-sepay","total_count":2,"children":[{"name":"SePayTestbench.tsx","total_count":2,"children":[{"name":"PaymentOrder","total_count":1,"children":[]},{"name":"SePayTestbench()","total_count":1,"children":[]}]}]},{"name":"rescue-timelock","total_count":2,"children":[{"name":"RescueTimeLockTestbench.tsx","total_count":2,"children":[{"name":"RescueTimeLockTestbench()","total_count":1,"children":[]},{"name":"TimeLockStatus","total_count":1,"children":[]}]}]},{"name":"shamir-anti-rogue","total_count":1,"children":[{"name":"ShamirTestbench.tsx","total_count":1,"children":[{"name":"ShamirTestbench()","total_count":1,"children":[]}]}]},{"name":"storage-r2","total_count":1,"children":[{"name":"R2StorageTestbench.tsx","total_count":1,"children":[{"name":"R2StorageTestbench()","total_count":1,"children":[]}]}]},{"name":"video-verification","total_count":3,"children":[{"name":"VideoVerificationTestbench.tsx","total_count":3,"children":[{"name":"ExtendedUserRole","total_count":1,"children":[]},{"name":"JoinTokenData","total_count":1,"children":[]},{"name":"VideoVerificationTestbench()","total_count":1,"children":[]}]}]},{"name":"workflow-visualizer","total_count":7,"children":[{"name":"InteractiveWorkflowVisualizer.tsx","total_count":7,"children":[{"name":"DEMO_PERSONAS","total_count":1,"children":[]},{"name":"FLOW_01_STEPS","total_count":1,"children":[]},{"name":"FLOW_02_STEPS","total_count":1,"children":[]},{"name":"FLOW_03_STEPS","total_count":1,"children":[]},{"name":"InteractiveWorkflowVisualizer()","total_count":1,"children":[]},{"name":"InteractiveWorkflowVisualizerProps","total_count":1,"children":[]},{"name":"WorkflowStep","total_count":1,"children":[]}]}]}]},{"name":"pages","total_count":13,"children":[{"name":"ComparisonView.tsx","total_count":2,"children":[{"name":"ComparisonView()","total_count":1,"children":[]},{"name":"ComparisonViewProps","total_count":1,"children":[]}]},{"name":"DashboardPage.tsx","total_count":2,"children":[{"name":"DashboardPage()","total_count":1,"children":[]},{"name":"DashboardPageProps","total_count":1,"children":[]}]},{"name":"PricingPage.tsx","total_count":2,"children":[{"name":"PricingPage()","total_count":1,"children":[]},{"name":"PricingPageProps","total_count":1,"children":[]}]},{"name":"promax","total_count":2,"children":[{"name":"ProMaxDashboardPage.tsx","total_count":2,"children":[{"name":"ProMaxDashboardPage()","total_count":1,"children":[]},{"name":"ProMaxDashboardPageProps","total_count":1,"children":[]}]}]},{"name":"RecipientPage.tsx","total_count":1,"children":[{"name":"RecipientPage()","total_count":1,"children":[]}]},{"name":"TestbenchPage.tsx","total_count":2,"children":[{"name":"TestbenchPage()","total_count":1,"children":[]},{"name":"TestbenchPageProps","total_count":1,"children":[]}]},{"name":"VaultsPage.tsx","total_count":2,"children":[{"name":"VaultsPage()","total_count":1,"children":[]},{"name":"VaultsPageProps","total_count":1,"children":[]}]}]},{"name":"shared","total_count":48,"children":[{"name":"api","total_count":4,"children":[{"name":"axiosClient.ts","total_count":2,"children":[{"name":"axiosClient","total_count":1,"children":[]},{"name":"RFC-7807","total_count":1,"children":[]}]},{"name":"baseService.ts","total_count":2,"children":[{"name":"ApiResponse","total_count":1,"children":[]},{"name":"createBaseService()","total_count":1,"children":[]}]}]},{"name":"config","total_count":2,"children":[{"name":"env.ts","total_count":2,"children":[{"name":"ENV","total_count":1,"children":[]},{"name":"EnvironmentConfig","total_count":1,"children":[]}]}]},{"name":"constants","total_count":6,"children":[{"name":"httpStatus.ts","total_count":2,"children":[{"name":"HTTP_STATUS","total_count":1,"children":[]},{"name":"HttpStatusCode","total_count":1,"children":[]}]},{"name":"index.ts","total_count":3,"children":[{"name":"CASE_STATUS","total_count":1,"children":[]},{"name":"HTTP_STATUS","total_count":1,"children":[]},{"name":"SUBSCRIPTION_TIERS","total_count":1,"children":[]}]},{"name":"messages.ts","total_count":1,"children":[{"name":"APP_MESSAGES","total_count":1,"children":[]}]}]},{"name":"crypto","total_count":19,"children":[{"name":"shamir.ts","total_count":13,"children":[{"name":"combineShares()","total_count":1,"children":[]},{"name":"deriveBytesFromPassphrase()","total_count":1,"children":[]},{"name":"EXP","total_count":1,"children":[]},{"name":"getLagrangeTrace()","total_count":1,"children":[]},{"name":"gfAdd()","total_count":1,"children":[]},{"name":"gfDiv()","total_count":1,"children":[]},{"name":"gfMul()","total_count":1,"children":[]},{"name":"LagrangeTrace","total_count":1,"children":[]},{"name":"LagrangeTraceRow","total_count":1,"children":[]},{"name":"LOG","total_count":1,"children":[]},{"name":"Share","total_count":1,"children":[]},{"name":"splitSecret()","total_count":1,"children":[]},{"name":"splitSecretWithUserPassphrase()","total_count":1,"children":[]}]},{"name":"webCrypto.ts","total_count":6,"children":[{"name":"ClientCryptoResult","total_count":1,"children":[]},{"name":"decryptClientSide()","total_count":1,"children":[]},{"name":"encryptClientSide()","total_count":1,"children":[]},{"name":"exportKeyToHex()","total_count":1,"children":[]},{"name":"generateClientAesKey()","total_count":1,"children":[]},{"name":"importKeyFromHex()","total_count":1,"children":[]}]}]},{"name":"types","total_count":2,"children":[{"name":"pagination.ts","total_count":2,"children":[{"name":"PaginatedList","total_count":1,"children":[]},{"name":"PaginationParams","total_count":1,"children":[]}]}]},{"name":"ui","total_count":15,"children":[{"name":"ErrorBoundary.tsx","total_count":6,"children":[{"name":".componentDidCatch()","total_count":1,"children":[]},{"name":".getDerivedStateFromError()","total_count":1,"children":[]},{"name":".render()","total_count":1,"children":[]},{"name":"ErrorBoundary","total_count":1,"children":[]},{"name":"Props","total_count":1,"children":[]},{"name":"State","total_count":1,"children":[]}]},{"name":"HeritageBadge.tsx","total_count":2,"children":[{"name":"HeritageBadge()","total_count":1,"children":[]},{"name":"HeritageBadgeProps","total_count":1,"children":[]}]},{"name":"HeritageButton.tsx","total_count":2,"children":[{"name":"HeritageButton()","total_count":1,"children":[]},{"name":"HeritageButtonProps","total_count":1,"children":[]}]},{"name":"HeritageCard.tsx","total_count":2,"children":[{"name":"HeritageCard()","total_count":1,"children":[]},{"name":"HeritageCardProps","total_count":1,"children":[]}]},{"name":"LivePipelineProgress.tsx","total_count":3,"children":[{"name":"LivePipelineProgress()","total_count":1,"children":[]},{"name":"LivePipelineProgressProps","total_count":1,"children":[]},{"name":"PipelineStage","total_count":1,"children":[]}]}]}]},{"name":"widgets","total_count":9,"children":[{"name":"AppHeader.tsx","total_count":2,"children":[{"name":"AppHeader()","total_count":1,"children":[]},{"name":"AppHeaderProps","total_count":1,"children":[]}]},{"name":"ComplianceWarningBox.tsx","total_count":2,"children":[{"name":"ComplianceWarningBox()","total_count":1,"children":[]},{"name":"ComplianceWarningBoxProps","total_count":1,"children":[]}]},{"name":"LegalDropzone.tsx","total_count":2,"children":[{"name":"LegalDropzone()","total_count":1,"children":[]},{"name":"LegalDropzoneProps","total_count":1,"children":[]}]},{"name":"LiveDmsHeartbeatCard.tsx","total_count":2,"children":[{"name":"LiveDmsHeartbeatCard()","total_count":1,"children":[]},{"name":"LiveDmsHeartbeatCardProps","total_count":1,"children":[]}]},{"name":"TechOverviewBar.tsx","total_count":1,"children":[{"name":"TechOverviewBar()","total_count":1,"children":[]}]}]},{"name":"main.tsx","total_count":1,"children":[]}]},{"name":"vite.config.ts","total_count":1,"children":[{"name":"manualChunks()","total_count":1,"children":[]}]}]},{"name":"server","total_count":1066,"children":[{"name":"LegacyVault.Prototype.Application","total_count":133,"children":[{"name":"Common","total_count":14,"children":[{"name":"EmailUtils.cs","total_count":14,"children":[{"name":".CheckEnvironmentVariables()","total_count":1,"children":[]},{"name":".IsValidEmail()","total_count":1,"children":[]},{"name":".MaskEmail()","total_count":1,"children":[]},{"name":"EmailUtils","total_count":1,"children":[]},{"name":"GuidanceMessage","total_count":1,"children":[]},{"name":"HasPasswordConfigured","total_count":1,"children":[]},{"name":"Host","total_count":1,"children":[]},{"name":"IsReadyForLiveSmtp","total_count":1,"children":[]},{"name":"LegacyVault.Prototype.Application.Common","total_count":1,"children":[]},{"name":"Port","total_count":1,"children":[]},{"name":"SenderEmail","total_count":1,"children":[]},{"name":"SenderName","total_count":1,"children":[]},{"name":"SmtpEnvironmentStatus","total_count":1,"children":[]},{"name":"UsernameMasked","total_count":1,"children":[]}]}]},{"name":"Interfaces","total_count":109,"children":[{"name":"IEkycService.cs","total_count":4,"children":[{"name":".ExtractIdCardOcrAsync()","total_count":1,"children":[]},{"name":".VerifyFaceMatchAsync()","total_count":1,"children":[]},{"name":"IEkycService","total_count":1,"children":[]},{"name":"LegacyVault.Prototype.Application.Interfaces","total_count":1,"children":[]}]},{"name":"IEnvelopeEncryptionService.cs","total_count":13,"children":[{"name":".ComputeSha256Async()","total_count":1,"children":[]},{"name":".DecryptBytesAsync()","total_count":1,"children":[]},{"name":".EncryptStreamAsync()","total_count":1,"children":[]},{"name":".UnwrapKey()","total_count":1,"children":[]},{"name":".WrapKey()","total_count":1,"children":[]},{"name":"ChecksumSha256","total_count":1,"children":[]},{"name":"Ciphertext","total_count":1,"children":[]},{"name":"Dek","total_count":1,"children":[]},{"name":"EncryptionResult","total_count":1,"children":[]},{"name":"IEnvelopeEncryptionService","total_count":1,"children":[]},{"name":"Nonce","total_count":1,"children":[]},{"name":"Tag","total_count":1,"children":[]},{"name":"WrappedKeyBase64","total_count":1,"children":[]}]},{"name":"IEstatePlanRulesService.cs","total_count":9,"children":[{"name":".CalculateDeletionEligibility()","total_count":1,"children":[]},{"name":".CalculateReconsiderationExpiry()","total_count":1,"children":[]},{"name":".ConsolidateVaults()","total_count":1,"children":[]},{"name":".EvaluateCoOwnedConsensus()","total_count":1,"children":[]},{"name":".ProcessTransferChoice()","total_count":1,"children":[]},{"name":".ValidateDeathAttestation()","total_count":1,"children":[]},{"name":".ValidatePlanActivation()","total_count":1,"children":[]},{"name":".ValidateThreePersonRule()","total_count":1,"children":[]},{"name":"IEstatePlanRulesService","total_count":1,"children":[]}]},{"name":"IFptMarketplaceService.cs","total_count":4,"children":[{"name":".ExtractSyntheticDocumentAsync()","total_count":1,"children":[]},{"name":".GetAvailableModelsAsync()","total_count":1,"children":[]},{"name":".ReviewWillClauseAsync()","total_count":1,"children":[]},{"name":"IFptMarketplaceService","total_count":1,"children":[]}]},{"name":"IJwtTokenService.cs","total_count":2,"children":[{"name":".GenerateToken()","total_count":1,"children":[]},{"name":"IJwtTokenService","total_count":1,"children":[]}]},{"name":"ILiveKitVideoService.cs","total_count":4,"children":[{"name":".DeleteRoomAsync()","total_count":1,"children":[]},{"name":".GenerateJoinToken()","total_count":1,"children":[]},{"name":".VerifyWebhookSignature()","total_count":1,"children":[]},{"name":"ILiveKitVideoService","total_count":1,"children":[]}]},{"name":"IMailKitService.cs","total_count":20,"children":[{"name":".SendAliveClaimNotificationAsync()","total_count":1,"children":[]},{"name":".SendCustomEmailAsync()","total_count":1,"children":[]},{"name":".SendDeathClaimAlertAsync()","total_count":1,"children":[]},{"name":".SendOtpVerificationAsync()","total_count":1,"children":[]},{"name":"ErrorDetails","total_count":1,"children":[]},{"name":"Host","total_count":1,"children":[]},{"name":"IMailKitService","total_count":1,"children":[]},{"name":"IsRealSmtp","total_count":1,"children":[]},{"name":"LatencyMs","total_count":1,"children":[]},{"name":"MailSendResult","total_count":1,"children":[]},{"name":"Message","total_count":1,"children":[]},{"name":"MessageId","total_count":1,"children":[]},{"name":"Password","total_count":1,"children":[]},{"name":"Port","total_count":1,"children":[]},{"name":"SenderEmail","total_count":1,"children":[]},{"name":"SenderName","total_count":1,"children":[]},{"name":"SmtpConfigOverride","total_count":1,"children":[]},{"name":"SmtpServerResponse","total_count":1,"children":[]},{"name":"Success","total_count":1,"children":[]},{"name":"Username","total_count":1,"children":[]}]},{"name":"IOidcValidationService.cs","total_count":11,"children":[{"name":".ValidateGoogleIdTokenAsync()","total_count":1,"children":[]},{"name":"Audience","total_count":1,"children":[]},{"name":"Email","total_count":1,"children":[]},{"name":"ExpiryTime","total_count":1,"children":[]},{"name":"IOidcValidationService","total_count":1,"children":[]},{"name":"Issuer","total_count":1,"children":[]},{"name":"IsValid","total_count":1,"children":[]},{"name":"Name","total_count":1,"children":[]},{"name":"OidcUserInfo","total_count":1,"children":[]},{"name":"Picture","total_count":1,"children":[]},{"name":"Subject","total_count":1,"children":[]}]},{"name":"IPaymentService.cs","total_count":7,"children":[{"name":".CreateOrderAsync()","total_count":1,"children":[]},{"name":".GetAllOrders()","total_count":1,"children":[]},{"name":".GetOrderByCodeAsync()","total_count":1,"children":[]},{"name":".GetOrderByIdAsync()","total_count":1,"children":[]},{"name":".ProcessWebhookAsync()","total_count":1,"children":[]},{"name":".SimulatePaymentSuccessAsync()","total_count":1,"children":[]},{"name":"IPaymentService","total_count":1,"children":[]}]},{"name":"IR2StorageService.cs","total_count":8,"children":[{"name":".DeleteAsync()","total_count":1,"children":[]},{"name":".DownloadStreamAsync()","total_count":1,"children":[]},{"name":".GeneratePresignedDownloadUrl()","total_count":1,"children":[]},{"name":".GeneratePresignedUploadUrl()","total_count":1,"children":[]},{"name":".UploadAsync()","total_count":1,"children":[]},{"name":"BucketName","total_count":1,"children":[]},{"name":"IR2StorageService","total_count":1,"children":[]},{"name":"IsConfigured","total_count":1,"children":[]}]},{"name":"ITimeLockRescueService.cs","total_count":7,"children":[{"name":".AdjudicateRescue()","total_count":1,"children":[]},{"name":".ApproveCaseForDelivery()","total_count":1,"children":[]},{"name":".GetStatus()","total_count":1,"children":[]},{"name":".InitializeCaseTimeLock()","total_count":1,"children":[]},{"name":".SubmitAliveClaim()","total_count":1,"children":[]},{"name":".ToggleDemoMode()","total_count":1,"children":[]},{"name":"ITimeLockRescueService","total_count":1,"children":[]}]},{"name":"IVideoSessionService.cs","total_count":20,"children":[{"name":".AcceptHandoverAsync()","total_count":1,"children":[]},{"name":".AdjudicateRescueHoldAsync()","total_count":1,"children":[]},{"name":".AuthorizeRecipientByExecutorAsync()","total_count":1,"children":[]},{"name":".ConfigureVaultAsync()","total_count":1,"children":[]},{"name":".ConfirmScheduleAsync()","total_count":1,"children":[]},{"name":".EndSessionAsync()","total_count":1,"children":[]},{"name":".FinalizeHandoverSessionAsync()","total_count":1,"children":[]},{"name":".GetDecryptionKeyMaterialAsync()","total_count":1,"children":[]},{"name":".GetHandoverEligibilityAsync()","total_count":1,"children":[]},{"name":".GetJoinTokenAsync()","total_count":1,"children":[]},{"name":".GetOrCreateGuestSessionAsync()","total_count":1,"children":[]},{"name":".GetSessionDetailAsync()","total_count":1,"children":[]},{"name":".HandleWebhookEventAsync()","total_count":1,"children":[]},{"name":".RecordAssetDownloadAsync()","total_count":1,"children":[]},{"name":".RequestSessionAsync()","total_count":1,"children":[]},{"name":".SubmitVerdictAsync()","total_count":1,"children":[]},{"name":".TriggerRescueHoldAsync()","total_count":1,"children":[]},{"name":".ValidateGuestSessionAsync()","total_count":1,"children":[]},{"name":".VerifyAndServeEncryptedAssetAsync()","total_count":1,"children":[]},{"name":"IVideoSessionService","total_count":1,"children":[]}]}]},{"name":"Services","total_count":10,"children":[{"name":"EstatePlanRulesService.cs","total_count":10,"children":[{"name":".CalculateDeletionEligibility()","total_count":1,"children":[]},{"name":".CalculateReconsiderationExpiry()","total_count":1,"children":[]},{"name":".ConsolidateVaults()","total_count":1,"children":[]},{"name":".EvaluateCoOwnedConsensus()","total_count":1,"children":[]},{"name":".ProcessTransferChoice()","total_count":1,"children":[]},{"name":".ValidateDeathAttestation()","total_count":1,"children":[]},{"name":".ValidatePlanActivation()","total_count":1,"children":[]},{"name":".ValidateThreePersonRule()","total_count":1,"children":[]},{"name":"EstatePlanRulesService","total_count":1,"children":[]},{"name":"LegacyVault.Prototype.Application.Services","total_count":1,"children":[]}]}]}]},{"name":"LegacyVault.Prototype.Domain","total_count":633,"children":[{"name":"Entities","total_count":548,"children":[{"name":"Entities.cs","total_count":548,"children":[{"name":"(+348 more)","total_count":348,"children":[]},{"name":"AcceptedAt","total_count":1,"children":[]},{"name":"AccessGrant","total_count":1,"children":[]},{"name":"AccessGrant","total_count":1,"children":[]},{"name":"AccessGrant","total_count":1,"children":[]},{"name":"AccessGrant","total_count":1,"children":[]},{"name":"AccessGrantAsset","total_count":1,"children":[]},{"name":"AccessGrantAssets","total_count":1,"children":[]},{"name":"AccessGrantAssets","total_count":1,"children":[]},{"name":"AccessGrantId","total_count":1,"children":[]},{"name":"AccessGrantId","total_count":1,"children":[]},{"name":"AccessGrantId","total_count":1,"children":[]},{"name":"AccessGrants","total_count":1,"children":[]},{"name":"AccessGrants","total_count":1,"children":[]},{"name":"AccessGrants","total_count":1,"children":[]},{"name":"Action","total_count":1,"children":[]},{"name":"ActivatedAt","total_count":1,"children":[]},{"name":"ActualCheckInAt","total_count":1,"children":[]},{"name":"AddedAt","total_count":1,"children":[]},{"name":"AddedAt","total_count":1,"children":[]},{"name":"AllowEstatePlan","total_count":1,"children":[]},{"name":"AllowPdfExport","total_count":1,"children":[]},{"name":"Amount","total_count":1,"children":[]},{"name":"AmountIn","total_count":1,"children":[]},{"name":"AmountPaid","total_count":1,"children":[]},{"name":"ApprovedByExecutorPerson","total_count":1,"children":[]},{"name":"ApprovedByExecutorPersonId","total_count":1,"children":[]},{"name":"Asset","total_count":1,"children":[]},{"name":"Asset","total_count":1,"children":[]},{"name":"Asset","total_count":1,"children":[]},{"name":"Asset","total_count":1,"children":[]},{"name":"Asset","total_count":1,"children":[]},{"name":"Asset","total_count":1,"children":[]},{"name":"Asset","total_count":1,"children":[]},{"name":"Asset","total_count":1,"children":[]},{"name":"AssetDesignations","total_count":1,"children":[]},{"name":"AssetDesignationVersion","total_count":1,"children":[]},{"name":"AssetDesignationVersion","total_count":1,"children":[]},{"name":"AssetDesignationVersionId","total_count":1,"children":[]},{"name":"AssetDesignationVersions","total_count":1,"children":[]},{"name":"AssetDesignationVersions","total_count":1,"children":[]},{"name":"AssetId","total_count":1,"children":[]},{"name":"AssetId","total_count":1,"children":[]},{"name":"AssetId","total_count":1,"children":[]},{"name":"AssetId","total_count":1,"children":[]},{"name":"AssetId","total_count":1,"children":[]},{"name":"AssetId","total_count":1,"children":[]},{"name":"AssetId","total_count":1,"children":[]},{"name":"Assets","total_count":1,"children":[]},{"name":"AssetType","total_count":1,"children":[]},{"name":"AssignedAt","total_count":1,"children":[]},{"name":"AssignedAt","total_count":1,"children":[]},{"name":"AssignedAt","total_count":1,"children":[]},{"name":"AssignedByUserId","total_count":1,"children":[]},{"name":"AssignedPerson","total_count":1,"children":[]},{"name":"AssignedPersonId","total_count":1,"children":[]},{"name":"AuditLog","total_count":1,"children":[]},{"name":"AuditLogs","total_count":1,"children":[]},{"name":"AuditLogs","total_count":1,"children":[]},{"name":"AuditLogs","total_count":1,"children":[]},{"name":"AuthorizedAt","total_count":1,"children":[]},{"name":"AuthTagHex","total_count":1,"children":[]},{"name":"BankTransactionId","total_count":1,"children":[]},{"name":"BeneficiaryDecisions","total_count":1,"children":[]},{"name":"BeneficiaryHandoverDecision","total_count":1,"children":[]},{"name":"BeneficiaryPerson","total_count":1,"children":[]},{"name":"BeneficiaryPerson","total_count":1,"children":[]},{"name":"BeneficiaryPersonId","total_count":1,"children":[]},{"name":"BeneficiaryPersonId","total_count":1,"children":[]},{"name":"Bundle","total_count":1,"children":[]},{"name":"Bundle","total_count":1,"children":[]},{"name":"Bundle","total_count":1,"children":[]},{"name":"BundleAsset","total_count":1,"children":[]},{"name":"BundleAssets","total_count":1,"children":[]},{"name":"BundleAssets","total_count":1,"children":[]},{"name":"BundleId","total_count":1,"children":[]},{"name":"BundleId","total_count":1,"children":[]},{"name":"Bundles","total_count":1,"children":[]},{"name":"BytesServed","total_count":1,"children":[]},{"name":"Case","total_count":1,"children":[]},{"name":"Case","total_count":1,"children":[]},{"name":"Case","total_count":1,"children":[]},{"name":"Case","total_count":1,"children":[]},{"name":"Case","total_count":1,"children":[]},{"name":"Case","total_count":1,"children":[]},{"name":"Case","total_count":1,"children":[]},{"name":"Case","total_count":1,"children":[]},{"name":"CaseAssignment","total_count":1,"children":[]},{"name":"CaseAssignment","total_count":1,"children":[]},{"name":"CaseAssignmentId","total_count":1,"children":[]},{"name":"CaseAssignments","total_count":1,"children":[]},{"name":"CaseAssignments","total_count":1,"children":[]},{"name":"CaseBundle","total_count":1,"children":[]},{"name":"CaseBundle","total_count":1,"children":[]},{"name":"CaseBundle","total_count":1,"children":[]},{"name":"CaseBundle","total_count":1,"children":[]},{"name":"CaseBundle","total_count":1,"children":[]},{"name":"CaseBundle","total_count":1,"children":[]},{"name":"CaseBundle","total_count":1,"children":[]},{"name":"CaseBundle","total_count":1,"children":[]},{"name":"CaseBundle","total_count":1,"children":[]},{"name":"CaseBundleId","total_count":1,"children":[]},{"name":"CaseBundleId","total_count":1,"children":[]},{"name":"CaseBundleId","total_count":1,"children":[]},{"name":"CaseBundleId","total_count":1,"children":[]},{"name":"CaseBundleId","total_count":1,"children":[]},{"name":"CaseBundleId","total_count":1,"children":[]},{"name":"CaseBundleId","total_count":1,"children":[]},{"name":"CaseBundleId","total_count":1,"children":[]},{"name":"CaseBundleId","total_count":1,"children":[]},{"name":"CaseBundleItem","total_count":1,"children":[]},{"name":"CaseBundleItems","total_count":1,"children":[]},{"name":"CaseBundleItems","total_count":1,"children":[]},{"name":"CaseBundles","total_count":1,"children":[]},{"name":"CaseBundles","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"Cases","total_count":1,"children":[]},{"name":"Category","total_count":1,"children":[]},{"name":"Channel","total_count":1,"children":[]},{"name":"ChecksumSha256","total_count":1,"children":[]},{"name":"ChecksumSha256","total_count":1,"children":[]},{"name":"CiphertextHash","total_count":1,"children":[]},{"name":"CiphertextStorageKey","total_count":1,"children":[]},{"name":"CiphertextStorageKey","total_count":1,"children":[]},{"name":"ClientIp","total_count":1,"children":[]},{"name":"ClientIpAddress","total_count":1,"children":[]},{"name":"ClientIpAddress","total_count":1,"children":[]},{"name":"Commitment","total_count":1,"children":[]},{"name":"Commitment","total_count":1,"children":[]},{"name":"Commitment","total_count":1,"children":[]},{"name":"CommitmentId","total_count":1,"children":[]},{"name":"CommitmentId","total_count":1,"children":[]},{"name":"Commitments","total_count":1,"children":[]},{"name":"CommittedAt","total_count":1,"children":[]},{"name":"ConfirmationStatus","total_count":1,"children":[]},{"name":"ConfirmedAssetIdsJson","total_count":1,"children":[]},{"name":"ConsensusThresholdPercent","total_count":1,"children":[]},{"name":"ContentVersion","total_count":1,"children":[]},{"name":"ContentVersion","total_count":1,"children":[]},{"name":"ContentVersionId","total_count":1,"children":[]},{"name":"ContentVersionId","total_count":1,"children":[]},{"name":"ContentVersionId","total_count":1,"children":[]},{"name":"ContentVersions","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"Cycles","total_count":1,"children":[]},{"name":"DateOfBirth","total_count":1,"children":[]},{"name":"DeathCertificate","total_count":1,"children":[]},{"name":"DeathCertificates","total_count":1,"children":[]},{"name":"DecidedAt","total_count":1,"children":[]},{"name":"DecidedAt","total_count":1,"children":[]},{"name":"DecidedAt","total_count":1,"children":[]},{"name":"Decisions","total_count":1,"children":[]},{"name":"Decisions","total_count":1,"children":[]},{"name":"DecisionStatus","total_count":1,"children":[]},{"name":"DecisionStatus","total_count":1,"children":[]},{"name":"DeliveryStatus","total_count":1,"children":[]},{"name":"DmsCycle","total_count":1,"children":[]},{"name":"DmsCycle","total_count":1,"children":[]},{"name":"DmsCycle","total_count":1,"children":[]},{"name":"DmsCycleId","total_count":1,"children":[]},{"name":"DmsCycleId","total_count":1,"children":[]},{"name":"DmsNotice","total_count":1,"children":[]},{"name":"DmsNotices","total_count":1,"children":[]},{"name":"DmsPolicy","total_count":1,"children":[]},{"name":"DmsPolicy","total_count":1,"children":[]},{"name":"DmsPolicy","total_count":1,"children":[]},{"name":"DmsPolicyId","total_count":1,"children":[]},{"name":"DownloadEvent","total_count":1,"children":[]},{"name":"DownloadEvents","total_count":1,"children":[]},{"name":"DownloadToken","total_count":1,"children":[]},{"name":"DurationDays","total_count":1,"children":[]},{"name":"Email","total_count":1,"children":[]},{"name":"Email","total_count":1,"children":[]},{"name":"EndedAt","total_count":1,"children":[]},{"name":"EstatePlan","total_count":1,"children":[]},{"name":"EstatePlan","total_count":1,"children":[]},{"name":"EstatePlanId","total_count":1,"children":[]}]}]},{"name":"Enums.cs","total_count":84,"children":[{"name":"ACCEPTED","total_count":1,"children":[]},{"name":"AccessGrantStatus","total_count":1,"children":[]},{"name":"ACTIVE","total_count":1,"children":[]},{"name":"ACTIVE","total_count":1,"children":[]},{"name":"ADDITIONAL_DOCUMENTS_REQUIRED","total_count":1,"children":[]},{"name":"ADMIN","total_count":1,"children":[]},{"name":"APPROVED_ALIVE","total_count":1,"children":[]},{"name":"APPROVED_FOR_DELIVERY","total_count":1,"children":[]},{"name":"BENEFICIARY","total_count":1,"children":[]},{"name":"BeneficiaryDecisionType","total_count":1,"children":[]},{"name":"CANCELLED","total_count":1,"children":[]},{"name":"CANCELLED","total_count":1,"children":[]},{"name":"CANCELLED_ALIVE","total_count":1,"children":[]},{"name":"CANCELLED_WITHOUT_DELIVERY","total_count":1,"children":[]},{"name":"CaseStatus","total_count":1,"children":[]},{"name":"CHECKIN_PENDING","total_count":1,"children":[]},{"name":"CHECKIN_SUSPENDED","total_count":1,"children":[]},{"name":"CO_BENEFICIARY","total_count":1,"children":[]},{"name":"COMPLETED","total_count":1,"children":[]},{"name":"DRAFT","total_count":1,"children":[]},{"name":"EXECUTOR","total_count":1,"children":[]},{"name":"EXPIRED","total_count":1,"children":[]},{"name":"EXPIRED","total_count":1,"children":[]},{"name":"EXPIRED","total_count":1,"children":[]},{"name":"FAIL","total_count":1,"children":[]},{"name":"FAILED","total_count":1,"children":[]},{"name":"FINALIZED","total_count":1,"children":[]},{"name":"FROZEN_INACTIVITY","total_count":1,"children":[]},{"name":"FROZEN_RECONSIDERATION","total_count":1,"children":[]},{"name":"HANDOVER_COMMITTED","total_count":1,"children":[]},{"name":"HANDOVER_STARTED","total_count":1,"children":[]},{"name":"HANDOVER_VERIFICATION","total_count":1,"children":[]},{"name":"HandoverStatus","total_count":1,"children":[]},{"name":"HOST_VERIFIER","total_count":1,"children":[]},{"name":"IN_PROGRESS","total_count":1,"children":[]},{"name":"INCONCLUSIVE","total_count":1,"children":[]},{"name":"LEGACY_XS","total_count":1,"children":[]},{"name":"LEGACY_XS_10Y","total_count":1,"children":[]},{"name":"LEGACY_XS_5Y","total_count":1,"children":[]},{"name":"LEGACY_XS_MAX","total_count":1,"children":[]},{"name":"LEGACY_XS_MAX_10Y","total_count":1,"children":[]},{"name":"LEGACY_XS_MAX_5Y","total_count":1,"children":[]},{"name":"LegacyVault.Prototype.Domain","total_count":1,"children":[]},{"name":"NOTARY_OBSERVER","total_count":1,"children":[]},{"name":"OBSERVER","total_count":1,"children":[]},{"name":"OWNER","total_count":1,"children":[]},{"name":"OWNER_FREE","total_count":1,"children":[]},{"name":"OWNER_RESCUE","total_count":1,"children":[]},{"name":"PAID","total_count":1,"children":[]},{"name":"ParticipantRoleInCall","total_count":1,"children":[]},{"name":"PASS","total_count":1,"children":[]},{"name":"PaymentStatus","total_count":1,"children":[]},{"name":"PENDING","total_count":1,"children":[]},{"name":"PENDING","total_count":1,"children":[]},{"name":"PENDING","total_count":1,"children":[]},{"name":"PENDING_RESPONSE","total_count":1,"children":[]},{"name":"PRE_BUNDLED","total_count":1,"children":[]},{"name":"PURGED","total_count":1,"children":[]},{"name":"RECIPIENT_FREE","total_count":1,"children":[]},{"name":"RECIPIENT_PLUS","total_count":1,"children":[]},{"name":"REJECTED","total_count":1,"children":[]},{"name":"REJECTED","total_count":1,"children":[]},{"name":"REJECTED_FRAUD","total_count":1,"children":[]},{"name":"REQUESTED","total_count":1,"children":[]},{"name":"REQUIRE_MORE_DOCS","total_count":1,"children":[]},{"name":"RESCUE_PENDING","total_count":1,"children":[]},{"name":"RescueDecisionType","total_count":1,"children":[]},{"name":"REVOKED","total_count":1,"children":[]},{"name":"SCHEDULED","total_count":1,"children":[]},{"name":"SCHEDULED","total_count":1,"children":[]},{"name":"SNAPSHOTTED","total_count":1,"children":[]},{"name":"SUBJECT_USER","total_count":1,"children":[]},{"name":"SubscriptionTier","total_count":1,"children":[]},{"name":"SUSPENDED_RESCUE_HOLD","total_count":1,"children":[]},{"name":"TERMINATED","total_count":1,"children":[]},{"name":"UNDER_REVIEW","total_count":1,"children":[]},{"name":"UserRole","total_count":1,"children":[]},{"name":"VaultStatus","total_count":1,"children":[]},{"name":"VerificationOutcome","total_count":1,"children":[]},{"name":"VERIFIER","total_count":1,"children":[]},{"name":"VideoSessionPurpose","total_count":1,"children":[]},{"name":"VideoSessionStatus","total_count":1,"children":[]},{"name":"WAITING","total_count":1,"children":[]},{"name":"WAITING_FOR_SCHEDULE","total_count":1,"children":[]}]},{"name":"ErrorCodes.cs","total_count":1,"children":[{"name":"ErrorCodes","total_count":1,"children":[]}]}]},{"name":"LegacyVault.Prototype.Infrastructure","total_count":145,"children":[{"name":"Persistence","total_count":47,"children":[{"name":"LegacyVaultDbContext.cs","total_count":47,"children":[{"name":".OnModelCreating()","total_count":1,"children":[]},{"name":"AccessGrantAssets","total_count":1,"children":[]},{"name":"AccessGrants","total_count":1,"children":[]},{"name":"AssetDesignationVersions","total_count":1,"children":[]},{"name":"Assets","total_count":1,"children":[]},{"name":"AuditLogs","total_count":1,"children":[]},{"name":"BeneficiaryHandoverDecisions","total_count":1,"children":[]},{"name":"BundleAssets","total_count":1,"children":[]},{"name":"Bundles","total_count":1,"children":[]},{"name":"CaseAssignments","total_count":1,"children":[]},{"name":"CaseBundleItems","total_count":1,"children":[]},{"name":"CaseBundles","total_count":1,"children":[]},{"name":"Cases","total_count":1,"children":[]},{"name":"Commitments","total_count":1,"children":[]},{"name":"ContentVersions","total_count":1,"children":[]},{"name":"DeathCertificates","total_count":1,"children":[]},{"name":"DmsCycles","total_count":1,"children":[]},{"name":"DmsNotices","total_count":1,"children":[]},{"name":"DmsPolicies","total_count":1,"children":[]},{"name":"DownloadEvents","total_count":1,"children":[]},{"name":"EstatePlans","total_count":1,"children":[]},{"name":"EstatePlanVersions","total_count":1,"children":[]},{"name":"ExecutorAssignments","total_count":1,"children":[]},{"name":"HandoverNotices","total_count":1,"children":[]},{"name":"HandoverPolicies","total_count":1,"children":[]},{"name":"HandoverReceipts","total_count":1,"children":[]},{"name":"HandoverSchedules","total_count":1,"children":[]},{"name":"Holds","total_count":1,"children":[]},{"name":"IdempotencyRecords","total_count":1,"children":[]},{"name":"LegacyVault.Prototype.Infrastructure.Persistence","total_count":1,"children":[]},{"name":"LegacyVaultDbContext","total_count":1,"children":[]},{"name":"OwnerVaultConfigs","total_count":1,"children":[]},{"name":"PaymentOrders","total_count":1,"children":[]},{"name":"PaymentReceipts","total_count":1,"children":[]},{"name":"PaymentTransactions","total_count":1,"children":[]},{"name":"PersonalVaultItems","total_count":1,"children":[]},{"name":"PersonalVaults","total_count":1,"children":[]},{"name":"Persons","total_count":1,"children":[]},{"name":"RecipientAuthorizations","total_count":1,"children":[]},{"name":"ScheduleParticipants","total_count":1,"children":[]},{"name":"SessionParticipants","total_count":1,"children":[]},{"name":"StaffRoles","total_count":1,"children":[]},{"name":"SubscriptionPlans","total_count":1,"children":[]},{"name":"Users","total_count":1,"children":[]},{"name":"VaultSubscriptions","total_count":1,"children":[]},{"name":"VerificationDecisions","total_count":1,"children":[]},{"name":"WorkSessions","total_count":1,"children":[]}]}]},{"name":"Services","total_count":98,"children":[{"name":"CloudflareR2StorageService.cs","total_count":9,"children":[{"name":".DeleteAsync()","total_count":1,"children":[]},{"name":".DownloadStreamAsync()","total_count":1,"children":[]},{"name":".GeneratePresignedDownloadUrl()","total_count":1,"children":[]},{"name":".GeneratePresignedUploadUrl()","total_count":1,"children":[]},{"name":".UploadAsync()","total_count":1,"children":[]},{"name":"BucketName","total_count":1,"children":[]},{"name":"CloudflareR2StorageService","total_count":1,"children":[]},{"name":"IsConfigured","total_count":1,"children":[]},{"name":"LegacyVault.Prototype.Infrastructure.Services","total_count":1,"children":[]}]},{"name":"EkycService.cs","total_count":3,"children":[{"name":".ExtractIdCardOcrAsync()","total_count":1,"children":[]},{"name":".VerifyFaceMatchAsync()","total_count":1,"children":[]},{"name":"EkycService","total_count":1,"children":[]}]},{"name":"EnvelopeEncryptionService.cs","total_count":6,"children":[{"name":".ComputeSha256Async()","total_count":1,"children":[]},{"name":".DecryptBytesAsync()","total_count":1,"children":[]},{"name":".EncryptStreamAsync()","total_count":1,"children":[]},{"name":".UnwrapKey()","total_count":1,"children":[]},{"name":".WrapKey()","total_count":1,"children":[]},{"name":"EnvelopeEncryptionService","total_count":1,"children":[]}]},{"name":"FptMarketplaceService.cs","total_count":7,"children":[{"name":".ApplyAuthHeaders()","total_count":1,"children":[]},{"name":".ExtractSyntheticDocumentAsync()","total_count":1,"children":[]},{"name":".GetApiKey()","total_count":1,"children":[]},{"name":".GetAvailableModelsAsync()","total_count":1,"children":[]},{"name":".ParseModelElement()","total_count":1,"children":[]},{"name":".ReviewWillClauseAsync()","total_count":1,"children":[]},{"name":"FptMarketplaceService","total_count":1,"children":[]}]},{"name":"GoogleOidcValidationService.cs","total_count":2,"children":[{"name":".ValidateGoogleIdTokenAsync()","total_count":1,"children":[]},{"name":"GoogleOidcValidationService","total_count":1,"children":[]}]},{"name":"JwtTokenService.cs","total_count":2,"children":[{"name":".GenerateToken()","total_count":1,"children":[]},{"name":"JwtTokenService","total_count":1,"children":[]}]},{"name":"LiveKitVideoService.cs","total_count":5,"children":[{"name":".DeleteRoomAsync()","total_count":1,"children":[]},{"name":".GenerateAdminToken()","total_count":1,"children":[]},{"name":".GenerateJoinToken()","total_count":1,"children":[]},{"name":".VerifyWebhookSignature()","total_count":1,"children":[]},{"name":"LiveKitVideoService","total_count":1,"children":[]}]},{"name":"MailKitEmailService.cs","total_count":13,"children":[{"name":".GetRecentEmails()","total_count":1,"children":[]},{"name":".SendAliveClaimNotificationAsync()","total_count":1,"children":[]},{"name":".SendCustomEmailAsync()","total_count":1,"children":[]},{"name":".SendDeathClaimAlertAsync()","total_count":1,"children":[]},{"name":".SendEmailInternalAsync()","total_count":1,"children":[]},{"name":".SendOtpVerificationAsync()","total_count":1,"children":[]},{"name":"DispatchedEmailRecord","total_count":1,"children":[]},{"name":"HtmlBody","total_count":1,"children":[]},{"name":"IsRealSmtp","total_count":1,"children":[]},{"name":"MailKitEmailService","total_count":1,"children":[]},{"name":"SentAt","total_count":1,"children":[]},{"name":"Subject","total_count":1,"children":[]},{"name":"ToEmail","total_count":1,"children":[]}]},{"name":"SePayPaymentService.cs","total_count":9,"children":[{"name":".CreateOrderAsync()","total_count":1,"children":[]},{"name":".GetAllOrders()","total_count":1,"children":[]},{"name":".GetOrderByCodeAsync()","total_count":1,"children":[]},{"name":".GetOrderByIdAsync()","total_count":1,"children":[]},{"name":".GetTierDetails()","total_count":1,"children":[]},{"name":".ProcessWebhookAsync()","total_count":1,"children":[]},{"name":".SimulatePaymentSuccessAsync()","total_count":1,"children":[]},{"name":".ValidateWebhookAuth()","total_count":1,"children":[]},{"name":"SePayPaymentService","total_count":1,"children":[]}]},{"name":"TimeLockRescueService.cs","total_count":16,"children":[{"name":".AdjudicateRescue()","total_count":1,"children":[]},{"name":".ApproveCaseForDelivery()","total_count":1,"children":[]},{"name":".GetStatus()","total_count":1,"children":[]},{"name":".InitializeCaseTimeLock()","total_count":1,"children":[]},{"name":".MapToDto()","total_count":1,"children":[]},{"name":".SubmitAliveClaim()","total_count":1,"children":[]},{"name":".ToggleDemoMode()","total_count":1,"children":[]},{"name":"AliveClaimReason","total_count":1,"children":[]},{"name":"AliveClaimSubmittedAt","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"CaseState","total_count":1,"children":[]},{"name":"IsDemoMode","total_count":1,"children":[]},{"name":"StartedAt","total_count":1,"children":[]},{"name":"Status","total_count":1,"children":[]},{"name":"TimeLockRescueService","total_count":1,"children":[]},{"name":"UnlockTargetTime","total_count":1,"children":[]}]},{"name":"VideoSessionService.cs","total_count":26,"children":[{"name":".AcceptHandoverAsync()","total_count":1,"children":[]},{"name":".AdjudicateRescueHoldAsync()","total_count":1,"children":[]},{"name":".AuthorizeRecipientByExecutorAsync()","total_count":1,"children":[]},{"name":".ConfigureVaultAsync()","total_count":1,"children":[]},{"name":".ConfirmScheduleAsync()","total_count":1,"children":[]},{"name":".EndSessionAsync()","total_count":1,"children":[]},{"name":".FinalizeHandoverSessionAsync()","total_count":1,"children":[]},{"name":".GenerateMockDecryptionKeyMaterial()","total_count":1,"children":[]},{"name":".GetDecryptionKeyMaterialAsync()","total_count":1,"children":[]},{"name":".GetDefaultHandoverAssets()","total_count":1,"children":[]},{"name":".GetHandoverEligibilityAsync()","total_count":1,"children":[]},{"name":".GetJoinTokenAsync()","total_count":1,"children":[]},{"name":".GetOrCreateGuestSessionAsync()","total_count":1,"children":[]},{"name":".GetOrCreateVaultConfig()","total_count":1,"children":[]},{"name":".GetSessionDetailAsync()","total_count":1,"children":[]},{"name":".HandleWebhookEventAsync()","total_count":1,"children":[]},{"name":".MapToDetailDto()","total_count":1,"children":[]},{"name":".MapToReceiptDto()","total_count":1,"children":[]},{"name":".MapToScheduleResponse()","total_count":1,"children":[]},{"name":".RecordAssetDownloadAsync()","total_count":1,"children":[]},{"name":".RequestSessionAsync()","total_count":1,"children":[]},{"name":".SubmitVerdictAsync()","total_count":1,"children":[]},{"name":".TriggerRescueHoldAsync()","total_count":1,"children":[]},{"name":".ValidateGuestSessionAsync()","total_count":1,"children":[]},{"name":".VerifyAndServeEncryptedAssetAsync()","total_count":1,"children":[]},{"name":"VideoSessionService","total_count":1,"children":[]}]}]}]},{"name":"LegacyVault.Prototype.WebApi","total_count":155,"children":[{"name":"Controllers","total_count":148,"children":[{"name":"AuthController.cs","total_count":41,"children":[{"name":".DemoLogin()","total_count":1,"children":[]},{"name":".GetAvailableRoles()","total_count":1,"children":[]},{"name":".GetPersonas()","total_count":1,"children":[]},{"name":".HashPassword()","total_count":1,"children":[]},{"name":".PasswordLogin()","total_count":1,"children":[]},{"name":".Register()","total_count":1,"children":[]},{"name":".ValidateGoogleOidc()","total_count":1,"children":[]},{"name":"AuthController","total_count":1,"children":[]},{"name":"Avatar","total_count":1,"children":[]},{"name":"Avatar","total_count":1,"children":[]},{"name":"ClientId","total_count":1,"children":[]},{"name":"CreatedAt","total_count":1,"children":[]},{"name":"DemoLoginRequest","total_count":1,"children":[]},{"name":"Description","total_count":1,"children":[]},{"name":"Email","total_count":1,"children":[]},{"name":"Email","total_count":1,"children":[]},{"name":"Email","total_count":1,"children":[]},{"name":"Email","total_count":1,"children":[]},{"name":"FullName","total_count":1,"children":[]},{"name":"FullName","total_count":1,"children":[]},{"name":"FullName","total_count":1,"children":[]},{"name":"GoogleOidcRequest","total_count":1,"children":[]},{"name":"IdToken","total_count":1,"children":[]},{"name":"IsOidcAccount","total_count":1,"children":[]},{"name":"LegacyVault.Prototype.WebApi.Controllers","total_count":1,"children":[]},{"name":"Password","total_count":1,"children":[]},{"name":"Password","total_count":1,"children":[]},{"name":"PasswordHash","total_count":1,"children":[]},{"name":"PasswordLoginRequest","total_count":1,"children":[]},{"name":"PasswordSalt","total_count":1,"children":[]},{"name":"PersonaModel","total_count":1,"children":[]},{"name":"PersonId","total_count":1,"children":[]},{"name":"PersonId","total_count":1,"children":[]},{"name":"Phone","total_count":1,"children":[]},{"name":"Phone","total_count":1,"children":[]},{"name":"RegisterRequest","total_count":1,"children":[]},{"name":"Role","total_count":1,"children":[]},{"name":"Role","total_count":1,"children":[]},{"name":"Roles","total_count":1,"children":[]},{"name":"Roles","total_count":1,"children":[]},{"name":"UserModel","total_count":1,"children":[]}]},{"name":"CaseBundlesController.cs","total_count":12,"children":[{"name":".AcceptHandover()","total_count":1,"children":[]},{"name":".CheckEligibility()","total_count":1,"children":[]},{"name":".CreateGuestSession()","total_count":1,"children":[]},{"name":".DownloadEncryptedAsset()","total_count":1,"children":[]},{"name":".ExecutorAllowHandover()","total_count":1,"children":[]},{"name":".FinalizeHandover()","total_count":1,"children":[]},{"name":".GetDecryptionKey()","total_count":1,"children":[]},{"name":".IsValidSecondFactorProof()","total_count":1,"children":[]},{"name":".ResolveCallerContextAsync()","total_count":1,"children":[]},{"name":".ValidateGuest()","total_count":1,"children":[]},{"name":"AuthContextResult","total_count":1,"children":[]},{"name":"CaseBundlesController","total_count":1,"children":[]}]},{"name":"CryptoController.cs","total_count":11,"children":[{"name":".TestEnvelopeDecrypt()","total_count":1,"children":[]},{"name":".TestEnvelopeEncrypt()","total_count":1,"children":[]},{"name":"AssetId","total_count":1,"children":[]},{"name":"CiphertextBase64","total_count":1,"children":[]},{"name":"CryptoController","total_count":1,"children":[]},{"name":"DecryptTestRequest","total_count":1,"children":[]},{"name":"FileName","total_count":1,"children":[]},{"name":"MimeType","total_count":1,"children":[]},{"name":"NonceBase64","total_count":1,"children":[]},{"name":"TagBase64","total_count":1,"children":[]},{"name":"WrappedKeyBase64","total_count":1,"children":[]}]},{"name":"EkycController.cs","total_count":3,"children":[{"name":".ExtractOcr()","total_count":1,"children":[]},{"name":".VerifyFaceMatch()","total_count":1,"children":[]},{"name":"EkycController","total_count":1,"children":[]}]},{"name":"FptMarketplaceController.cs","total_count":4,"children":[{"name":".ExtractVisionDocument()","total_count":1,"children":[]},{"name":".GetModels()","total_count":1,"children":[]},{"name":".ReviewClause()","total_count":1,"children":[]},{"name":"FptMarketplaceController","total_count":1,"children":[]}]},{"name":"MailController.cs","total_count":27,"children":[{"name":".CheckEnvironmentVariables()","total_count":1,"children":[]},{"name":".GetRecentDispatches()","total_count":1,"children":[]},{"name":".SendAliveClaimAlert()","total_count":1,"children":[]},{"name":".SendCustomEmail()","total_count":1,"children":[]},{"name":".SendDeathClaimAlert()","total_count":1,"children":[]},{"name":".SendOtp()","total_count":1,"children":[]},{"name":"AliveClaimAlertRequest","total_count":1,"children":[]},{"name":"CancelUrl","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"CustomEmailRequest","total_count":1,"children":[]},{"name":"DeathClaimAlertRequest","total_count":1,"children":[]},{"name":"HtmlContent","total_count":1,"children":[]},{"name":"MailController","total_count":1,"children":[]},{"name":"OtpCode","total_count":1,"children":[]},{"name":"OtpEmailRequest","total_count":1,"children":[]},{"name":"OwnerName","total_count":1,"children":[]},{"name":"OwnerName","total_count":1,"children":[]},{"name":"SmtpOverride","total_count":1,"children":[]},{"name":"SmtpOverride","total_count":1,"children":[]},{"name":"SmtpOverride","total_count":1,"children":[]},{"name":"SmtpOverride","total_count":1,"children":[]},{"name":"Subject","total_count":1,"children":[]},{"name":"ToEmail","total_count":1,"children":[]},{"name":"ToEmail","total_count":1,"children":[]},{"name":"ToEmail","total_count":1,"children":[]},{"name":"ToEmail","total_count":1,"children":[]}]},{"name":"PaymentController.cs","total_count":6,"children":[{"name":".CreateOrder()","total_count":1,"children":[]},{"name":".GetAllOrders()","total_count":1,"children":[]},{"name":".GetOrder()","total_count":1,"children":[]},{"name":".ProcessSePayWebhook()","total_count":1,"children":[]},{"name":".SimulatePaymentSuccess()","total_count":1,"children":[]},{"name":"PaymentController","total_count":1,"children":[]}]},{"name":"StorageController.cs","total_count":12,"children":[{"name":".DownloadEnvelope()","total_count":1,"children":[]},{"name":".GeneratePresignedDownloadUrl()","total_count":1,"children":[]},{"name":".GeneratePresignedUploadUrl()","total_count":1,"children":[]},{"name":".GetStorageStatus()","total_count":1,"children":[]},{"name":".ListVaultAssets()","total_count":1,"children":[]},{"name":".UploadEnvelope()","total_count":1,"children":[]},{"name":"ContentType","total_count":1,"children":[]},{"name":"DownloadPresignedUrlRequest","total_count":1,"children":[]},{"name":"FileName","total_count":1,"children":[]},{"name":"Key","total_count":1,"children":[]},{"name":"PresignedUrlRequest","total_count":1,"children":[]},{"name":"StorageController","total_count":1,"children":[]}]},{"name":"TimeLockController.cs","total_count":12,"children":[{"name":".AdjudicateRescue()","total_count":1,"children":[]},{"name":".GetStatus()","total_count":1,"children":[]},{"name":".InitializeCase()","total_count":1,"children":[]},{"name":".SubmitAliveClaim()","total_count":1,"children":[]},{"name":".ToggleDemo()","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"InitTimeLockRequest","total_count":1,"children":[]},{"name":"IsDemoMode","total_count":1,"children":[]},{"name":"IsDemoMode","total_count":1,"children":[]},{"name":"TimeLockController","total_count":1,"children":[]},{"name":"ToggleDemoRequest","total_count":1,"children":[]}]},{"name":"VideoSessionsController.cs","total_count":20,"children":[{"name":".AcceptHandoverInCall()","total_count":1,"children":[]},{"name":".AdjudicateRescueHold()","total_count":1,"children":[]},{"name":".ConfirmSchedule()","total_count":1,"children":[]},{"name":".EndSession()","total_count":1,"children":[]},{"name":".GetCurrentUserId()","total_count":1,"children":[]},{"name":".GetHandoverEligibility()","total_count":1,"children":[]},{"name":".GetJoinToken()","total_count":1,"children":[]},{"name":".GetSessionDetail()","total_count":1,"children":[]},{"name":".LiveKitWebhook()","total_count":1,"children":[]},{"name":".RequestSession()","total_count":1,"children":[]},{"name":".SubmitVerdict()","total_count":1,"children":[]},{"name":".TriggerRescueHold()","total_count":1,"children":[]},{"name":"CaseId","total_count":1,"children":[]},{"name":"ConfirmScheduleDto","total_count":1,"children":[]},{"name":"OwnerId","total_count":1,"children":[]},{"name":"Reason","total_count":1,"children":[]},{"name":"ScheduledAt","total_count":1,"children":[]},{"name":"TriggerRescueHoldDto","total_count":1,"children":[]},{"name":"VerifierId","total_count":1,"children":[]},{"name":"VideoSessionsController","total_count":1,"children":[]}]}]},{"name":"Middlewares","total_count":6,"children":[{"name":"CorrelationIdMiddleware.cs","total_count":3,"children":[{"name":".InvokeAsync()","total_count":1,"children":[]},{"name":"CorrelationIdMiddleware","total_count":1,"children":[]},{"name":"LegacyVault.Prototype.WebApi.Middlewares","total_count":1,"children":[]}]},{"name":"Rfc7807ExceptionMiddleware.cs","total_count":3,"children":[{"name":".HandleExceptionAsync()","total_count":1,"children":[]},{"name":".InvokeAsync()","total_count":1,"children":[]},{"name":"Rfc7807ExceptionMiddleware","total_count":1,"children":[]}]}]},{"name":"Program.cs","total_count":1,"children":[]}]}]}]};
+
+    function transformData(jsonData) {
+        // Helper function to recursively build the children structure
+        function processNode(node, parentL1StageName) {
+            let displayName = node.name;
+            // Append total_count if it exists and is not already in the name
+            if (node.total_count !== undefined) {
+                if (!/\(Total Count: \d+\)$/.test(displayName)) {
+                    displayName += ` (Total Count: ${node.total_count})`;
+                }
+            }
+
+            const newNode = { name: displayName };
+
+            if (parentL1StageName === "Root") {
+                 newNode.originalStageName = node.name;
+            } else {
+                newNode.originalStageName = parentL1StageName;
+            }
+
+            if (node.children && node.children.length > 0) {
+                const stageNameToPass = (parentL1StageName === "Root") ? node.name : parentL1StageName;
+                newNode.children = node.children.map(child => processNode(child, stageNameToPass));
+            }
+
+            return newNode;
+        }
+
+        let rootDisplayName = jsonData.name;
+        if (jsonData.total_count !== undefined && !/\(Total Count: \d+\)$/.test(rootDisplayName)) {
+            rootDisplayName += ` (Total Count: ${jsonData.total_count})`;
+        }
+
+        return {
+            name: rootDisplayName,
+            originalStageName: "Root",
+            children: (jsonData.children || []).map(child => processNode(child, "Root"))
+        };
+    }
+
+    const treeData = transformData(initialJsonData);
+
+    // Auto-populated phaseColors: every depth-1 child of the root gets
+    // a stable colour from a bigger palette so all top-level dirs are
+    // distinguishable.
+    const PALETTE = [
+      ["#3498DB","#2980B9","#AED6F1"], ["#2ECC71","#27AE60","#A9DFBF"],
+      ["#E74C3C","#C0392B","#F5B7B1"], ["#9B59B6","#8E44AD","#D7BDE2"],
+      ["#F39C12","#D68910","#FAD7A0"], ["#1ABC9C","#117864","#A2D9CE"],
+      ["#34495E","#1B2631","#ABB2B9"], ["#E67E22","#BA4A00","#F5CBA7"],
+      ["#16A085","#0E6655","#A2D9CE"], ["#D35400","#A04000","#EDBB99"],
+      ["#7F8C8D","#566573","#D5DBDB"], ["#C0392B","#7B241C","#F5B7B1"],
+      ["#2E86C1","#1B4F72","#A9CCE3"], ["#28B463","#196F3D","#A9DFBF"],
+      ["#AF7AC5","#6C3483","#D2B4DE"],
+    ];
+    const phaseColors = { "Root": { fill: "#4A4A4A", stroke: "#333333", collapsedFill: "#6C757D" },
+                          "Default": { fill: "#BDC3C7", stroke: "#95A5A6", collapsedFill: "#ECF0F1" } };
+    (initialJsonData.children || []).forEach((c, i) => {
+      const pal = PALETTE[i % PALETTE.length];
+      phaseColors[c.name] = { fill: pal[0], stroke: pal[1], collapsedFill: pal[2] };
+    });
+
+    const levelSpecificPalettes = {
+      0: { fill: "#4A4A4A", stroke: "#333333", collapsedFill: "#6C757D" },
+      2: { fill: "#6ab04c", stroke: "#508a38", collapsedFill: "#a3d391" },
+      3: { fill: "#f0932b", stroke: "#d0730f", collapsedFill: "#f6c07e" },
+      4: { fill: "#be2edd", stroke: "#a01cb3", collapsedFill: "#e08bf2" },
+      5: { fill: "#00a8ff", stroke: "#007ac1", collapsedFill: "#74d2ff" },
+      6: { fill: "#e55039", stroke: "#c23620", collapsedFill: "#f09a8d" },
+      default: { fill: "#747d8c", stroke: "#57606f", collapsedFill: "#a4b0be" }
+    };
+
+    const svgElement = d3.select("#tree-svg");
+    const initialSvgWidth = +svgElement.attr("width");
+    const initialSvgHeight = +svgElement.attr("height");
+    const margin = { top: 40, right: 120, bottom: 80, left: 450 };
+    let width = initialSvgWidth - margin.left - margin.right;
+    let height = initialSvgHeight - margin.top - margin.bottom;
+    const duration = 500;
+    let nodeCounter = 0;
+    const g = svgElement.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    const treemap = d3.tree().nodeSize([40, 0]);
+    let rootNode = d3.hierarchy(treeData, d => d.children);
+    rootNode.x0 = 0;
+    rootNode.y0 = 0;
+
+    if (rootNode.children) {
+      rootNode.children.forEach(d_child => {
+        if (d_child.children) { collapseBranch(d_child); }
+      });
+    }
+    updateTree(rootNode);
+
+    function collapseBranch(d) { if (d.children) { d._children = d.children; d._children.forEach(collapseBranch); d.children = null; } }
+    function expandBranch(d) { if (d._children) { d.children = d._children; d._children = null; } if (d.children) { d.children.forEach(expandBranch); } }
+    window.expandAll = () => { expandBranch(rootNode); updateTree(rootNode); };
+    window.collapseAll = () => { if (rootNode.children) { rootNode.children.forEach(collapseBranch); } updateTree(rootNode); };
+    window.resetView = () => { if (rootNode.children) { rootNode.children.forEach(d_child => { if (d_child.children || d_child._children) { collapseBranch(d_child); } }); } if (rootNode._children && !rootNode.children) { rootNode.children = rootNode._children; rootNode._children = null; } updateTree(rootNode); };
+
+    function updateTree(source) {
+      const treeLayoutData = treemap(rootNode);
+      let nodes = treeLayoutData.descendants();
+      let links = treeLayoutData.descendants().slice(1);
+
+      let minX = 0;
+      let maxX = 0;
+      if (nodes.length > 0) {
+        minX = d3.min(nodes, d => d.x);
+        maxX = d3.max(nodes, d => d.x);
+      }
+
+      let neededHeight = Math.max(initialSvgHeight, maxX - minX + margin.top + margin.bottom + 100);
+      svgElement.transition().duration(duration / 2).attr("height", neededHeight);
+      g.transition().duration(duration / 2).attr("transform", `translate(${margin.left},${margin.top - minX + 40})`);
+
+      nodes.forEach(d => { d.y = d.depth * 400; }); // Adjust horizontal separation if needed
+
+      const node = g.selectAll('g.node').data(nodes, d => d.id || (d.id = ++nodeCounter));
+      const nodeEnter = node.enter().append('g')
+        .attr('class', d => "node" + (d.children || d._children ? " node--internal" : " node--leaf") + (d._children ? " _children" : ""))
+        .attr('transform', d => `translate(${source.y0},${source.x0})`)
+        .on('click', (event, d) => { if (d.children) { d._children = d.children; d.children = null; } else if (d._children) { d.children = d._children; d._children = null; } updateTree(d); })
+        .style('cursor', d => (d.children || d._children) ? 'pointer' : 'default');
+
+      nodeEnter.append('circle').attr('r', 1e-6);
+
+      nodeEnter.append('text')
+        .attr('dy', '.35em')
+        .attr('x', d => d.children || d._children ? -14 : 14)
+        .attr('text-anchor', d => d.children || d._children ? 'end' : 'start')
+        .style("fill-opacity", 1e-6)
+        .call(wrapText, 380);
+
+      const nodeUpdate = nodeEnter.merge(node);
+      nodeUpdate.transition().duration(duration)
+        .attr('transform', d => `translate(${d.y},${d.x})`)
+        .attr('class', d => "node" + (d.children ? " node--internal" : " node--leaf") + (d._children ? " node--internal _children" : ""));
+
+      nodeUpdate.select('circle').attr('r', 8.5)
+        .style('fill', d => {
+            let palette;
+            if (d.depth === 0) {
+                palette = levelSpecificPalettes[0];
+            } else if (d.depth === 1) {
+                palette = phaseColors[d.data.originalStageName] || phaseColors.Default;
+            } else {
+                palette = levelSpecificPalettes[d.depth] || levelSpecificPalettes.default;
+            }
+            if (d._children) return palette.collapsedFill;
+            if (d.children) return palette.fill;
+            return "#fff";
+        })
+        .style('stroke', d => {
+            let palette;
+            if (d.depth === 0) {
+                palette = levelSpecificPalettes[0];
+            } else if (d.depth === 1) {
+                palette = phaseColors[d.data.originalStageName] || phaseColors.Default;
+            } else {
+                palette = levelSpecificPalettes[d.depth] || levelSpecificPalettes.default;
+            }
+            return palette.stroke;
+        });
+      nodeUpdate.select('text').style("fill-opacity", 1).call(wrapText, 380);
+
+      const nodeExit = node.exit().transition().duration(duration).attr('transform', d => `translate(${source.y},${source.x})`).remove();
+      nodeExit.select('circle').attr('r', 1e-6);
+      nodeExit.select('text').style('fill-opacity', 1e-6);
+
+      const link = g.selectAll('path.link').data(links, d => d.id);
+      const linkEnter = link.enter().insert('path', "g").attr('class', 'link').attr('d', d => { const o = { x: source.x0, y: source.y0 }; return diagonal(o, o); });
+
+      linkEnter.merge(link).transition().duration(duration).attr('d', d => diagonal(d, d.parent))
+        .style('stroke', d => {
+            const sourceNode = d.parent;
+            if (!sourceNode) return phaseColors.Default.stroke;
+            const l1AncestorName = sourceNode.data.originalStageName;
+            const colorPalette = phaseColors[l1AncestorName] || phaseColors.Default;
+            return colorPalette.stroke;
+        });
+      link.exit().transition().duration(duration).attr('d', d => { const o = { x: source.x, y: source.y }; return diagonal(o, o); }).remove();
+      nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
+    }
+
+    function diagonal(s, d) { return `M ${s.y} ${s.x} C ${(s.y + d.y) / 2} ${s.x}, ${(s.y + d.y) / 2} ${d.x}, ${d.y} ${d.x}`; }
+
+    function wrapText(textElements, maxWidth) {
+        const textPartColors = {
+            name: '#343a40',
+            count: '#0056b3'
+        };
+        const countRegex = /(\s\(Total Count: \d+\))$/;
+
+        textElements.each(function () {
+            const textD3 = d3.select(this);
+            const originalNodeText = textD3.datum().data.name;
+            const x = parseFloat(textD3.attr("x") || 0);
+            const initialDy = textD3.attr("dy");
+            const textAnchor = textD3.attr("text-anchor");
+            const lineHeight = 1.1;
+
+            textD3.text(null);
+
+            let namePart = originalNodeText;
+            let countPartText = "";
+
+            const countMatch = originalNodeText.match(countRegex);
+            if (countMatch && originalNodeText.endsWith(countMatch[0])) {
+                namePart = originalNodeText.substring(0, originalNodeText.length - countMatch[0].length).trim();
+                countPartText = countMatch[0].trim();
+            }
+
+            const tokens = [];
+            namePart.split(/\s+/).filter(Boolean).forEach(word => {
+                tokens.push({ text: word, type: 'name' });
+            });
+            if (countPartText) {
+                tokens.push({ text: countPartText, type: 'count' });
+            }
+
+            if (tokens.length === 0 && originalNodeText) {
+                tokens.push({ text: originalNodeText, type: 'name' });
+            }
+
+            let currentTspan = textD3.append("tspan").attr("x", x).attr("dy", initialDy);
+            if (textAnchor === "end") currentTspan.attr("text-anchor", "end");
+
+            let lineTokens = [];
+
+            for (let i = 0; i < tokens.length; i++) {
+                const tokenObj = tokens[i];
+
+                lineTokens.push(tokenObj);
+                currentTspan.text(lineTokens.map(t => t.text).join(" "));
+
+                if (currentTspan.node().getComputedTextLength() > maxWidth && lineTokens.length > 1) {
+                    lineTokens.pop();
+
+                    currentTspan.text(null);
+                    lineTokens.forEach((prevToken, idx) => {
+                        currentTspan.append("tspan")
+                            .text((idx > 0 ? " " : "") + prevToken.text)
+                            .style("fill", textPartColors[prevToken.type] || textPartColors.name)
+                            .style("font-weight", prevToken.type === 'count' ? "bold" : "normal");
+                    });
+
+                    lineTokens = [tokenObj];
+                    currentTspan = textD3.append("tspan").attr("x", x).attr("dy", lineHeight + "em");
+                    if (textAnchor === "end") currentTspan.attr("text-anchor", "end");
+                }
+            }
+
+            currentTspan.text(null);
+            lineTokens.forEach((token, idx) => {
+                currentTspan.append("tspan")
+                    .text((idx > 0 ? " " : "") + token.text)
+                    .style("fill", textPartColors[token.type] || textPartColors.name)
+                    .style("font-weight", token.type === 'count' ? "bold" : "normal");
+            });
+
+            if (textD3.selectAll("tspan > tspan").empty() && textD3.select("tspan").text().length === 0 && originalNodeText) {
+                let t = textD3.select("tspan");
+                let displayText = originalNodeText;
+                t.text(displayText).style("fill", textPartColors.name);
+                if (t.node() && t.node().getComputedTextLength() > maxWidth && displayText.length > 20) {
+                    let estimatedChars = Math.floor(maxWidth / (t.node().getComputedTextLength()/displayText.length) );
+                    displayText = displayText.substring(0, Math.max(0, estimatedChars - 3)) + "...";
+                    t.text(displayText);
+                }
+            }
+        });
+    }
+  </script>
+</body>
+</html>

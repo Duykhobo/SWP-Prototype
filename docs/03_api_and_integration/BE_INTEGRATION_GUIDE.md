@@ -104,9 +104,9 @@ if (app.Environment.IsDevelopment())
 
 ---
 
-## 3. THIẾT KẾ CƠ SỞ DỮ LIỆU EF CORE 10 (25 THỰC THỂ CORE)
+## 3. THIẾT KẾ CƠ SỞ DỮ LIỆU EF CORE 10 (26 THỰC THỂ CORE & BẢNG LIÊN KẾT)
 
-Mô hình dữ liệu chi tiết xem tại [Lược đồ CSDL ERD](DATABASE_SCHEMA_ERD.md). Dưới đây là các cấu hình Fluent API trọng yếu:
+Mô hình dữ liệu chi tiết xem tại [Lược đồ CSDL ERD](../02_architecture/DATABASE_SCHEMA_ERD.md). Dưới đây là các cấu hình Fluent API trọng yếu:
 
 ### 3.1. Gom Nhóm Kho Bàn Giao Bất Biến (`HandoverVaults`)
 

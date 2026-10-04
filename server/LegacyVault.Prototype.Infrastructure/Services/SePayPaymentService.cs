@@ -293,7 +293,11 @@ public class SePayPaymentService : IPaymentService
         {
             SubscriptionTier.OWNER_FREE => (0, 0, 20, 3),
             SubscriptionTier.LEGACY_XS => (199_000, 365, 200, 20),
+            SubscriptionTier.LEGACY_XS_5Y => (799_000, 1825, 250, 25),
+            SubscriptionTier.LEGACY_XS_10Y => (1_290_000, 3650, 300, 30),
             SubscriptionTier.LEGACY_XS_MAX => (399_000, 365, 500, 50),
+            SubscriptionTier.LEGACY_XS_MAX_5Y => (1_590_000, 1825, 600, 60),
+            SubscriptionTier.LEGACY_XS_MAX_10Y => (2_490_000, 3650, 1000, 100),
             SubscriptionTier.RECIPIENT_FREE => (0, 0, 20, 2),
             SubscriptionTier.RECIPIENT_PLUS => (49_000, 30, 200, 10),
             _ => (0, 0, 20, 3)

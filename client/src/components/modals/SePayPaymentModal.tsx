@@ -20,7 +20,7 @@ import {
 interface SePayPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  planId: 'OWNER_FREE' | 'LEGACY_XS' | 'LEGACY_XS_MAX' | 'RECIPIENT_PLUS';
+  planId: 'OWNER_FREE' | 'LEGACY_XS' | 'LEGACY_XS_5Y' | 'LEGACY_XS_10Y' | 'LEGACY_XS_MAX' | 'LEGACY_XS_MAX_5Y' | 'LEGACY_XS_MAX_10Y' | 'RECIPIENT_PLUS' | string;
   planName: string;
   priceFormatted: string;
   amount: number;

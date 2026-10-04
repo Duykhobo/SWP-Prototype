@@ -25,6 +25,7 @@ import {
   FileText,
   Fingerprint,
   Key,
+  KeyRound,
   Lock,
   Mic,
   PhoneCall,

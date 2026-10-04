@@ -281,4 +281,151 @@ public class DbContextWhiteBoxTests
         Assert.NotNull(savedReceipt);
         Assert.Equal(grant1.Id, savedReceipt.AccessGrantId);
     }
+
+    [Fact]
+    public async Task SubscriptionPlans_MultiYearPackages_CanBeQueriedWithCorrectDiscounts()
+    {
+        // Arrange
+        using var context = CreateInMemoryDbContext();
+
+        var plan1Y = new SubscriptionPlan
+        {
+            Id = Guid.NewGuid(),
+            PlanCode = "LEGACY_XS",
+            Name = "Két Di Sản XS (1 Năm)",
+            Category = "OWNER",
+            PriceVnd = 199_000,
+            DurationDays = 365,
+            StorageQuotaMb = 200,
+            MaxAssetsQuota = 20
+        };
+
+        var plan5Y = new SubscriptionPlan
+        {
+            Id = Guid.NewGuid(),
+            PlanCode = "LEGACY_XS_5Y",
+            Name = "Két Di Sản XS (5 Năm - Tiết Kiệm 20%)",
+            Category = "OWNER",
+            PriceVnd = 799_000,
+            DurationDays = 1825,
+            StorageQuotaMb = 250,
+            MaxAssetsQuota = 25
+        };
+
+        var plan10Y = new SubscriptionPlan
+        {
+            Id = Guid.NewGuid(),
+            PlanCode = "LEGACY_XS_10Y",
+            Name = "Két Di Sản XS Bền Vững (10 Năm - Khóa Giá)",
+            Category = "OWNER",
+            PriceVnd = 1_290_000,
+            DurationDays = 3650,
+            StorageQuotaMb = 300,
+            MaxAssetsQuota = 30
+        };
+
+        context.SubscriptionPlans.AddRange(plan1Y, plan5Y, plan10Y);
+        await context.SaveChangesAsync();
+
+        // Act
+        var plans = await context.SubscriptionPlans
+            .Where(p => p.Category == "OWNER")
+            .OrderBy(p => p.DurationDays)
+            .ToListAsync();
+
+        // Assert
+        Assert.Equal(3, plans.Count);
+        Assert.Equal(365, plans[0].DurationDays);
+        Assert.Equal(1825, plans[1].DurationDays);
+        Assert.Equal(3650, plans[2].DurationDays);
+
+        // Kiểm tra chiết khấu 5Y: 799k < 5 * 199k (995k)
+        Assert.True(plans[1].PriceVnd < plans[0].PriceVnd * 5);
+        // Kiểm tra chiết khấu 10Y: 1.290k < 10 * 199k (1.990k)
+        Assert.True(plans[2].PriceVnd < plans[0].PriceVnd * 10);
+    }
+
+    [Fact]
+    public async Task JunctionTables_BundleAssets_And_AccessGrantAssets_PersistProperly()
+    {
+        // Arrange
+        using var context = CreateInMemoryDbContext();
+        var bundleId = Guid.NewGuid();
+        var grantId = Guid.NewGuid();
+        var asset1 = Guid.NewGuid();
+        var asset2 = Guid.NewGuid();
+
+        // Thêm BundleAsset (quan hệ nhiều - nhiều giữa Bundle và Asset)
+        context.BundleAssets.AddRange(
+            new BundleAsset { BundleId = bundleId, AssetId = asset1, AddedAt = DateTime.UtcNow },
+            new BundleAsset { BundleId = bundleId, AssetId = asset2, AddedAt = DateTime.UtcNow }
+        );
+
+        // Thêm AccessGrantAsset (quan hệ nhiều - nhiều giữa Grant và Asset)
+        context.AccessGrantAssets.AddRange(
+            new AccessGrantAsset { AccessGrantId = grantId, AssetId = asset1, GrantedAt = DateTime.UtcNow },
+            new AccessGrantAsset { AccessGrantId = grantId, AssetId = asset2, GrantedAt = DateTime.UtcNow }
+        );
+
+        await context.SaveChangesAsync();
+
+        // Assert
+        var savedBundleAssets = await context.BundleAssets.Where(ba => ba.BundleId == bundleId).ToListAsync();
+        Assert.Equal(2, savedBundleAssets.Count);
+
+        var savedGrantAssets = await context.AccessGrantAssets.Where(aga => aga.AccessGrantId == grantId).ToListAsync();
+        Assert.Equal(2, savedGrantAssets.Count);
+    }
+
+    [Fact]
+    public async Task PersonalVault_AccumulatesImportedAssetsFromMultipleGrants()
+    {
+        // Arrange
+        using var context = CreateInMemoryDbContext();
+        var ownerPersonId = Guid.NewGuid();
+        var personalVault = new PersonalVault
+        {
+            Id = Guid.NewGuid(),
+            OwnerPersonId = ownerPersonId,
+            Tier = "RECIPIENT_PLUS",
+            StorageQuotaMb = 200,
+            MaxAssetsQuota = 10
+        };
+        context.PersonalVaults.Add(personalVault);
+
+        var grant1 = Guid.NewGuid();
+        var grant2 = Guid.NewGuid();
+        var asset1 = Guid.NewGuid();
+        var asset2 = Guid.NewGuid();
+
+        context.PersonalVaultItems.AddRange(
+            new PersonalVaultItem
+            {
+                Id = Guid.NewGuid(),
+                PersonalVaultId = personalVault.Id,
+                SourceAccessGrantId = grant1,
+                AssetId = asset1,
+                ImportedAt = DateTime.UtcNow
+            },
+            new PersonalVaultItem
+            {
+                Id = Guid.NewGuid(),
+                PersonalVaultId = personalVault.Id,
+                SourceAccessGrantId = grant2,
+                AssetId = asset2,
+                ImportedAt = DateTime.UtcNow
+            }
+        );
+
+        await context.SaveChangesAsync();
+
+        // Assert
+        var items = await context.PersonalVaultItems
+            .Where(pvi => pvi.PersonalVaultId == personalVault.Id)
+            .ToListAsync();
+
+        Assert.Equal(2, items.Count);
+        Assert.Contains(items, i => i.AssetId == asset1 && i.SourceAccessGrantId == grant1);
+        Assert.Contains(items, i => i.AssetId == asset2 && i.SourceAccessGrantId == grant2);
+    }
 }

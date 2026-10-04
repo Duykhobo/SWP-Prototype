@@ -1,15 +1,17 @@
 # Graph Report - SWP-Prototype  (2026-10-04)
 
 ## Corpus Check
-- cluster-only mode — file stats not available
+- 98 files · ~94,816 words
+- Verdict: corpus is large enough that graph structure adds value.
+- Unclassified: 6 file(s) not represented in the graph (top: (none) 3, .css 2, .example 1)
 
 ## Summary
-- 1606 nodes · 2946 edges · 86 communities (74 shown, 12 thin omitted)
+- 1633 nodes · 3019 edges · 87 communities (73 shown, 14 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 127 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `02b74897`
+- Built from commit: `bdd0fc69`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -20,27 +22,26 @@
 - SubscriptionTier
 - HandoverStatus
 - StorageController
-- VideoSessionsController
+- .FinalizeHandoverSessionAsync
 - LegacyVaultDbContext
 - ControllerBase
 - FptMarketplaceService
 - IVideoSessionService
-- ref_react
+- App.tsx
 - HeritageBadge
 - DateTime
 - .ExtractOcr
-- Entities.cs
+- .OnModelCreating
 - OwnerVaultConfig
 - Person
 - Asset
 - PaymentOrderDb
-- CaseBundlesController
-- FptMarketplaceTestbench.tsx
+- ITimeLockRescueService
+- ref_react
 - CaseBundle
-- SubscriptionPlan
 - HandoverSchedule
 - OidcUserInfo
-- .OnModelCreating
+- Entities.cs
 - Case
 - VerificationDecision
 - PersonalVault
@@ -62,26 +63,25 @@
 - AuditLog
 - Commitment
 - WorkSession
-- ClientTesseractOcrPoc.tsx
-- HeritageBadge.tsx
+- PaymentTransaction
+- VideoVerificationTestbench.tsx
 - .GenerateToken
 - AssetDesignationVersion
 - UserModel
 - MailController
 - DeathClaimAlertRequest
 - SmtpConfigOverride
-- HeritageButton.tsx
+- TestbenchPage.tsx
 - DmsNotice
 - ExecutorAssignment
 - ScheduleParticipant
-- SessionParticipant
+- FptMarketplaceTestbench.tsx
 - VideoSessionStatus
 - PersonaModel
 - Rfc7807ExceptionMiddleware
-- .AdjudicateRescueHoldAsync
-- DeathCertificate
+- InitTimeLockRequest
 - Enums.cs
-- CaseStatus
+- constants/index.ts
 - webCrypto.ts
 - ErrorBoundary.tsx
 - DispatchedEmailRecord
@@ -98,6 +98,7 @@
 - httpStatus.ts
 - PasswordLoginRequest
 - messages.ts
+- BeneficiaryDecisionType
 
 ## God Nodes (most connected - your core abstractions)
 1. `LegacyVaultDbContext` - 92 edges
@@ -106,35 +107,35 @@
 4. `OwnerVaultConfig` - 42 edges
 5. `HeritageBadge()` - 40 edges
 6. `CaseBundle` - 39 edges
-7. `PaymentOrderDb` - 36 edges
-8. `HeritageButton()` - 36 edges
+7. `HeritageButton()` - 36 edges
+8. `PaymentOrderDb` - 36 edges
 9. `LegacyVault.Prototype.Application.Interfaces` - 35 edges
 10. `Case` - 33 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `LegalDropzone()` --calls--> `HeritageBadge()`  [EXTRACTED]
-  client/src/widgets/LegalDropzone.tsx → client/src/shared/ui/HeritageBadge.tsx
-- `TechOverviewBar()` --calls--> `HeritageBadge()`  [EXTRACTED]
-  client/src/widgets/TechOverviewBar.tsx → client/src/shared/ui/HeritageBadge.tsx
-- `VideoSessionService` --references--> `ITimeLockRescueService`  [EXTRACTED]
-  server/LegacyVault.Prototype.Infrastructure/Services/VideoSessionService.cs → server/LegacyVault.Prototype.Application/Interfaces/ITimeLockRescueService.cs
-- `CaseState` --references--> `CaseStatus`  [EXTRACTED]
-  server/LegacyVault.Prototype.Infrastructure/Services/TimeLockRescueService.cs → server/LegacyVault.Prototype.Domain/Enums.cs
-- `VideoSessionService` --implements--> `IVideoSessionService`  [EXTRACTED]
-  server/LegacyVault.Prototype.Infrastructure/Services/VideoSessionService.cs → server/LegacyVault.Prototype.Application/Interfaces/IVideoSessionService.cs
+- `App()` --calls--> `TestbenchPage()`  [EXTRACTED]
+  client/src/App.tsx → client/src/pages/TestbenchPage.tsx
+- `App()` --calls--> `ErrorBoundary`  [EXTRACTED]
+  client/src/App.tsx → client/src/shared/ui/ErrorBoundary.tsx
+- `ComparisonViewProps` --references--> `AssetItem`  [EXTRACTED]
+  client/src/pages/ComparisonView.tsx → client/src/entities/asset/model/types.ts
+- `DashboardPageProps` --references--> `AssetItem`  [EXTRACTED]
+  client/src/pages/DashboardPage.tsx → client/src/entities/asset/model/types.ts
+- `ProMaxDashboardPageProps` --references--> `AssetItem`  [EXTRACTED]
+  client/src/pages/promax/ProMaxDashboardPage.tsx → client/src/entities/asset/model/types.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (86 total, 12 thin omitted)
+## Communities (87 total, 14 thin omitted)
 
 ### Community 0 - "LegacyVault.Prototype.Application.Interfaces"
 Cohesion: 0.07
 Nodes (10): LegacyVault.Prototype.Infrastructure.Services, LegacyVault.Prototype.Infrastructure.Persistence, LegacyVault.Prototype.Domain.Entities, LegacyVault.Prototype.Domain, LegacyVault.Prototype.Application.Services, LegacyVault.Prototype.Application.Interfaces, LegacyVault.Prototype.WebApi.Middlewares, LegacyVault.Prototype.WebApi.Controllers (+2 more)
 
 ### Community 1 - "CaseState"
-Cohesion: 0.07
-Nodes (17): ITimeLockRescueService, CaseState, AliveClaimReason, AliveClaimSubmittedAt, CaseId, IsDemoMode, StartedAt, Status (+9 more)
+Cohesion: 0.10
+Nodes (17): CaseStatus, ADDITIONAL_DOCUMENTS_REQUIRED, APPROVED_FOR_DELIVERY, CANCELLED_ALIVE, DRAFT, REJECTED, RESCUE_PENDING, UNDER_REVIEW (+9 more)
 
 ### Community 3 - "SubscriptionTier"
 Cohesion: 0.07
@@ -148,10 +149,6 @@ Nodes (18): IEstatePlanRulesService, EstatePlanRulesService, HandoverStatus, CAN
 Cohesion: 0.07
 Nodes (12): IR2StorageService, BucketName, IsConfigured, CloudflareR2StorageService, BucketName, IsConfigured, DownloadPresignedUrlRequest, Key (+4 more)
 
-### Community 6 - "VideoSessionsController"
-Cohesion: 0.09
-Nodes (10): ILiveKitVideoService, LiveKitVideoService, ConfirmScheduleDto, ScheduledAt, VerifierId, TriggerRescueHoldDto, CaseId, OwnerId (+2 more)
-
 ### Community 7 - "LegacyVaultDbContext"
 Cohesion: 0.04
 Nodes (45): LegacyVaultDbContext, AccessGrantAssets, AccessGrants, AssetDesignationVersions, Assets, AuditLogs, BeneficiaryHandoverDecisions, BundleAssets (+37 more)
@@ -164,23 +161,27 @@ Nodes (18): EncryptionResult, ChecksumSha256, Ciphertext, Dek, Nonce, Tag, Wrapp
 Cohesion: 0.08
 Nodes (3): IFptMarketplaceService, FptMarketplaceService, FptMarketplaceController
 
-### Community 11 - "ref_react"
-Cohesion: 0.15
-Nodes (20): App(), AssetItem, NewAssetModal(), NewAssetModalProps, SePayPaymentModal(), SePayPaymentModalProps, MainNavbar(), MainNavbarProps (+12 more)
+### Community 10 - "IVideoSessionService"
+Cohesion: 0.05
+Nodes (11): IVideoSessionService, AuthContextResult, CaseBundlesController, ConfirmScheduleDto, ScheduledAt, VerifierId, TriggerRescueHoldDto, CaseId (+3 more)
+
+### Community 11 - "App.tsx"
+Cohesion: 0.09
+Nodes (26): App(), AssetCategory, AssetItem, VaultType, BillingCycle, PlanFeature, SubscriptionPlan, SubscriptionTier (+18 more)
 
 ### Community 12 - "HeritageBadge"
-Cohesion: 0.19
-Nodes (25): GoogleOidcTestbench(), CryptoEnvelopeTestbench(), ClientMediaPipeFacePoc(), ClientTesseractOcrPoc(), EkycTestbench(), EkycTestbenchProps, LivenessData, OcrData (+17 more)
+Cohesion: 0.13
+Nodes (24): ClientMediaPipeFacePoc(), ClientTesseractOcrPoc(), CropBox, ExtractedFields, ROI_PRESETS, RoiPreset, EkycTestbench(), EkycTestbenchProps (+16 more)
 
 ### Community 13 - "DateTime"
 Cohesion: 0.08
-Nodes (27): AccessGrantAsset, AccessGrant, AccessGrantId, Asset, AssetId, GrantedAt, IdempotencyRecordDb, Id (+19 more)
+Nodes (27): AccessGrantAsset, AccessGrant, AccessGrantId, Asset, AssetId, GrantedAt, DeathCertificate, Case (+19 more)
 
 ### Community 14 - ".ExtractOcr"
 Cohesion: 0.11
 Nodes (3): IEkycService, EkycService, EkycController
 
-### Community 15 - "Entities.cs"
+### Community 15 - ".OnModelCreating"
 Cohesion: 0.08
 Nodes (25): Bundle, BundleAssets, CaseBundles, CreatedAt, EstatePlanVersion, EstatePlanVersionId, HandoverPolicy, Id (+17 more)
 
@@ -197,20 +198,16 @@ Cohesion: 0.08
 Nodes (25): Asset, AccessGrantAssets, AssetDesignationVersions, AssetType, BundleAssets, ContentVersions, CreatedAt, Id (+17 more)
 
 ### Community 19 - "PaymentOrderDb"
-Cohesion: 0.08
-Nodes (25): PaymentOrderDb, Amount, CreatedAt, ExpiresAt, Id, OrderCode, PaidAt, Person (+17 more)
+Cohesion: 0.04
+Nodes (49): PaymentOrderDb, Amount, CreatedAt, ExpiresAt, Id, OrderCode, PaidAt, Person (+41 more)
 
-### Community 21 - "FptMarketplaceTestbench.tsx"
-Cohesion: 0.11
-Nodes (16): OidcResponse, Window, CLAUSE_PRESETS, ClauseReviewResponse, FptModelDto, FptModelListResponse, SyntheticClausePreset, VisionExtractResponse (+8 more)
+### Community 21 - "ref_react"
+Cohesion: 0.13
+Nodes (19): OidcResponse, Window, EncryptMetadata, DispatchedEmail, PaymentOrder, TimeLockStatus, UploadedEnvelopeAsset, axiosClient (+11 more)
 
 ### Community 22 - "CaseBundle"
 Cohesion: 0.08
 Nodes (24): CaseBundle, AccessGrants, Case, CaseId, Commitments, CreatedAt, Decisions, FreezeExpiresAt (+16 more)
-
-### Community 23 - "SubscriptionPlan"
-Cohesion: 0.08
-Nodes (24): SubscriptionPlan, AllowEstatePlan, AllowPdfExport, Category, CreatedAt, DurationDays, Id, MaxAssetsQuota (+16 more)
 
 ### Community 24 - "HandoverSchedule"
 Cohesion: 0.09
@@ -220,7 +217,7 @@ Nodes (22): HandoverNotice, HandoverSchedule, HandoverScheduleId, Id, NoticeType
 Cohesion: 0.11
 Nodes (11): IOidcValidationService, OidcUserInfo, Audience, Email, ExpiryTime, Issuer, IsValid, Name (+3 more)
 
-### Community 26 - ".OnModelCreating"
+### Community 26 - "Entities.cs"
 Cohesion: 0.11
 Nodes (18): EstatePlan, CreatedAt, Id, Status, Title, Vault, VaultId, Versions (+10 more)
 
@@ -273,8 +270,8 @@ Cohesion: 0.12
 Nodes (16): RecipientAuthorization, ApprovedByExecutorPerson, ApprovedByExecutorPersonId, AuthorizedAt, CaseBundle, CaseBundleId, FaceMatched, Id (+8 more)
 
 ### Community 40 - "InteractiveWorkflowVisualizer.tsx"
-Cohesion: 0.16
-Nodes (10): EncryptMetadata, DEMO_PERSONAS, FLOW_01_STEPS, FLOW_02_STEPS, FLOW_03_STEPS, InteractiveWorkflowVisualizerProps, WorkflowStep, LivePipelineProgress() (+2 more)
+Cohesion: 0.25
+Nodes (6): DEMO_PERSONAS, FLOW_01_STEPS, FLOW_02_STEPS, FLOW_03_STEPS, InteractiveWorkflowVisualizerProps, WorkflowStep
 
 ### Community 41 - "BeneficiaryHandoverDecision"
 Cohesion: 0.14
@@ -301,16 +298,16 @@ Cohesion: 0.15
 Nodes (13): Commitment, AccessGrants, CaseBundle, CaseBundleId, CaseId, ClientIpAddress, CommittedAt, Decisions (+5 more)
 
 ### Community 47 - "WorkSession"
-Cohesion: 0.15
-Nodes (13): WorkSession, CaseBundle, CaseBundleId, EndedAt, HandoverSchedule, HandoverScheduleId, Id, LivekitRoomName (+5 more)
+Cohesion: 0.09
+Nodes (23): SessionParticipant, Id, IdentityVerified, JoinedAt, LeftAt, Person, PersonId, Role (+15 more)
 
-### Community 48 - "ClientTesseractOcrPoc.tsx"
-Cohesion: 0.21
-Nodes (9): CropBox, ExtractedFields, ROI_PRESETS, RoiPreset, BENCHMARK_TEST_CASES, BenchmarkResultItem, BenchmarkTestCase, computeSimilarity() (+1 more)
+### Community 48 - "PaymentTransaction"
+Cohesion: 0.25
+Nodes (8): PaymentTransaction, AmountIn, BankTransactionId, Id, Order, OrderId, RawWebhookPayload, TransactionTime
 
-### Community 49 - "HeritageBadge.tsx"
-Cohesion: 0.17
-Nodes (5): ExtendedUserRole, JoinTokenData, HeritageBadgeProps, AppHeaderProps, TechOverviewBar()
+### Community 49 - "VideoVerificationTestbench.tsx"
+Cohesion: 0.20
+Nodes (11): AcceptResponseDto, CoBeneficiaryDecisionDto, CoOwnershipStatusDto, FinalReceiptData, HandoverAssetDto, HandoverEligibilityDto, HoldResultData, RegisteredDossierDto (+3 more)
 
 ### Community 51 - "AssetDesignationVersion"
 Cohesion: 0.17
@@ -328,9 +325,9 @@ Nodes (11): AliveClaimAlertRequest, CaseId, OwnerName, SmtpOverride, ToEmail, De
 Cohesion: 0.18
 Nodes (11): SmtpConfigOverride, Host, Password, Port, SenderEmail, SenderName, Username, OtpEmailRequest (+3 more)
 
-### Community 56 - "HeritageButton.tsx"
-Cohesion: 0.20
-Nodes (6): AuditRecord, VerificationStatus, HeritageButtonProps, ComplianceWarningBoxProps, LegalDropzone(), LegalDropzoneProps
+### Community 56 - "TestbenchPage.tsx"
+Cohesion: 0.33
+Nodes (14): GoogleOidcTestbench(), CryptoEnvelopeTestbench(), FptMarketplaceTestbench(), MailKitTestbench(), SePayTestbench(), RescueTimeLockTestbench(), R2StorageTestbench(), VideoVerificationTestbench() (+6 more)
 
 ### Community 57 - "DmsNotice"
 Cohesion: 0.20
@@ -344,9 +341,9 @@ Nodes (10): ExecutorAssignment, AcceptedAt, AssignedAt, ExecutorPerson, Executor
 Cohesion: 0.20
 Nodes (10): ScheduleParticipant, ConfirmationStatus, HandoverSchedule, HandoverScheduleId, Id, Notes, Person, PersonId (+2 more)
 
-### Community 60 - "SessionParticipant"
-Cohesion: 0.20
-Nodes (10): SessionParticipant, Id, IdentityVerified, JoinedAt, LeftAt, Person, PersonId, Role (+2 more)
+### Community 60 - "FptMarketplaceTestbench.tsx"
+Cohesion: 0.29
+Nodes (6): CLAUSE_PRESETS, ClauseReviewResponse, FptModelDto, FptModelListResponse, SyntheticClausePreset, VisionExtractResponse
 
 ### Community 62 - "VideoSessionStatus"
 Cohesion: 0.22
@@ -356,21 +353,17 @@ Nodes (9): VideoSessionStatus, CANCELLED, COMPLETED, EXPIRED, IN_PROGRESS, REQUE
 Cohesion: 0.22
 Nodes (8): PersonaModel, Avatar, Description, Email, FullName, PersonId, Role, Roles
 
-### Community 65 - ".AdjudicateRescueHoldAsync"
+### Community 66 - "InitTimeLockRequest"
 Cohesion: 0.29
-Nodes (3): RescueDecisionType, APPROVED_ALIVE, REJECTED_FRAUD
-
-### Community 66 - "DeathCertificate"
-Cohesion: 0.25
-Nodes (8): DeathCertificate, Case, CaseId, ChecksumSha256, Id, MimeType, StorageKey, UploadedAt
+Nodes (6): InitTimeLockRequest, CaseId, IsDemoMode, ToggleDemoRequest, CaseId, IsDemoMode
 
 ### Community 67 - "Enums.cs"
-Cohesion: 0.25
-Nodes (7): BeneficiaryDecisionType, ACCEPTED, PENDING, REJECTED, VideoSessionPurpose, HANDOVER_VERIFICATION, OWNER_RESCUE
+Cohesion: 0.29
+Nodes (6): RescueDecisionType, APPROVED_ALIVE, REJECTED_FRAUD, VideoSessionPurpose, HANDOVER_VERIFICATION, OWNER_RESCUE
 
-### Community 68 - "CaseStatus"
-Cohesion: 0.25
-Nodes (8): CaseStatus, ADDITIONAL_DOCUMENTS_REQUIRED, APPROVED_FOR_DELIVERY, CANCELLED_ALIVE, DRAFT, REJECTED, RESCUE_PENDING, UNDER_REVIEW
+### Community 68 - "constants/index.ts"
+Cohesion: 0.50
+Nodes (3): CASE_STATUS, HTTP_STATUS, SUBSCRIPTION_TIERS
 
 ### Community 69 - "webCrypto.ts"
 Cohesion: 0.33
@@ -424,25 +417,29 @@ Nodes (5): CustomEmailRequest, HtmlContent, SmtpOverride, Subject, ToEmail
 Cohesion: 0.67
 Nodes (3): PasswordLoginRequest, Email, Password
 
+### Community 86 - "BeneficiaryDecisionType"
+Cohesion: 0.50
+Nodes (4): BeneficiaryDecisionType, ACCEPTED, PENDING, REJECTED
+
 ## Knowledge Gaps
-- **792 isolated node(s):** `ErrorCodes`, `NewAssetModalProps`, `SePayPaymentModalProps`, `MainNavbarProps`, `PricingPageProps` (+787 more)
-  These have ≤1 connection - possible missing edges. (Counts symbols only; 986 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **797 isolated node(s):** `RegisteredDossierDto`, `CoOwnershipStatusDto`, `BillingCycle`, `PlanFeature`, `SubscriptionPlan` (+792 more)
+  These have ≤1 connection - possible missing edges. (Counts symbols only; 990 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `LegacyVaultDbContext` connect `LegacyVaultDbContext` to `LegacyVault.Prototype.Application.Interfaces`, `DateTime`, `Entities.cs`, `OwnerVaultConfig`, `Person`, `Asset`, `PaymentOrderDb`, `CaseBundle`, `SubscriptionPlan`, `HandoverSchedule`, `.OnModelCreating`, `Case`, `VerificationDecision`, `PersonalVault`, `List`, `User`, `AccessGrant`, `CaseBundleItem`, `HandoverReceipt`, `RecipientAuthorization`, `BeneficiaryHandoverDecision`, `ContentVersion`, `Hold`, `AuditLog`, `Commitment`, `WorkSession`, `AssetDesignationVersion`, `DmsNotice`, `ExecutorAssignment`, `ScheduleParticipant`, `SessionParticipant`, `DeathCertificate`?**
-  _High betweenness centrality (0.419) - this node is a cross-community bridge._
-- **Why does `LegacyVault.Prototype.Application.Interfaces` connect `LegacyVault.Prototype.Application.Interfaces` to `MailSendResult`, `StorageController`, `VideoSessionsController`, `ControllerBase`, `.GenerateToken`, `OidcUserInfo`?**
-  _High betweenness centrality (0.384) - this node is a cross-community bridge._
-- **What connects `ErrorCodes`, `NewAssetModalProps`, `SePayPaymentModalProps` to the rest of the system?**
-  _792 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `LegacyVaultDbContext` connect `LegacyVaultDbContext` to `LegacyVault.Prototype.Application.Interfaces`, `DateTime`, `.OnModelCreating`, `OwnerVaultConfig`, `Person`, `Asset`, `PaymentOrderDb`, `CaseBundle`, `HandoverSchedule`, `Entities.cs`, `Case`, `VerificationDecision`, `PersonalVault`, `List`, `User`, `AccessGrant`, `CaseBundleItem`, `HandoverReceipt`, `RecipientAuthorization`, `BeneficiaryHandoverDecision`, `ContentVersion`, `Hold`, `AuditLog`, `Commitment`, `WorkSession`, `PaymentTransaction`, `AssetDesignationVersion`, `DmsNotice`, `ExecutorAssignment`, `ScheduleParticipant`?**
+  _High betweenness centrality (0.380) - this node is a cross-community bridge._
+- **Why does `LegacyVault.Prototype.Application.Interfaces` connect `LegacyVault.Prototype.Application.Interfaces` to `MailSendResult`, `StorageController`, `.FinalizeHandoverSessionAsync`, `ControllerBase`, `.GenerateToken`, `OidcUserInfo`?**
+  _High betweenness centrality (0.335) - this node is a cross-community bridge._
+- **What connects `RegisteredDossierDto`, `CoOwnershipStatusDto`, `BillingCycle` to the rest of the system?**
+  _797 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `LegacyVault.Prototype.Application.Interfaces` be split into smaller, more focused modules?**
   _Cohesion score 0.07042253521126761 - nodes in this community are weakly interconnected._
 - **Should `CaseState` be split into smaller, more focused modules?**
-  _Cohesion score 0.07329462989840348 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10483870967741936 - nodes in this community are weakly interconnected._
 - **Should `VideoSessionService` be split into smaller, more focused modules?**
-  _Cohesion score 0.07993966817496229 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.14619883040935672 - nodes in this community are weakly interconnected._
 - **Should `SubscriptionTier` be split into smaller, more focused modules?**
   _Cohesion score 0.06787330316742081 - nodes in this community are weakly interconnected._

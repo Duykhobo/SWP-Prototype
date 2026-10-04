@@ -1,1004 +1,536 @@
 {
-  "client/.oxlintrc.json": {
-    "mtime": 1790404494.8780334,
-    "seen": 1790906350.5763621,
-    "ast_hash": "029f4905006c1fffd96bc863e2d98d3e",
-    "semantic_hash": "029f4905006c1fffd96bc863e2d98d3e"
-  },
-  "client/package.json": {
-    "mtime": 1790948162.610608,
-    "seen": 1791130262.0699959,
-    "ast_hash": "51ebca99d724e0cefdb95fc11191dd81",
-    "semantic_hash": "51ebca99d724e0cefdb95fc11191dd81"
-  },
   "client/src/App.tsx": {
     "mtime": 1790949403.7815907,
-    "seen": 1791130262.0699959,
+    "seen": 1791130911.134395,
     "ast_hash": "9e515e51dcc14017a1a4b508b63b7acf",
     "semantic_hash": "9e515e51dcc14017a1a4b508b63b7acf"
   },
   "client/src/components/modals/NewAssetModal.tsx": {
     "mtime": 1790905749.8549092,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "9167b74fb4f75c029b7225f01774594c",
     "semantic_hash": "9167b74fb4f75c029b7225f01774594c"
   },
   "client/src/components/modals/SePayPaymentModal.tsx": {
     "mtime": 1791129444.8597198,
-    "seen": 1791130262.0715048,
+    "seen": 1791130911.134395,
     "ast_hash": "84fbde881b35ea409cd8a75cf7cacc85",
     "semantic_hash": "84fbde881b35ea409cd8a75cf7cacc85"
   },
   "client/src/components/navigation/MainNavbar.tsx": {
     "mtime": 1790906685.9310582,
-    "seen": 1791130262.0715048,
+    "seen": 1791130911.134395,
     "ast_hash": "acf533fa7f5da389d8755e6845d96d53",
     "semantic_hash": "acf533fa7f5da389d8755e6845d96d53"
   },
   "client/src/features/auth-oidc/GoogleOidcTestbench.tsx": {
     "mtime": 1790658473.977173,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "4e9ec486bc8c47d52b2c21367107d4aa",
     "semantic_hash": "4e9ec486bc8c47d52b2c21367107d4aa"
   },
   "client/src/features/crypto-envelope/CryptoEnvelopeTestbench.tsx": {
     "mtime": 1790611116.8325698,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "907654bb0facb72ebe7d75afa7d3e3d2",
     "semantic_hash": "907654bb0facb72ebe7d75afa7d3e3d2"
   },
   "client/src/features/ekyc-verification/ClientMediaPipeFacePoc.tsx": {
     "mtime": 1790612046.005716,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "238c0989fc4d2082fb7ab327fc007a42",
     "semantic_hash": "238c0989fc4d2082fb7ab327fc007a42"
   },
   "client/src/features/ekyc-verification/ClientTesseractOcrPoc.tsx": {
     "mtime": 1790766771.798456,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "c0030959d56a1e8f4348683c7118937b",
     "semantic_hash": "c0030959d56a1e8f4348683c7118937b"
   },
   "client/src/features/ekyc-verification/EkycTestbench.tsx": {
     "mtime": 1790769198.3562422,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "71f23eda44ed7cf530aa1e9a4b3a93ce",
     "semantic_hash": "71f23eda44ed7cf530aa1e9a4b3a93ce"
   },
   "client/src/features/ekyc-verification/ManualIdentityVerificationFlow.tsx": {
     "mtime": 1790769541.265237,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "1e87bf250fd8c5e1e3315ef508bfbe39",
     "semantic_hash": "1e87bf250fd8c5e1e3315ef508bfbe39"
   },
   "client/src/features/ekyc-verification/TesseractBenchmarkSuite.tsx": {
     "mtime": 1790612511.0209415,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "59da9e1a97756e70b859b051d361187e",
     "semantic_hash": "59da9e1a97756e70b859b051d361187e"
   },
   "client/src/features/fpt-marketplace/FptMarketplaceTestbench.tsx": {
     "mtime": 1790766779.492134,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "e8a55d39b349bb98c19b4287321a2724",
     "semantic_hash": "e8a55d39b349bb98c19b4287321a2724"
   },
   "client/src/features/notification-mailkit/MailKitTestbench.tsx": {
     "mtime": 1790597763.521422,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "b2411a7ddac63349198de7eaf800bd40",
     "semantic_hash": "b2411a7ddac63349198de7eaf800bd40"
   },
   "client/src/features/payment-sepay/SePayTestbench.tsx": {
     "mtime": 1790575582.9101012,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "3048c3914f794040ba5e959df96e1d8a",
     "semantic_hash": "3048c3914f794040ba5e959df96e1d8a"
   },
   "client/src/features/rescue-timelock/RescueTimeLockTestbench.tsx": {
     "mtime": 1790575617.686472,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "7dd4b04b0a7de3c316ad4ff21d1faec9",
     "semantic_hash": "7dd4b04b0a7de3c316ad4ff21d1faec9"
   },
   "client/src/features/shamir-anti-rogue/ShamirTestbench.tsx": {
     "mtime": 1790698677.2740571,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "c0acf92e8bf0d78e708ce5380435117d",
     "semantic_hash": "c0acf92e8bf0d78e708ce5380435117d"
   },
   "client/src/features/storage-r2/R2StorageTestbench.tsx": {
     "mtime": 1790594203.67247,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "a6de2b72d453a284e24dfa8a1a4f1362",
     "semantic_hash": "a6de2b72d453a284e24dfa8a1a4f1362"
   },
+  "client/src/features/video-verification/VideoVerificationTestbench.tsx": {
+    "mtime": 1791129559.2198174,
+    "seen": 1791130911.134395,
+    "ast_hash": "ddf9b1e21d210e5c3022209a55f52c8b",
+    "semantic_hash": "ddf9b1e21d210e5c3022209a55f52c8b"
+  },
   "client/src/features/workflow-visualizer/InteractiveWorkflowVisualizer.tsx": {
     "mtime": 1790770885.1680062,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "7f4992c253280dd9e403fa3852e8a515",
     "semantic_hash": "7f4992c253280dd9e403fa3852e8a515"
   },
   "client/src/main.tsx": {
     "mtime": 1790596774.1222444,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "11138f387be331f3434ca0f6b08f3642",
     "semantic_hash": "11138f387be331f3434ca0f6b08f3642"
   },
   "client/src/pages/ComparisonView.tsx": {
     "mtime": 1790906317.2717419,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "b584002dac1b32cfe03afaaf9d80eda4",
     "semantic_hash": "b584002dac1b32cfe03afaaf9d80eda4"
   },
   "client/src/pages/DashboardPage.tsx": {
     "mtime": 1790905876.7978444,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "349c2066d9ef0d6b3b8157c3b46db28e",
     "semantic_hash": "349c2066d9ef0d6b3b8157c3b46db28e"
   },
   "client/src/pages/PricingPage.tsx": {
     "mtime": 1791129490.1969736,
-    "seen": 1791130262.0745137,
+    "seen": 1791130911.134395,
     "ast_hash": "7773ecf30140b925bd405b793b858f34",
     "semantic_hash": "7773ecf30140b925bd405b793b858f34"
   },
   "client/src/pages/RecipientPage.tsx": {
     "mtime": 1790905816.3176343,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "322651adf98093ada794a405c93c5a4d",
     "semantic_hash": "322651adf98093ada794a405c93c5a4d"
   },
   "client/src/pages/TestbenchPage.tsx": {
     "mtime": 1790949397.1763413,
-    "seen": 1791130262.0745137,
+    "seen": 1791130911.134395,
     "ast_hash": "f04b7303f2efea06579e6b16ec88a832",
     "semantic_hash": "f04b7303f2efea06579e6b16ec88a832"
   },
   "client/src/pages/VaultsPage.tsx": {
     "mtime": 1790905883.4788327,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "fe31ca87fffefec0d398eadf6b566cf6",
     "semantic_hash": "fe31ca87fffefec0d398eadf6b566cf6"
   },
   "client/src/pages/promax/ProMaxDashboardPage.tsx": {
     "mtime": 1790906299.5884945,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "3508f8c1709313eefa64d58cb4c4cb93",
     "semantic_hash": "3508f8c1709313eefa64d58cb4c4cb93"
   },
   "client/src/shared/api/axiosClient.ts": {
     "mtime": 1790659781.5531628,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "a80f47d2bdfde23451fcdd71cbba2917",
     "semantic_hash": "a80f47d2bdfde23451fcdd71cbba2917"
   },
   "client/src/shared/api/baseService.ts": {
     "mtime": 1790575908.3371928,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "8cc0f87204009e1dc8384eb9386d409c",
     "semantic_hash": "8cc0f87204009e1dc8384eb9386d409c"
   },
   "client/src/shared/config/env.ts": {
     "mtime": 1790575669.3203714,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "4ffca980786de1010a3ed14bb0705771",
     "semantic_hash": "4ffca980786de1010a3ed14bb0705771"
   },
   "client/src/shared/constants/httpStatus.ts": {
     "mtime": 1790575675.2429593,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "1e50db50717651a776ffef7a16509ae2",
     "semantic_hash": "1e50db50717651a776ffef7a16509ae2"
   },
   "client/src/shared/constants/index.ts": {
     "mtime": 1791129436.7231455,
-    "seen": 1791130262.076516,
+    "seen": 1791130911.134395,
     "ast_hash": "a8bdcc548ded32dc5b92b22d9ffadd2e",
     "semantic_hash": "a8bdcc548ded32dc5b92b22d9ffadd2e"
   },
   "client/src/shared/constants/messages.ts": {
     "mtime": 1790575678.9201756,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "e057b5e9bcef25ddad927a29da5a7b74",
     "semantic_hash": "e057b5e9bcef25ddad927a29da5a7b74"
   },
-  "client/src/shared/crypto/__tests__/shamir.test.ts": {
-    "mtime": 1790694575.3160956,
-    "seen": 1790906350.5763621,
-    "ast_hash": "da9aa2838eecc9f1c7249fd9edcba106",
-    "semantic_hash": "da9aa2838eecc9f1c7249fd9edcba106"
-  },
   "client/src/shared/crypto/shamir.ts": {
     "mtime": 1790694535.3244658,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "f9683b46d7651cda4f1daacb26690268",
     "semantic_hash": "f9683b46d7651cda4f1daacb26690268"
   },
   "client/src/shared/crypto/webCrypto.ts": {
     "mtime": 1790575499.9079514,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "f1b7d3185a2b0ddedaf327a33e91a939",
     "semantic_hash": "f1b7d3185a2b0ddedaf327a33e91a939"
   },
   "client/src/shared/types/pagination.ts": {
     "mtime": 1790575902.7445836,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "5a09916c8716d0ed8461b0dbdc36eab8",
     "semantic_hash": "5a09916c8716d0ed8461b0dbdc36eab8"
   },
   "client/src/shared/ui/ErrorBoundary.tsx": {
     "mtime": 1790596881.3732047,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "cf5759a70ba3b981b80a652bfc0cdfe5",
     "semantic_hash": "cf5759a70ba3b981b80a652bfc0cdfe5"
   },
   "client/src/shared/ui/HeritageBadge.tsx": {
     "mtime": 1790575526.2206573,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "e9d7dd413fe8438831e09ab0765625f2",
     "semantic_hash": "e9d7dd413fe8438831e09ab0765625f2"
   },
   "client/src/shared/ui/HeritageButton.tsx": {
     "mtime": 1790575518.6985674,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "5fa7965a21fde4b2a22aefb699c22edc",
     "semantic_hash": "5fa7965a21fde4b2a22aefb699c22edc"
   },
   "client/src/shared/ui/HeritageCard.tsx": {
     "mtime": 1790575507.6024237,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "b8f955b880aa6899fc1c4735fea92916",
     "semantic_hash": "b8f955b880aa6899fc1c4735fea92916"
   },
   "client/src/shared/ui/LivePipelineProgress.tsx": {
     "mtime": 1790611116.837542,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "c8303966a0ba76996be52121c6a4ec69",
     "semantic_hash": "c8303966a0ba76996be52121c6a4ec69"
   },
   "client/src/widgets/AppHeader.tsx": {
     "mtime": 1790948199.7662897,
-    "seen": 1791130262.0785134,
+    "seen": 1791130911.134395,
     "ast_hash": "4c4a195daa198bb2afa3c470a9e0dffb",
     "semantic_hash": "4c4a195daa198bb2afa3c470a9e0dffb"
   },
   "client/src/widgets/ComplianceWarningBox.tsx": {
     "mtime": 1790595817.2023008,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "3427d3b16539f2f9cbc4c672c5c2a061",
     "semantic_hash": "3427d3b16539f2f9cbc4c672c5c2a061"
   },
   "client/src/widgets/LegalDropzone.tsx": {
     "mtime": 1790575924.841557,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "51262c12037091bd7d68d91c081071d4",
     "semantic_hash": "51262c12037091bd7d68d91c081071d4"
   },
   "client/src/widgets/LiveDmsHeartbeatCard.tsx": {
     "mtime": 1790575914.346826,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "2da0493900d05e2988358f49ebf22b78",
     "semantic_hash": "2da0493900d05e2988358f49ebf22b78"
   },
   "client/src/widgets/TechOverviewBar.tsx": {
     "mtime": 1790766711.6039007,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "7ea6b2c1160914e12719270b69759cfa",
     "semantic_hash": "7ea6b2c1160914e12719270b69759cfa"
   },
-  "client/tsconfig.app.json": {
-    "mtime": 1790575451.245975,
-    "seen": 1790906350.5763621,
-    "ast_hash": "8769337ad6830d196e3b045aa3b9d0ab",
-    "semantic_hash": "8769337ad6830d196e3b045aa3b9d0ab"
-  },
-  "client/tsconfig.json": {
-    "mtime": 1790404494.913037,
-    "seen": 1790906350.5763621,
-    "ast_hash": "a3d39fa780ebff65444de257f291ce6c",
-    "semantic_hash": "a3d39fa780ebff65444de257f291ce6c"
-  },
-  "client/tsconfig.node.json": {
-    "mtime": 1790404494.914037,
-    "seen": 1790906350.5763621,
-    "ast_hash": "f9cb81ddcea69ffdab672fc8c48dca66",
-    "semantic_hash": "f9cb81ddcea69ffdab672fc8c48dca66"
-  },
   "client/vite.config.ts": {
     "mtime": 1790949879.3862345,
-    "seen": 1791130262.080516,
+    "seen": 1791130911.134395,
     "ast_hash": "3bb76e52d2c22857057f1ed1bbe6e7d9",
     "semantic_hash": "3bb76e52d2c22857057f1ed1bbe6e7d9"
   },
-  "docs/06_diagrams_interactive/legacyvault-architecture.json": {
-    "mtime": 1790611116.8510027,
-    "seen": 1790906350.5763621,
-    "ast_hash": "3e4ae49a4315f74bf5c6c66f1784371f",
-    "semantic_hash": "3e4ae49a4315f74bf5c6c66f1784371f"
-  },
-  "docs/06_diagrams_interactive/legacyvault-full-workflow.json": {
-    "mtime": 1790611116.868677,
-    "seen": 1790906350.5763621,
-    "ast_hash": "425dedcf6783f88619b02a73ab2f63dd",
-    "semantic_hash": "425dedcf6783f88619b02a73ab2f63dd"
-  },
-  "docs/06_diagrams_interactive/legacyvault-payload-sequence.json": {
-    "mtime": 1790611116.8744185,
-    "seen": 1790906350.5763621,
-    "ast_hash": "6face00d0e9d812d5806c343911ed573",
-    "semantic_hash": "6face00d0e9d812d5806c343911ed573"
-  },
   "server/LegacyVault.Prototype.Application/Common/EmailUtils.cs": {
     "mtime": 1790597572.6762884,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "db3d29ffd0e06b8fccb8cd42b2c52b87",
     "semantic_hash": "db3d29ffd0e06b8fccb8cd42b2c52b87"
   },
-  "server/LegacyVault.Prototype.Application/DTOs/FptMarketplaceDtos.cs": {
-    "mtime": 1790592890.329386,
-    "seen": 1790906350.5763621,
-    "ast_hash": "c584286c80666c201d33cbd46a5f1e5f",
-    "semantic_hash": "c584286c80666c201d33cbd46a5f1e5f"
-  },
-  "server/LegacyVault.Prototype.Application/DTOs/PaymentDtos.cs": {
-    "mtime": 1790574921.0266073,
-    "seen": 1790906350.5763621,
-    "ast_hash": "32c3884455e346d4041121b87e805681",
-    "semantic_hash": "32c3884455e346d4041121b87e805681"
-  },
-  "server/LegacyVault.Prototype.Application/DTOs/TimeLockDtos.cs": {
-    "mtime": 1790574927.1762128,
-    "seen": 1790906350.5763621,
-    "ast_hash": "a21ecfc8b3050021e750db646018d092",
-    "semantic_hash": "a21ecfc8b3050021e750db646018d092"
-  },
   "server/LegacyVault.Prototype.Application/Interfaces/IEkycService.cs": {
     "mtime": 1790595109.6087136,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "fccdbe7b652797a06ae37751b4d22dce",
     "semantic_hash": "fccdbe7b652797a06ae37751b4d22dce"
   },
   "server/LegacyVault.Prototype.Application/Interfaces/IEnvelopeEncryptionService.cs": {
     "mtime": 1790574931.851729,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "2ababf90dcacb460eae10e1a0acad658",
     "semantic_hash": "2ababf90dcacb460eae10e1a0acad658"
   },
   "server/LegacyVault.Prototype.Application/Interfaces/IEstatePlanRulesService.cs": {
     "mtime": 1790614080.4590917,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "aa13a05a349252fd6d23af0fd6940516",
     "semantic_hash": "aa13a05a349252fd6d23af0fd6940516"
   },
   "server/LegacyVault.Prototype.Application/Interfaces/IFptMarketplaceService.cs": {
     "mtime": 1790592895.0750377,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "ef9db6156393e3e16f4f6fb5d68a824d",
     "semantic_hash": "ef9db6156393e3e16f4f6fb5d68a824d"
   },
+  "server/LegacyVault.Prototype.Application/Interfaces/IJwtTokenService.cs": {
+    "mtime": 1791013494.2025993,
+    "seen": 1791130911.134395,
+    "ast_hash": "eab5792558b1f6732d541e6e7eb297cd",
+    "semantic_hash": "eab5792558b1f6732d541e6e7eb297cd"
+  },
+  "server/LegacyVault.Prototype.Application/Interfaces/ILiveKitVideoService.cs": {
+    "mtime": 1790947958.6599772,
+    "seen": 1791130911.134395,
+    "ast_hash": "88e8908f26f933ea5392fe0f2d592df1",
+    "semantic_hash": "88e8908f26f933ea5392fe0f2d592df1"
+  },
   "server/LegacyVault.Prototype.Application/Interfaces/IMailKitService.cs": {
     "mtime": 1790580849.905628,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "d6bf065a474bea35eab3278014fb2c1b",
     "semantic_hash": "d6bf065a474bea35eab3278014fb2c1b"
   },
   "server/LegacyVault.Prototype.Application/Interfaces/IOidcValidationService.cs": {
     "mtime": 1790595567.908777,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "5f942786b62b8864a3ef99afc067a3fe",
     "semantic_hash": "5f942786b62b8864a3ef99afc067a3fe"
   },
   "server/LegacyVault.Prototype.Application/Interfaces/IPaymentService.cs": {
     "mtime": 1790574938.5870738,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "76ed05c3ddf1dad4bb58e17a2ade908b",
     "semantic_hash": "76ed05c3ddf1dad4bb58e17a2ade908b"
   },
   "server/LegacyVault.Prototype.Application/Interfaces/IR2StorageService.cs": {
     "mtime": 1790594156.6912096,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "ecd2d24911fc214ce1d97dcc60f5ffdc",
     "semantic_hash": "ecd2d24911fc214ce1d97dcc60f5ffdc"
   },
   "server/LegacyVault.Prototype.Application/Interfaces/ITimeLockRescueService.cs": {
     "mtime": 1790951431.3489583,
-    "seen": 1791130262.0845132,
+    "seen": 1791130911.134395,
     "ast_hash": "c127fbfff6f26377a48f3857e912a653",
     "semantic_hash": "c127fbfff6f26377a48f3857e912a653"
   },
-  "server/LegacyVault.Prototype.Application/LegacyVault.Prototype.Application.csproj": {
-    "mtime": 1790574760.981117,
-    "seen": 1790906350.5763621,
-    "ast_hash": "abe31619ec73b6b8739ca71eba4f5db0",
-    "semantic_hash": "abe31619ec73b6b8739ca71eba4f5db0"
+  "server/LegacyVault.Prototype.Application/Interfaces/IVideoSessionService.cs": {
+    "mtime": 1790956737.5255902,
+    "seen": 1791130911.134395,
+    "ast_hash": "295f26d73b7d7ba755475e7327946a79",
+    "semantic_hash": "295f26d73b7d7ba755475e7327946a79"
   },
   "server/LegacyVault.Prototype.Application/Services/EstatePlanRulesService.cs": {
     "mtime": 1790614107.565605,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "dea75515d672f74b00ccd268040f23b6",
     "semantic_hash": "dea75515d672f74b00ccd268040f23b6"
   },
+  "server/LegacyVault.Prototype.Domain/Entities/Entities.cs": {
+    "mtime": 1791129324.4183223,
+    "seen": 1791130911.134395,
+    "ast_hash": "26afa822e9a357b56d2d08c656abcd49",
+    "semantic_hash": "26afa822e9a357b56d2d08c656abcd49"
+  },
   "server/LegacyVault.Prototype.Domain/Enums.cs": {
     "mtime": 1791129280.733595,
-    "seen": 1791130262.0845132,
+    "seen": 1791130911.134395,
     "ast_hash": "b0c910c794586b05fb8dcb481fe2c07e",
     "semantic_hash": "b0c910c794586b05fb8dcb481fe2c07e"
   },
   "server/LegacyVault.Prototype.Domain/ErrorCodes.cs": {
     "mtime": 1790614580.0934074,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "3724d1ba31a2f8031975342d378d432f",
     "semantic_hash": "3724d1ba31a2f8031975342d378d432f"
   },
-  "server/LegacyVault.Prototype.Domain/LegacyVault.Prototype.Domain.csproj": {
-    "mtime": 1790574744.8114076,
-    "seen": 1790906350.5763621,
-    "ast_hash": "a09b26111c660da58a84b7d66e16c694",
-    "semantic_hash": "a09b26111c660da58a84b7d66e16c694"
-  },
-  "server/LegacyVault.Prototype.Domain/Models/AssetEnvelopeMetadata.cs": {
-    "mtime": 1790574909.641696,
-    "seen": 1790906350.5763621,
-    "ast_hash": "8a008d3f91fcaa25acbf972f41ed1217",
-    "semantic_hash": "8a008d3f91fcaa25acbf972f41ed1217"
-  },
-  "server/LegacyVault.Prototype.Domain/Models/EkycResult.cs": {
-    "mtime": 1790579650.2489686,
-    "seen": 1790906350.5763621,
-    "ast_hash": "78a17c8c3a6633f945b12bead1db7d2e",
-    "semantic_hash": "78a17c8c3a6633f945b12bead1db7d2e"
-  },
-  "server/LegacyVault.Prototype.Domain/Models/EstatePlanModels.cs": {
-    "mtime": 1790613982.8086143,
-    "seen": 1790906350.5763621,
-    "ast_hash": "3e2eb087eabeeb847c6bad3e3532d61f",
-    "semantic_hash": "3e2eb087eabeeb847c6bad3e3532d61f"
-  },
-  "server/LegacyVault.Prototype.Domain/Models/PaymentOrder.cs": {
-    "mtime": 1790574905.238573,
-    "seen": 1790906350.5763621,
-    "ast_hash": "9772a593557e17518c5f651d3aedffcf",
-    "semantic_hash": "9772a593557e17518c5f651d3aedffcf"
-  },
-  "server/LegacyVault.Prototype.Domain/Models/ProblemDetailsResponse.cs": {
-    "mtime": 1790574901.5786498,
-    "seen": 1790906350.5763621,
-    "ast_hash": "a645df1115e7009e2ba2fb668aa56e7a",
-    "semantic_hash": "a645df1115e7009e2ba2fb668aa56e7a"
-  },
-  "server/LegacyVault.Prototype.Infrastructure/LegacyVault.Prototype.Infrastructure.csproj": {
-    "mtime": 1791013217.484758,
-    "seen": 1791130262.0865166,
-    "ast_hash": "213d2a1bdbc2e36c433f1915ef7c9af2",
-    "semantic_hash": "213d2a1bdbc2e36c433f1915ef7c9af2"
+  "server/LegacyVault.Prototype.Infrastructure/Persistence/LegacyVaultDbContext.cs": {
+    "mtime": 1791129357.051097,
+    "seen": 1791130911.134395,
+    "ast_hash": "af31685bc5b1284442889b23ce0d7000",
+    "semantic_hash": "af31685bc5b1284442889b23ce0d7000"
   },
   "server/LegacyVault.Prototype.Infrastructure/Services/CloudflareR2StorageService.cs": {
     "mtime": 1790594271.1822393,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "5100b32166f8913596424014ff7058f0",
     "semantic_hash": "5100b32166f8913596424014ff7058f0"
   },
   "server/LegacyVault.Prototype.Infrastructure/Services/EkycService.cs": {
     "mtime": 1790595137.0650148,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "1f6d8e3162804363013e54d9cd5157b1",
     "semantic_hash": "1f6d8e3162804363013e54d9cd5157b1"
   },
   "server/LegacyVault.Prototype.Infrastructure/Services/EnvelopeEncryptionService.cs": {
     "mtime": 1790574964.9861271,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "231c5d7aa5408aa5d08ea838471e8e76",
     "semantic_hash": "231c5d7aa5408aa5d08ea838471e8e76"
   },
   "server/LegacyVault.Prototype.Infrastructure/Services/FptMarketplaceService.cs": {
     "mtime": 1790592914.3679414,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "9297ab42a70db9007a84aae3be59c1d1",
     "semantic_hash": "9297ab42a70db9007a84aae3be59c1d1"
   },
   "server/LegacyVault.Prototype.Infrastructure/Services/GoogleOidcValidationService.cs": {
     "mtime": 1790658473.9804692,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "f8464554d5e3b2ab2c474071f6f1963c",
     "semantic_hash": "f8464554d5e3b2ab2c474071f6f1963c"
   },
+  "server/LegacyVault.Prototype.Infrastructure/Services/JwtTokenService.cs": {
+    "mtime": 1791013501.959311,
+    "seen": 1791130911.134395,
+    "ast_hash": "f1c49eb5ec76da5d6f71158f6422c05c",
+    "semantic_hash": "f1c49eb5ec76da5d6f71158f6422c05c"
+  },
+  "server/LegacyVault.Prototype.Infrastructure/Services/LiveKitVideoService.cs": {
+    "mtime": 1790947980.2979317,
+    "seen": 1791130911.134395,
+    "ast_hash": "17e2150431d98cbb9868f82df996a2ff",
+    "semantic_hash": "17e2150431d98cbb9868f82df996a2ff"
+  },
   "server/LegacyVault.Prototype.Infrastructure/Services/MailKitEmailService.cs": {
     "mtime": 1790597935.8598776,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "e8a38b8bedb15896ef5f0504fab3f955",
     "semantic_hash": "e8a38b8bedb15896ef5f0504fab3f955"
   },
   "server/LegacyVault.Prototype.Infrastructure/Services/SePayPaymentService.cs": {
     "mtime": 1791129292.5656905,
-    "seen": 1791130262.0875127,
+    "seen": 1791130911.134395,
     "ast_hash": "f932e76b518e737f7b8f83034fd7de63",
     "semantic_hash": "f932e76b518e737f7b8f83034fd7de63"
   },
   "server/LegacyVault.Prototype.Infrastructure/Services/TimeLockRescueService.cs": {
     "mtime": 1790951437.4018495,
-    "seen": 1791130262.0875127,
+    "seen": 1791130911.134395,
     "ast_hash": "0ca6dfb93e944fee5cd31a16697415d1",
     "semantic_hash": "0ca6dfb93e944fee5cd31a16697415d1"
   },
-  "server/LegacyVault.Prototype.Tests/BlackBox/BoundaryValueAnalysisTests.cs": {
-    "mtime": 1790614417.3021512,
-    "seen": 1790906350.5763621,
-    "ast_hash": "f2bd2038ea1ca07ff445722a38ab2eb7",
-    "semantic_hash": "f2bd2038ea1ca07ff445722a38ab2eb7"
-  },
-  "server/LegacyVault.Prototype.Tests/BlackBox/DecisionTableTests.cs": {
-    "mtime": 1790614431.292251,
-    "seen": 1790906350.5763621,
-    "ast_hash": "a7384be6d0738a677445cacb52071482",
-    "semantic_hash": "a7384be6d0738a677445cacb52071482"
-  },
-  "server/LegacyVault.Prototype.Tests/BlackBox/EquivalencePartitioningTests.cs": {
-    "mtime": 1790614401.529751,
-    "seen": 1790906350.5763621,
-    "ast_hash": "43334fca78d3c341f7f0adf88fa199fe",
-    "semantic_hash": "43334fca78d3c341f7f0adf88fa199fe"
-  },
-  "server/LegacyVault.Prototype.Tests/BlackBox/StateTransitionTests.cs": {
-    "mtime": 1790614442.7575312,
-    "seen": 1790906350.5763621,
-    "ast_hash": "293e140a29d2133009794e521b06a158",
-    "semantic_hash": "293e140a29d2133009794e521b06a158"
-  },
-  "server/LegacyVault.Prototype.Tests/LegacyVault.Prototype.Tests.csproj": {
-    "mtime": 1791013854.8037708,
-    "seen": 1791130262.0885124,
-    "ast_hash": "6383f86e034b00832566f3b99c969194",
-    "semantic_hash": "6383f86e034b00832566f3b99c969194"
-  },
-  "server/LegacyVault.Prototype.Tests/WhiteBox/EmailUtilsWhiteBoxTests.cs": {
-    "mtime": 1790614487.4473367,
-    "seen": 1790906350.5763621,
-    "ast_hash": "1d917e3c450cd47604c9e40b76f4a87c",
-    "semantic_hash": "1d917e3c450cd47604c9e40b76f4a87c"
-  },
-  "server/LegacyVault.Prototype.Tests/WhiteBox/EnvelopeEncryptionWhiteBoxTests.cs": {
-    "mtime": 1790614475.6848125,
-    "seen": 1790906350.5763621,
-    "ast_hash": "72598ac4b167862f028ea1f787492099",
-    "semantic_hash": "72598ac4b167862f028ea1f787492099"
-  },
-  "server/LegacyVault.Prototype.Tests/WhiteBox/EstatePlanRulesWhiteBoxTests.cs": {
-    "mtime": 1790614452.4390545,
-    "seen": 1790906350.5763621,
-    "ast_hash": "37e37ac3bb5e4b8c69a443c56026704d",
-    "semantic_hash": "37e37ac3bb5e4b8c69a443c56026704d"
-  },
-  "server/LegacyVault.Prototype.Tests/WhiteBox/SePayPaymentWhiteBoxTests.cs": {
-    "mtime": 1790615750.7453678,
-    "seen": 1790906350.5763621,
-    "ast_hash": "00030602e8e18604fc332c6d5b0e53e7",
-    "semantic_hash": "00030602e8e18604fc332c6d5b0e53e7"
+  "server/LegacyVault.Prototype.Infrastructure/Services/VideoSessionService.cs": {
+    "mtime": 1791013257.4077027,
+    "seen": 1791130911.134395,
+    "ast_hash": "aecc4e587e70f381fb6ca5f103cbbfdc",
+    "semantic_hash": "aecc4e587e70f381fb6ca5f103cbbfdc"
   },
   "server/LegacyVault.Prototype.WebApi/Controllers/AuthController.cs": {
     "mtime": 1791013574.6679783,
-    "seen": 1791130262.089516,
+    "seen": 1791130911.134395,
     "ast_hash": "e1da876549ea968db38c0ac16846374e",
     "semantic_hash": "e1da876549ea968db38c0ac16846374e"
   },
+  "server/LegacyVault.Prototype.WebApi/Controllers/CaseBundlesController.cs": {
+    "mtime": 1790957292.358913,
+    "seen": 1791130911.134395,
+    "ast_hash": "3eaff7a1bccabc0532916d770cbc3d97",
+    "semantic_hash": "3eaff7a1bccabc0532916d770cbc3d97"
+  },
   "server/LegacyVault.Prototype.WebApi/Controllers/CryptoController.cs": {
     "mtime": 1790580391.6285436,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "ac303c81dc97916780ce3fa51caf0e02",
     "semantic_hash": "ac303c81dc97916780ce3fa51caf0e02"
   },
   "server/LegacyVault.Prototype.WebApi/Controllers/EkycController.cs": {
     "mtime": 1790766803.9931655,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "edbc40a2738f5348eb72433564523b9d",
     "semantic_hash": "edbc40a2738f5348eb72433564523b9d"
   },
   "server/LegacyVault.Prototype.WebApi/Controllers/FptMarketplaceController.cs": {
     "mtime": 1790592927.467606,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "774737d2fd5e3a2abc031eedecac2d3d",
     "semantic_hash": "774737d2fd5e3a2abc031eedecac2d3d"
   },
   "server/LegacyVault.Prototype.WebApi/Controllers/MailController.cs": {
     "mtime": 1790597580.9432378,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "449b6863aceb9eb739cb5b5a7f6bf4e5",
     "semantic_hash": "449b6863aceb9eb739cb5b5a7f6bf4e5"
   },
   "server/LegacyVault.Prototype.WebApi/Controllers/PaymentController.cs": {
     "mtime": 1790575052.1429884,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "b67519948e4b64cc45f43a59a1c4029d",
     "semantic_hash": "b67519948e4b64cc45f43a59a1c4029d"
   },
   "server/LegacyVault.Prototype.WebApi/Controllers/StorageController.cs": {
     "mtime": 1790594174.5389638,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "bae66ca124b9cbc3eb465ac8955b33f1",
     "semantic_hash": "bae66ca124b9cbc3eb465ac8955b33f1"
   },
   "server/LegacyVault.Prototype.WebApi/Controllers/TimeLockController.cs": {
     "mtime": 1790575073.6099737,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "1a8183720ef4cb09f227ff6dee65bc2a",
     "semantic_hash": "1a8183720ef4cb09f227ff6dee65bc2a"
   },
-  "server/LegacyVault.Prototype.WebApi/LegacyVault.Prototype.WebApi.csproj": {
-    "mtime": 1791013706.9972515,
-    "seen": 1791130262.0910232,
-    "ast_hash": "7c7c5ba9c4b33d8e89a311c8ead21491",
-    "semantic_hash": "7c7c5ba9c4b33d8e89a311c8ead21491"
+  "server/LegacyVault.Prototype.WebApi/Controllers/VideoSessionsController.cs": {
+    "mtime": 1790952964.945927,
+    "seen": 1791130911.134395,
+    "ast_hash": "1115434714d65ba2db67815acd23239a",
+    "semantic_hash": "1115434714d65ba2db67815acd23239a"
   },
   "server/LegacyVault.Prototype.WebApi/Middlewares/CorrelationIdMiddleware.cs": {
     "mtime": 1790575026.4094992,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "0166fdf2e9c0aff84ea542db13b7e59e",
     "semantic_hash": "0166fdf2e9c0aff84ea542db13b7e59e"
   },
   "server/LegacyVault.Prototype.WebApi/Middlewares/Rfc7807ExceptionMiddleware.cs": {
     "mtime": 1790575033.6381953,
-    "seen": 1790906350.5763621,
+    "seen": 1791130911.134395,
     "ast_hash": "44d5667ed7eebe02e785a1e4f3b887d0",
     "semantic_hash": "44d5667ed7eebe02e785a1e4f3b887d0"
   },
   "server/LegacyVault.Prototype.WebApi/Program.cs": {
     "mtime": 1791013838.274127,
-    "seen": 1791130262.0920339,
+    "seen": 1791130911.134395,
     "ast_hash": "b6dcbb0a4c69cdcd8845302a560261bd",
     "semantic_hash": "b6dcbb0a4c69cdcd8845302a560261bd"
-  },
-  "server/LegacyVault.Prototype.WebApi/Properties/launchSettings.json": {
-    "mtime": 1790576718.2263143,
-    "seen": 1790906350.5763621,
-    "ast_hash": "ebf6552cb9ee7cb38a7dd71a05176786",
-    "semantic_hash": "ebf6552cb9ee7cb38a7dd71a05176786"
-  },
-  "server/LegacyVault.Prototype.WebApi/appsettings.Development.json": {
-    "mtime": 1790574747.7228026,
-    "seen": 1790906350.5763621,
-    "ast_hash": "804b473502a4c415cf75db61c56c32aa",
-    "semantic_hash": "804b473502a4c415cf75db61c56c32aa"
-  },
-  "server/LegacyVault.Prototype.WebApi/appsettings.json": {
-    "mtime": 1791013522.8971047,
-    "seen": 1791130262.0930302,
-    "ast_hash": "49e78895fa8c48a02dc7fe22d4b7930c",
-    "semantic_hash": "49e78895fa8c48a02dc7fe22d4b7930c"
-  },
-  "server/LegacyVault.Prototype.sln": {
-    "mtime": 1790614252.1200604,
-    "seen": 1790906350.5763621,
-    "ast_hash": "8a17693faa71ff749803aee80e89ef48",
-    "semantic_hash": "8a17693faa71ff749803aee80e89ef48"
-  },
-  "skills-lock.json": {
-    "mtime": 1790905404.5813339,
-    "seen": 1790906350.5763621,
-    "ast_hash": "aff2a4a32a3907539010e60bbf3a39e7",
-    "semantic_hash": "aff2a4a32a3907539010e60bbf3a39e7"
-  },
-  "README.md": {
-    "mtime": 1790738579.4760342,
-    "seen": 1790906861.6591382,
-    "ast_hash": "1b656014431663331ebec312a7013566",
-    "semantic_hash": ""
-  },
-  "client/README.md": {
-    "mtime": 1790404494.8760312,
-    "seen": 1790906861.6591382,
-    "ast_hash": "10495bfcc6c568eca4dab6dd5df795d3",
-    "semantic_hash": ""
-  },
-  "client/index.html": {
-    "mtime": 1790595565.2050555,
-    "seen": 1790906861.6591382,
-    "ast_hash": "38576e512a834103e60d00c233faaa5a",
-    "semantic_hash": ""
-  },
-  "docs/01_requirements/LEGAL_FRAMEWORK_AND_CIVIL_COMPLIANCE.md": {
-    "mtime": 1790595794.0117147,
-    "seen": 1790906861.6591382,
-    "ast_hash": "aacbff929c8dfc1e6d7ca24cefe86b59",
-    "semantic_hash": ""
-  },
-  "docs/01_requirements/LegacyVault-SRS-v3.11.0.md": {
-    "mtime": 1790768163.5364041,
-    "seen": 1790906861.6591382,
-    "ast_hash": "b4e627a05b8f93658ca54abe8a4561b8",
-    "semantic_hash": ""
-  },
-  "docs/02_architecture/DATABASE_SCHEMA_ERD.md": {
-    "mtime": 1791129267.1339414,
-    "seen": 1791130121.9211967,
-    "ast_hash": "ee83a84db001345ad0a99e305c6a832b",
-    "semantic_hash": ""
-  },
-  "docs/02_architecture/KIEN_TRUC_MAT_MA_VA_LUU_TRU_DI_SAN.md": {
-    "mtime": 1790766680.5996864,
-    "seen": 1790906861.6591382,
-    "ast_hash": "581ced8ff5b9a83b007cc84a84291ee2",
-    "semantic_hash": ""
-  },
-  "docs/02_architecture/PERMISSION_MATRIX.md": {
-    "mtime": 1790432411.539013,
-    "seen": 1790906861.6591382,
-    "ast_hash": "8a2592e609072aaaac39d4d68a8b68a9",
-    "semantic_hash": ""
-  },
-  "docs/02_architecture/STATE_MACHINES.md": {
-    "mtime": 1790776851.7117023,
-    "seen": 1790906861.6591382,
-    "ast_hash": "1b295cea331b43a4dd72a98629686b08",
-    "semantic_hash": ""
-  },
-  "docs/02_architecture/SYSTEM_ARCHITECTURE_DOCUMENT.md": {
-    "mtime": 1790768265.0203955,
-    "seen": 1790906861.6591382,
-    "ast_hash": "699eea87662082c9c7676249d7443c7b",
-    "semantic_hash": ""
-  },
-  "docs/02_architecture/TECHNOLOGY_PROS_CONS_COMPARISON.md": {
-    "mtime": 1790768303.200685,
-    "seen": 1790906861.6591382,
-    "ast_hash": "adeb46d58bb158a495d52304fc20eaa1",
-    "semantic_hash": ""
-  },
-  "docs/03_api_and_integration/BE_INTEGRATION_GUIDE.md": {
-    "mtime": 1791118541.000209,
-    "seen": 1791130121.9211967,
-    "ast_hash": "badc2bdb1e61e87a2939b7c9df577071",
-    "semantic_hash": ""
-  },
-  "docs/03_api_and_integration/ERROR_CODES.md": {
-    "mtime": 1790432449.1667314,
-    "seen": 1790906861.6591382,
-    "ast_hash": "9e64fc4f67a07eb44e3ae97dfc66c027",
-    "semantic_hash": ""
-  },
-  "docs/03_api_and_integration/FE_INTEGRATION_GUIDE.md": {
-    "mtime": 1790432377.2247128,
-    "seen": 1790906861.6591382,
-    "ast_hash": "15783df7bdd4306372a6a223ab13832f",
-    "semantic_hash": ""
-  },
-  "docs/03_api_and_integration/FRONTEND_BACKEND_API_CONTRACT.md": {
-    "mtime": 1790431899.896182,
-    "seen": 1790906861.6591382,
-    "ast_hash": "2eb333c2aa0f1a8af715a39e7efb7c3e",
-    "semantic_hash": ""
-  },
-  "docs/04_business_flows/BUSINESS_FLOW_AND_INTEGRATION_ANALYSIS.md": {
-    "mtime": 1790769671.7680829,
-    "seen": 1790906861.6591382,
-    "ast_hash": "10fcce9053c26d8ef8d1698581b34e70",
-    "semantic_hash": ""
-  },
-  "docs/04_business_flows/DEVELOPER_SWIMLANE_GUIDE.md": {
-    "mtime": 1790776877.303965,
-    "seen": 1790906861.6591382,
-    "ast_hash": "10a9e00fe4e64169c0c4a00f8d36958d",
-    "semantic_hash": ""
-  },
-  "docs/04_business_flows/FLOW_01_DEVELOPER_IMPLEMENTATION_SPEC.md": {
-    "mtime": 1790834527.4227107,
-    "seen": 1790906861.6591382,
-    "ast_hash": "9753e4f491359df99698d0d0074682cf",
-    "semantic_hash": ""
-  },
-  "docs/04_business_flows/FLOW_02_DEVELOPER_IMPLEMENTATION_SPEC.md": {
-    "mtime": 1790771415.4086065,
-    "seen": 1790906861.6591382,
-    "ast_hash": "594a333e26f1a7905652383c13f2c2c2",
-    "semantic_hash": ""
-  },
-  "docs/04_business_flows/FLOW_03_DEVELOPER_IMPLEMENTATION_SPEC.md": {
-    "mtime": 1790776785.8026333,
-    "seen": 1790906861.6591382,
-    "ast_hash": "56b75e66db9b3b84f2be16a66670e46e",
-    "semantic_hash": ""
-  },
-  "docs/04_business_flows/MAIN_FLOWS_DETAILED_SPECIFICATION.md": {
-    "mtime": 1790770118.2797606,
-    "seen": 1790906861.6591382,
-    "ast_hash": "e13046d597fcf5767c345aecd5490d54",
-    "semantic_hash": ""
-  },
-  "docs/04_business_flows/WORKFLOW_SWIMLANE_ARCHITECTURE.md": {
-    "mtime": 1790778680.7464664,
-    "seen": 1790906861.6591382,
-    "ast_hash": "b8f6e2c0a273c44ce4401ed2c902530d",
-    "semantic_hash": ""
-  },
-  "docs/05_design_ui/DESIGN_SYSTEM_UI_KIT.md": {
-    "mtime": 1790431317.7736294,
-    "seen": 1790906861.6591382,
-    "ast_hash": "22922e159eeef3698d0b90852eb53620",
-    "semantic_hash": ""
-  },
-  "docs/05_design_ui/UI_KIT.html": {
-    "mtime": 1790431296.938834,
-    "seen": 1790906861.6591382,
-    "ast_hash": "20e3eeee0b29db7bc07ec7f71e13b955",
-    "semantic_hash": ""
-  },
-  "docs/06_diagrams_interactive/legacyvault-architecture.html": {
-    "mtime": 1790611116.8493688,
-    "seen": 1790906861.6591382,
-    "ast_hash": "fe35398f89551295e9372fac59258c29",
-    "semantic_hash": ""
-  },
-  "docs/06_diagrams_interactive/legacyvault-full-workflow.html": {
-    "mtime": 1790611116.8675532,
-    "seen": 1790906861.6591382,
-    "ast_hash": "809669eca4f2bb5ba8cadf80088a7153",
-    "semantic_hash": ""
-  },
-  "docs/06_diagrams_interactive/legacyvault-payload-sequence.html": {
-    "mtime": 1790611116.8738549,
-    "seen": 1790906861.6591382,
-    "ast_hash": "89ea7431227a1d1599bc9231eee47cdd",
-    "semantic_hash": ""
-  },
-  "docs/README.md": {
-    "mtime": 1790776840.5755413,
-    "seen": 1790906861.6591382,
-    "ast_hash": "2ade97a2e87874fadbba4ac6ebd453f4",
-    "semantic_hash": ""
-  },
-  "docs/ai_knowledge_base/LEGAL_AI_SYSTEM_INSTRUCTION.md": {
-    "mtime": 1790600000.5083811,
-    "seen": 1790906861.6591382,
-    "ast_hash": "0d4ffb4986a163059482b240155408ed",
-    "semantic_hash": ""
-  },
-  "docs/testing/TEST_CASE_SPECIFICATION.md": {
-    "mtime": 1790616025.4597352,
-    "seen": 1790906861.6591382,
-    "ast_hash": "3759343db1dd81056f63df0065eb0c81",
-    "semantic_hash": ""
-  },
-  "docs/testing/TEST_DESIGN_SPECIFICATION.md": {
-    "mtime": 1790615859.822915,
-    "seen": 1790906861.6591382,
-    "ast_hash": "af5c37c8f4bf07281ed4a677e1d5d4ab",
-    "semantic_hash": ""
-  },
-  "docs/testing/TEST_EXECUTION_REPORT.md": {
-    "mtime": 1790615991.04878,
-    "seen": 1790906861.6591382,
-    "ast_hash": "a79b4ae7a4c080bbd79e992b378953c9",
-    "semantic_hash": ""
-  },
-  "docs/testing/TEST_PLAN.md": {
-    "mtime": 1790616001.2108004,
-    "seen": 1790906861.6591382,
-    "ast_hash": "b4fad2ccf019b8430fcce4aef2f9a620",
-    "semantic_hash": ""
-  },
-  "docs/testing/TEST_PROCEDURE_SPECIFICATION.md": {
-    "mtime": 1790614993.0480952,
-    "seen": 1790906861.6591382,
-    "ast_hash": "5bb67b111959dcf1ac7e6f7ec0302fee",
-    "semantic_hash": ""
-  },
-  "docs/testing/TRACEABILITY_MATRIX.md": {
-    "mtime": 1790615921.6168225,
-    "seen": 1790906861.6591382,
-    "ast_hash": "0ec6bffaf5a49b2e65fd8fa75e2b2eb4",
-    "semantic_hash": ""
-  },
-  "docs/testing/WHITE_BOX_COVERAGE.md": {
-    "mtime": 1790615962.0424001,
-    "seen": 1790906861.6591382,
-    "ast_hash": "a8205ae793d3152e826bbbcd77958a2d",
-    "semantic_hash": ""
-  },
-  "client/src/features/video-verification/VideoVerificationTestbench.tsx": {
-    "mtime": 1791129559.2198174,
-    "seen": 1791130262.0735133,
-    "ast_hash": "ddf9b1e21d210e5c3022209a55f52c8b",
-    "semantic_hash": "ddf9b1e21d210e5c3022209a55f52c8b"
-  },
-  "server/LegacyVault.Prototype.Application/DTOs/VideoSessionDtos.cs": {
-    "mtime": 1790947948.072092,
-    "seen": 1791130262.082513,
-    "ast_hash": "2f9080a2a63d7b7ccfd0484a267ffe68",
-    "semantic_hash": "2f9080a2a63d7b7ccfd0484a267ffe68"
-  },
-  "server/LegacyVault.Prototype.Application/Interfaces/ILiveKitVideoService.cs": {
-    "mtime": 1790947958.6599772,
-    "seen": 1791130262.0835123,
-    "ast_hash": "88e8908f26f933ea5392fe0f2d592df1",
-    "semantic_hash": "88e8908f26f933ea5392fe0f2d592df1"
-  },
-  "server/LegacyVault.Prototype.Application/Interfaces/IVideoSessionService.cs": {
-    "mtime": 1790956737.5255902,
-    "seen": 1791130262.0845132,
-    "ast_hash": "295f26d73b7d7ba755475e7327946a79",
-    "semantic_hash": "295f26d73b7d7ba755475e7327946a79"
-  },
-  "server/LegacyVault.Prototype.Domain/Models/VideoSessionModels.cs": {
-    "mtime": 1790947940.573293,
-    "seen": 1791130262.0865166,
-    "ast_hash": "4aa4adc4a299fc35562ea82bbe5a40ee",
-    "semantic_hash": "4aa4adc4a299fc35562ea82bbe5a40ee"
-  },
-  "server/LegacyVault.Prototype.Infrastructure/Services/LiveKitVideoService.cs": {
-    "mtime": 1790947980.2979317,
-    "seen": 1791130262.0875127,
-    "ast_hash": "17e2150431d98cbb9868f82df996a2ff",
-    "semantic_hash": "17e2150431d98cbb9868f82df996a2ff"
-  },
-  "server/LegacyVault.Prototype.Infrastructure/Services/VideoSessionService.cs": {
-    "mtime": 1791013257.4077027,
-    "seen": 1791130262.0875127,
-    "ast_hash": "aecc4e587e70f381fb6ca5f103cbbfdc",
-    "semantic_hash": "aecc4e587e70f381fb6ca5f103cbbfdc"
-  },
-  "server/LegacyVault.Prototype.Tests/WhiteBox/VideoSessionWhiteBoxTests.cs": {
-    "mtime": 1791013443.198595,
-    "seen": 1791130262.089516,
-    "ast_hash": "4ce8b0026c56b5d4209ca45369477df7",
-    "semantic_hash": "4ce8b0026c56b5d4209ca45369477df7"
-  },
-  "server/LegacyVault.Prototype.WebApi/Controllers/VideoSessionsController.cs": {
-    "mtime": 1790952964.945927,
-    "seen": 1791130262.0910232,
-    "ast_hash": "1115434714d65ba2db67815acd23239a",
-    "semantic_hash": "1115434714d65ba2db67815acd23239a"
-  },
-  "server/LegacyVault.Prototype.Application/DTOs/HandoverDtos.cs": {
-    "mtime": 1790956485.164482,
-    "seen": 1791130262.0815158,
-    "ast_hash": "ba93602067453b14eee09101304d6469",
-    "semantic_hash": "ba93602067453b14eee09101304d6469"
-  },
-  "server/LegacyVault.Prototype.Domain/Models/HandoverModels.cs": {
-    "mtime": 1790956722.8978086,
-    "seen": 1791130262.085515,
-    "ast_hash": "ff49d002975497225f748925a3874bae",
-    "semantic_hash": "ff49d002975497225f748925a3874bae"
-  },
-  "server/LegacyVault.Prototype.WebApi/Controllers/CaseBundlesController.cs": {
-    "mtime": 1790957292.358913,
-    "seen": 1791130262.089516,
-    "ast_hash": "3eaff7a1bccabc0532916d770cbc3d97",
-    "semantic_hash": "3eaff7a1bccabc0532916d770cbc3d97"
-  },
-  "server/LegacyVault.Prototype.Application/Interfaces/IJwtTokenService.cs": {
-    "mtime": 1791013494.2025993,
-    "seen": 1791130262.0835123,
-    "ast_hash": "eab5792558b1f6732d541e6e7eb297cd",
-    "semantic_hash": "eab5792558b1f6732d541e6e7eb297cd"
-  },
-  "server/LegacyVault.Prototype.Domain/Entities/Entities.cs": {
-    "mtime": 1791129324.4183223,
-    "seen": 1791130262.0845132,
-    "ast_hash": "26afa822e9a357b56d2d08c656abcd49",
-    "semantic_hash": "26afa822e9a357b56d2d08c656abcd49"
-  },
-  "server/LegacyVault.Prototype.Infrastructure/Persistence/LegacyVaultDbContext.cs": {
-    "mtime": 1791129357.051097,
-    "seen": 1791130262.0865166,
-    "ast_hash": "af31685bc5b1284442889b23ce0d7000",
-    "semantic_hash": "af31685bc5b1284442889b23ce0d7000"
-  },
-  "server/LegacyVault.Prototype.Infrastructure/Services/JwtTokenService.cs": {
-    "mtime": 1791013501.959311,
-    "seen": 1791130262.0875127,
-    "ast_hash": "f1c49eb5ec76da5d6f71158f6422c05c",
-    "semantic_hash": "f1c49eb5ec76da5d6f71158f6422c05c"
-  },
-  "server/LegacyVault.Prototype.Tests/WhiteBox/DbContextWhiteBoxTests.cs": {
-    "mtime": 1791129402.797707,
-    "seen": 1791130262.0885124,
-    "ast_hash": "b50e47ca46273f793da74fac025c111b",
-    "semantic_hash": "b50e47ca46273f793da74fac025c111b"
-  },
-  "server/LegacyVault.Prototype.Tests/WhiteBox/JwtAuthWhiteBoxTests.cs": {
-    "mtime": 1791013747.4886067,
-    "seen": 1791130262.089516,
-    "ast_hash": "d193cb5150b966f33f7506d6ec93a2cf",
-    "semantic_hash": "d193cb5150b966f33f7506d6ec93a2cf"
   }
 }

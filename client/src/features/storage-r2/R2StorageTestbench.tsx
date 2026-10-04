@@ -4,6 +4,16 @@ import { HeritageCard } from '@/shared/ui/HeritageCard';
 import { HeritageButton } from '@/shared/ui/HeritageButton';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
 import { Cloud, UploadCloud, Download, Link2, FileCheck, AlertCircle } from 'lucide-react';
+import { getErrorMessage } from '@/shared/lib/errorUtils';
+
+interface UploadedEnvelopeAsset {
+  assetId: string;
+  fileName: string;
+  sizeBytes: number;
+  sha256Hash?: string;
+  checksumSha256?: string;
+  storageKey?: string;
+}
 
 export const R2StorageTestbench: React.FC = () => {
   const [fileName, setFileName] = useState('di_chuc_mat_2026.pdf');
@@ -16,7 +26,7 @@ export const R2StorageTestbench: React.FC = () => {
   // Upload envelope file
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [isUploadingEnvelope, setIsUploadingEnvelope] = useState(false);
-  const [uploadedAsset, setUploadedAsset] = useState<any | null>(null);
+  const [uploadedAsset, setUploadedAsset] = useState<UploadedEnvelopeAsset | null>(null);
   const [isDownloadingRam, setIsDownloadingRam] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [storageStatus, setStorageStatus] = useState<{ isConfigured: boolean; bucketName: string; provider: string; mode: string } | null>(null);
@@ -37,8 +47,8 @@ export const R2StorageTestbench: React.FC = () => {
       });
       setPresignedUploadUrl(res.data.presignedUrl);
       setStorageKey(res.data.key);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Lỗi sinh Presigned Upload URL');
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsGeneratingUpload(false);
     }
@@ -53,8 +63,8 @@ export const R2StorageTestbench: React.FC = () => {
         key: storageKey,
       });
       setPresignedDownloadUrl(res.data.presignedUrl);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Lỗi sinh Presigned Download URL');
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsGeneratingDownload(false);
     }
@@ -73,8 +83,8 @@ export const R2StorageTestbench: React.FC = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setUploadedAsset(res.data.asset);
-    } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || err.message);
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsUploadingEnvelope(false);
     }
@@ -101,8 +111,8 @@ export const R2StorageTestbench: React.FC = () => {
 
       // Thu hồi ngay lập tức sau khi tải về hoàn tất
       URL.revokeObjectURL(blobUrl);
-    } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || 'Lỗi tải tệp streaming từ RAM');
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsDownloadingRam(false);
     }

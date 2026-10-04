@@ -20,7 +20,6 @@ import {
   Clock,
   Copy,
   Download,
-  ExternalLink,
   FileCheck,
   FileText,
   Fingerprint,
@@ -33,7 +32,6 @@ import {
   Plus,
   QrCode,
   RefreshCw,
-  Share2,
   ShieldAlert,
   ShieldCheck,
   ShieldQuestion,
@@ -42,6 +40,16 @@ import {
   Users,
   Video,
 } from "lucide-react";
+import { getErrorMessage } from "@/shared/lib/errorUtils";
+import type {
+  HandoverAssetDto,
+  CoBeneficiaryDecisionDto,
+  HandoverEligibilityDto,
+  AcceptResponseDto,
+  VerdictResultData,
+  HoldResultData,
+  FinalReceiptData,
+} from "@/entities/claim/model/types";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -55,12 +63,7 @@ interface JoinTokenData {
 }
 
 export type ExtendedUserRole =
-  | "EXECUTOR"
-  | "BENEFICIARY_GUEST"
-  | "CO_BENEFICIARY"
-  | "NOTARY_OBSERVER"
-  | "VERIFIER"
-  | "OWNER";
+  "EXECUTOR" | "BENEFICIARY_GUEST" | "CO_BENEFICIARY" | "NOTARY_OBSERVER" | "VERIFIER" | "OWNER";
 
 export const VideoVerificationTestbench: React.FC = () => {
   // Navigation Steps: 'prejoin' | 'call' | 'verdict'
@@ -136,17 +139,17 @@ export const VideoVerificationTestbench: React.FC = () => {
   const [verifierNotes, setVerifierNotes] = useState<string>(
     "Đương sự đã xuất trình CCCD gốc, đọc chính xác mã xác minh LV-8492 và quay mặt đối chiếu phản xạ tự nhiên. Khuôn mặt khớp ảnh đăng ký.",
   );
-  const [verdictResult, setVerdictResult] = useState<any>(null);
+  const [verdictResult, setVerdictResult] = useState<VerdictResultData | null>(null);
 
   // Emergency Hold State
-  const [holdResult, setHoldResult] = useState<any>(null);
+  const [holdResult, setHoldResult] = useState<HoldResultData | null>(null);
   const [isHolding, setIsHolding] = useState<boolean>(false);
 
   // In-Call Handover Ceremony States (7-Step Protocol)
-  const [handoverEligibility, setHandoverEligibility] = useState<any>(null);
+  const [handoverEligibility, setHandoverEligibility] = useState<HandoverEligibilityDto | null>(null);
   const [isCheckingEligibility, setIsCheckingEligibility] = useState<boolean>(false);
   const [isAcceptingHandover, setIsAcceptingHandover] = useState<boolean>(false);
-  const [acceptResponse, setAcceptResponse] = useState<any>(null);
+  const [acceptResponse, setAcceptResponse] = useState<AcceptResponseDto | null>(null);
   const [secondFactorVerified, setSecondFactorVerified] = useState<boolean>(true); // FIDO2 / Passkey
   const [isVerifierSaving, setIsVerifierSaving] = useState<boolean>(false);
   const [verifierSavedPass, setVerifierSavedPass] = useState<boolean>(false);
@@ -156,7 +159,7 @@ export const VideoVerificationTestbench: React.FC = () => {
   const [decryptedFiles, setDecryptedFiles] = useState<Record<string, boolean>>({});
   const [downloadedAssetIds, setDownloadedAssetIds] = useState<string[]>([]);
   const [isFinalizing, setIsFinalizing] = useState<boolean>(false);
-  const [finalReceipt, setFinalReceipt] = useState<any>(null);
+  const [finalReceipt, setFinalReceipt] = useState<FinalReceiptData | null>(null);
   const [showReceiptModal, setShowReceiptModal] = useState<boolean>(false);
 
   // Ký xác nhận biên nhận điện tử (Canvas Signature Pad)
@@ -258,8 +261,8 @@ export const VideoVerificationTestbench: React.FC = () => {
       setVerifierSavedPass(true);
       setVerifierSavedInconclusive(false);
       await fetchHandoverEligibility();
-    } catch (err: any) {
-      alert("Lỗi khi xác nhận người nhận: " + (err.response?.data?.message || err.message));
+    } catch (err: unknown) {
+      alert("Lỗi khi xác nhận người nhận: " + getErrorMessage(err));
     } finally {
       setExecutorAllowing(false);
     }
@@ -291,8 +294,8 @@ export const VideoVerificationTestbench: React.FC = () => {
       setFinalReceipt(res.data.receipt);
       setShowReceiptModal(true);
       await fetchHandoverEligibility();
-    } catch (err: any) {
-      alert("Lỗi hoàn tất phiên: " + (err.response?.data?.message || err.message));
+    } catch (err: unknown) {
+      alert("Lỗi hoàn tất phiên: " + getErrorMessage(err));
     } finally {
       setIsFinalizing(false);
     }
@@ -314,8 +317,8 @@ export const VideoVerificationTestbench: React.FC = () => {
       setVerifierSavedPass(true);
       setVerifierSavedInconclusive(false);
       await fetchHandoverEligibility();
-    } catch (err: any) {
-      alert("Lỗi khi lưu kết quả: " + (err.response?.data?.message || err.message));
+    } catch (err: unknown) {
+      alert("Lỗi khi lưu kết quả: " + getErrorMessage(err));
     } finally {
       setIsVerifierSaving(false);
     }
@@ -330,15 +333,16 @@ export const VideoVerificationTestbench: React.FC = () => {
         `${API_BASE}/api/video-sessions/${sessionId}/submit-verdict?verifierId=22222222-2222-2222-2222-222222222222`,
         {
           outcome: "INCONCLUSIVE",
-          verifierNotes: "Nghi ngờ tín hiệu deepfake / giật mép hình / bất thường nhận dạng từ xa. Chuyển hội đồng thẩm định trực tiếp.",
+          verifierNotes:
+            "Nghi ngờ tín hiệu deepfake / giật mép hình / bất thường nhận dạng từ xa. Chuyển hội đồng thẩm định trực tiếp.",
           checklistJson: JSON.stringify(checklist),
         },
       );
       setVerifierSavedInconclusive(true);
       setVerifierSavedPass(false);
       await fetchHandoverEligibility();
-    } catch (err: any) {
-      alert("Lỗi khi lưu kết quả: " + (err.response?.data?.message || err.message));
+    } catch (err: unknown) {
+      alert("Lỗi khi lưu kết quả: " + getErrorMessage(err));
     } finally {
       setIsVerifierSaving(false);
     }
@@ -359,11 +363,13 @@ export const VideoVerificationTestbench: React.FC = () => {
       if (res.data.isConsensusComplete) {
         alert("Tất cả người đồng thụ hưởng đã đồng thuận! Đã mở quyền tải di sản (Grant cá nhân cấp phát thành công).");
       } else {
-        alert("Đã ghi nhận quyết định của bạn: ĐỒNG Ý NHẬN.\nHiện đang chờ các người đồng thụ hưởng khác xác nhận để cấp Grant đồng thời theo đúng SRS v3.11.0.");
+        alert(
+          "Đã ghi nhận quyết định của bạn: ĐỒNG Ý NHẬN.\nHiện đang chờ các người đồng thụ hưởng khác xác nhận để cấp Grant đồng thời theo đúng SRS v3.11.0.",
+        );
       }
       await fetchHandoverEligibility();
-    } catch (err: any) {
-      alert("Không thể nhận di sản: " + (err.response?.data?.message || err.message));
+    } catch (err: unknown) {
+      alert("Không thể nhận di sản: " + getErrorMessage(err));
     } finally {
       setIsAcceptingHandover(false);
     }
@@ -385,32 +391,38 @@ export const VideoVerificationTestbench: React.FC = () => {
       });
       setAcceptResponse(res.data);
       await fetchHandoverEligibility();
-      alert("Đã ghi nhận quyết định từ chối. Kho di sản chung đã chuyển sang trạng thái ĐÓNG BĂNG SUY NGHĨ LẠI (2 năm) theo SRS v3.11.0.");
-    } catch (err: any) {
-      alert("Lỗi khi gửi quyết định: " + (err.response?.data?.message || err.message));
+      alert(
+        "Đã ghi nhận quyết định từ chối. Kho di sản chung đã chuyển sang trạng thái ĐÓNG BĂNG SUY NGHĨ LẠI (2 năm) theo SRS v3.11.0.",
+      );
+    } catch (err: unknown) {
+      alert("Lỗi khi gửi quyết định: " + getErrorMessage(err));
     } finally {
       setIsAcceptingHandover(false);
     }
   };
 
   // Người nhận tải và giải mã tệp bản rõ trong bộ nhớ máy
-  const handleDecryptAndDownload = async (asset: any) => {
+  const handleDecryptAndDownload = async (asset: HandoverAssetDto) => {
     setDownloadingAssetId(asset.assetId);
     try {
       // 1. Nhận vật liệu giải mã qua kênh bảo mật riêng HTTPS (tách biệt khỏi LiveKit)
-      await axios.post(`${API_BASE}/api/case-bundles/${caseId}/decrypt-key`, {}, {
-        headers: { "X-Simulation-Mode": "true" }
-      });
-      
+      await axios.post(
+        `${API_BASE}/api/case-bundles/${caseId}/decrypt-key`,
+        {},
+        {
+          headers: { "X-Simulation-Mode": "true" },
+        },
+      );
+
       // 2. Tải bản mã
       const blobRes = await axios.get(`${API_BASE}${asset.downloadEndpoint}`, { responseType: "blob" });
-      
+
       // 3. Giả lập giải mã AES-GCM 256-bit trong RAM trình duyệt và kích hoạt tải về máy
       const decryptedBlob = new Blob([blobRes.data], { type: asset.mimeType || "application/octet-stream" });
       const url = window.URL.createObjectURL(decryptedBlob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = asset.title.replace(".enc", "");
+      a.download = (asset.title || asset.fileName || "tep-di-san").replace(".enc", "");
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -418,8 +430,8 @@ export const VideoVerificationTestbench: React.FC = () => {
 
       setDecryptedFiles((prev) => ({ ...prev, [asset.assetId]: true }));
       setDownloadedAssetIds((prev) => Array.from(new Set([...prev, asset.assetId])));
-    } catch (err: any) {
-      alert("Lỗi giải mã tài sản: " + (err.response?.data?.message || err.message));
+    } catch (err: unknown) {
+      alert("Lỗi giải mã tài sản: " + getErrorMessage(err));
     } finally {
       setDownloadingAssetId(null);
     }
@@ -452,7 +464,9 @@ export const VideoVerificationTestbench: React.FC = () => {
       }
 
       // Audio Level Analyzer
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContextClass =
+        window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const audioCtx = new AudioContextClass();
       audioContextRef.current = audioCtx;
       const analyser = audioCtx.createAnalyser();
       const source = audioCtx.createMediaStreamSource(stream);
@@ -471,9 +485,9 @@ export const VideoVerificationTestbench: React.FC = () => {
         animationFrameRef.current = requestAnimationFrame(updateVolume);
       };
       updateVolume();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Không thể mở preview:", err);
-      alert("Vui lòng cho phép quyền truy cập Camera và Microphone trên trình duyệt.");
+      alert("Vui lòng cho phép quyền truy cập Camera và Microphone trên trình duyệt: " + getErrorMessage(err));
     }
   };
 
@@ -513,9 +527,9 @@ export const VideoVerificationTestbench: React.FC = () => {
       if (res.data.videoSessionId) {
         setSessionId(res.data.videoSessionId);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Lỗi khi kích hoạt Emergency Hold:", err);
-      alert(err.response?.data?.message || "Không thể kích hoạt Emergency Hold.");
+      alert("Không thể kích hoạt Emergency Hold: " + getErrorMessage(err));
     } finally {
       setIsHolding(false);
     }
@@ -558,8 +572,8 @@ export const VideoVerificationTestbench: React.FC = () => {
       setVerifierSavedPass(false);
       setActiveStep("prejoin");
       alert(`Đã khởi tạo phòng họp mới thành công!\nMã phòng: ${res.data.sessionId.slice(0, 8)}...`);
-    } catch (err: any) {
-      alert("Lỗi tạo phòng họp mới: " + (err.response?.data?.message || err.message));
+    } catch (err: unknown) {
+      alert("Lỗi tạo phòng họp mới: " + getErrorMessage(err));
     }
   };
 
@@ -612,14 +626,14 @@ export const VideoVerificationTestbench: React.FC = () => {
         userRole === "EXECUTOR"
           ? "Người thực thi (Host Executor)"
           : userRole === "BENEFICIARY_GUEST"
-          ? "Người thụ hưởng 1 (Chính)"
-          : userRole === "CO_BENEFICIARY"
-          ? "Đồng thừa kế 2"
-          : userRole === "NOTARY_OBSERVER"
-          ? "Công chứng viên / Luật sư"
-          : userRole === "VERIFIER"
-          ? "Thẩm định viên (Verifier)"
-          : "Chủ kho (Owner)";
+            ? "Người thụ hưởng 1 (Chính)"
+            : userRole === "CO_BENEFICIARY"
+              ? "Đồng thừa kế 2"
+              : userRole === "NOTARY_OBSERVER"
+                ? "Công chứng viên / Luật sư"
+                : userRole === "VERIFIER"
+                  ? "Thẩm định viên (Verifier)"
+                  : "Chủ kho (Owner)";
 
       const effectiveName = participantDisplayName.trim() || defaultName;
 
@@ -638,9 +652,9 @@ export const VideoVerificationTestbench: React.FC = () => {
       setJoinTokenData(res.data);
       setInCall(true);
       setActiveStep("call");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Lỗi kết nối phòng gọi:", err);
-      setConnectionError(err.response?.data?.message || "Không thể cấp quyền gia nhập phòng LiveKit.");
+      setConnectionError(getErrorMessage(err));
     } finally {
       setIsConnecting(false);
     }
@@ -680,9 +694,9 @@ export const VideoVerificationTestbench: React.FC = () => {
         },
       );
       setVerdictResult(res.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Lỗi nộp phán quyết:", err);
-      alert("Không thể lưu kết quả thẩm định.");
+      alert("Không thể lưu kết quả thẩm định: " + getErrorMessage(err));
     }
   };
 
@@ -712,7 +726,7 @@ export const VideoVerificationTestbench: React.FC = () => {
               <span className="text-[#66786E] font-medium">Mục đích:</span>
               <select
                 value={purpose}
-                onChange={(e) => setPurpose(e.target.value as any)}
+                onChange={(e) => setPurpose(e.target.value as "OWNER_RESCUE" | "HANDOVER_VERIFICATION")}
                 className="bg-white border-0 font-bold text-[#0B291E] focus:ring-0 cursor-pointer"
               >
                 <option value="OWNER_RESCUE">🚨 Kháng nghị Cứu hộ (Owner Rescue)</option>
@@ -724,7 +738,7 @@ export const VideoVerificationTestbench: React.FC = () => {
               <span className="text-[#66786E] font-medium">Góc nhìn:</span>
               <select
                 value={userRole}
-                onChange={(e) => setUserRole(e.target.value as any)}
+                onChange={(e) => setUserRole(e.target.value as ExtendedUserRole)}
                 className="bg-white border-0 font-bold text-[#B88E4C] focus:ring-0 cursor-pointer"
               >
                 <option value="EXECUTOR">Người thực thi (Executor - Host)</option>
@@ -1008,14 +1022,14 @@ export const VideoVerificationTestbench: React.FC = () => {
                       {userRole === "EXECUTOR"
                         ? "Người thực thi (Host Executor)"
                         : userRole === "VERIFIER"
-                        ? "Thẩm định viên (Host Verifier)"
-                        : userRole === "BENEFICIARY_GUEST"
-                        ? "Người thụ hưởng 1 (Chính)"
-                        : userRole === "CO_BENEFICIARY"
-                        ? "Đồng thừa kế 2"
-                        : userRole === "NOTARY_OBSERVER"
-                        ? "Công chứng viên / Luật sư giám sát"
-                        : "Chủ kho di sản (Owner)"}
+                          ? "Thẩm định viên (Host Verifier)"
+                          : userRole === "BENEFICIARY_GUEST"
+                            ? "Người thụ hưởng 1 (Chính)"
+                            : userRole === "CO_BENEFICIARY"
+                              ? "Đồng thừa kế 2"
+                              : userRole === "NOTARY_OBSERVER"
+                                ? "Công chứng viên / Luật sư giám sát"
+                                : "Chủ kho di sản (Owner)"}
                     </strong>
                     {participantDisplayName && (
                       <span className="ml-1.5 font-bold text-[#B88E4C]">({participantDisplayName})</span>
@@ -1121,7 +1135,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                     <span>Lưu ý An ninh & Phòng chống Giả mạo (NIST SP 800-63A):</span>
                   </div>
                   <p className="text-[11px] text-amber-900 leading-relaxed">
-                    Cuộc gọi video là <strong>nguồn bằng chứng hỗ trợ đối chiếu</strong>; chưa bảo đảm chống deepfake chuyên sâu. Khóa giải mã chỉ được phát hành khi hội đủ: <em>Verifier xác nhận, ràng buộc hồ sơ gốc, xác thực 2FA/Passkey và kiểm soát Time-Lock/Rescue.</em>
+                    Cuộc gọi video là <strong>nguồn bằng chứng hỗ trợ đối chiếu</strong>; chưa bảo đảm chống deepfake
+                    chuyên sâu. Khóa giải mã chỉ được phát hành khi hội đủ:{" "}
+                    <em>Verifier xác nhận, ràng buộc hồ sơ gốc, xác thực 2FA/Passkey và kiểm soát Time-Lock/Rescue.</em>
                   </p>
                 </div>
 
@@ -1138,7 +1154,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-[#66786E] block">CCCD trên CSDL:</span>
-                        <strong className="text-[#0B291E] font-mono">{handoverEligibility.registeredDossier.nationalIdMasked}</strong>
+                        <strong className="text-[#0B291E] font-mono">
+                          {handoverEligibility.registeredDossier.nationalIdMasked}
+                        </strong>
                       </div>
                     </div>
                   </div>
@@ -1150,11 +1168,14 @@ export const VideoVerificationTestbench: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[#0B291E] flex items-center gap-1.5">
                         <Users className="w-4 h-4 text-[#B88E4C]" />
-                        Đồng Sở Hữu Nhóm: {handoverEligibility.coOwnershipStatus.mode === "CO_OWNERSHIP" ? "Kho dùng chung" : "Đơn lẻ"}
+                        Đồng Sở Hữu Nhóm:{" "}
+                        {handoverEligibility.coOwnershipStatus.mode === "CO_OWNERSHIP" ? "Kho dùng chung" : "Đơn lẻ"}
                       </span>
                       {handoverEligibility.coOwnershipStatus.vaultStatus === "CONSENSUS_REACHED" ? (
                         <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Check className="w-3 h-3" /> Đã Đủ Đồng Thuận ({handoverEligibility.coOwnershipStatus.acceptedCount}/{handoverEligibility.coOwnershipStatus.totalBeneficiariesCount})
+                          <Check className="w-3 h-3" /> Đã Đủ Đồng Thuận (
+                          {handoverEligibility.coOwnershipStatus.acceptedCount}/
+                          {handoverEligibility.coOwnershipStatus.totalBeneficiariesCount})
                         </span>
                       ) : handoverEligibility.coOwnershipStatus.vaultStatus === "FROZEN_RECONSIDERATION" ? (
                         <span className="text-[10px] font-bold text-red-800 bg-red-100 border border-red-300 px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -1166,7 +1187,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                         </span>
                       ) : (
                         <span className="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> Chờ Đồng Thuận ({handoverEligibility.coOwnershipStatus.acceptedCount}/{handoverEligibility.coOwnershipStatus.totalBeneficiariesCount})
+                          <Clock className="w-3 h-3" /> Chờ Đồng Thuận (
+                          {handoverEligibility.coOwnershipStatus.acceptedCount}/
+                          {handoverEligibility.coOwnershipStatus.totalBeneficiariesCount})
                         </span>
                       )}
                     </div>
@@ -1178,37 +1201,46 @@ export const VideoVerificationTestbench: React.FC = () => {
                           <span>Kho đang tạm đóng băng theo quy định SRS:</span>
                         </div>
                         <p className="text-[10px]">
-                          {handoverEligibility.coOwnershipStatus.rejectionReason || "Có người từ chối nhận hoặc hết 7 ngày chưa đủ đồng thuận. Thời hạn suy nghĩ lại: 2 năm."}
+                          {handoverEligibility.coOwnershipStatus.rejectionReason ||
+                            "Có người từ chối nhận hoặc hết 7 ngày chưa đủ đồng thuận. Thời hạn suy nghĩ lại: 2 năm."}
                         </p>
                       </div>
                     )}
 
                     {/* Chi tiết từng người thụ hưởng trong nhóm */}
-                    {handoverEligibility.coOwnershipStatus.decisions && handoverEligibility.coOwnershipStatus.decisions.length > 0 && (
-                      <div className="space-y-1.5 pt-1">
-                        <span className="text-[10px] font-bold text-[#66786E] uppercase block">Tiến độ phản hồi từng thành viên:</span>
-                        <div className="space-y-1">
-                          {handoverEligibility.coOwnershipStatus.decisions.map((d: any, idx: number) => (
-                            <div key={idx} className="flex items-center justify-between text-[11px] p-2 bg-white border border-[#E8E4DA] rounded-lg">
-                              <span className="font-mono text-[#0B291E]">Người nhận #{d.recipientId.substring(0, 8)}...</span>
-                              {d.decision === "ACCEPTED" ? (
-                                <span className="text-emerald-700 font-bold flex items-center gap-1 text-[10px]">
-                                  <Check className="w-3 h-3" /> Đã đồng ý nhận
-                                </span>
-                              ) : d.decision === "REJECTED" ? (
-                                <span className="text-red-600 font-bold flex items-center gap-1 text-[10px]">
-                                  <AlertTriangle className="w-3 h-3" /> Đã từ chối nhận
-                                </span>
-                              ) : (
-                                <span className="text-amber-600 font-semibold text-[10px]">
-                                  Chờ quyết định
-                                </span>
-                              )}
-                            </div>
-                          ))}
+                    {handoverEligibility.coOwnershipStatus.decisions &&
+                      handoverEligibility.coOwnershipStatus.decisions.length > 0 && (
+                        <div className="space-y-1.5 pt-1">
+                          <span className="text-[10px] font-bold text-[#66786E] uppercase block">
+                            Tiến độ phản hồi từng thành viên:
+                          </span>
+                          <div className="space-y-1">
+                            {handoverEligibility.coOwnershipStatus.decisions.map(
+                              (d: CoBeneficiaryDecisionDto, idx: number) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center justify-between text-[11px] p-2 bg-white border border-[#E8E4DA] rounded-lg"
+                                >
+                                  <span className="font-mono text-[#0B291E]">
+                                    Người nhận #{(d.recipientId || d.beneficiaryId || "unknown").substring(0, 8)}...
+                                  </span>
+                                  {d.decision === "ACCEPTED" ? (
+                                    <span className="text-emerald-700 font-bold flex items-center gap-1 text-[10px]">
+                                      <Check className="w-3 h-3" /> Đã đồng ý nhận
+                                    </span>
+                                  ) : d.decision === "REJECTED" ? (
+                                    <span className="text-red-600 font-bold flex items-center gap-1 text-[10px]">
+                                      <AlertTriangle className="w-3 h-3" /> Đã từ chối nhận
+                                    </span>
+                                  ) : (
+                                    <span className="text-amber-600 font-semibold text-[10px]">Chờ quyết định</span>
+                                  )}
+                                </div>
+                              ),
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 )}
 
@@ -1220,7 +1252,8 @@ export const VideoVerificationTestbench: React.FC = () => {
                       <span>HỒ SƠ ĐANG TẠM GIỮ BỞI CHỦ KHO (RESCUE HOLD)</span>
                     </div>
                     <p className="text-[11px] text-red-600">
-                      Chủ sở hữu đã gửi lệnh cứu hộ khẩn cấp. Toàn bộ thao tác bàn giao và cấp phát khóa giải mã bị đóng băng vô điều kiện.
+                      Chủ sở hữu đã gửi lệnh cứu hộ khẩn cấp. Toàn bộ thao tác bàn giao và cấp phát khóa giải mã bị đóng
+                      băng vô điều kiện.
                     </p>
                   </div>
                 )}
@@ -1268,7 +1301,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                             onChange={(e) => setChecklist({ ...checklist, challengeSpoken: e.target.checked })}
                             className="mt-0.5 rounded text-[#0B291E] focus:ring-0"
                           />
-                          <span>Đã yêu cầu & người nhận đọc to chính xác mã: <strong>{challengeCode}</strong></span>
+                          <span>
+                            Đã yêu cầu & người nhận đọc to chính xác mã: <strong>{challengeCode}</strong>
+                          </span>
                         </label>
                         <label className="flex items-start gap-2 p-2 bg-[#FAF9F5] border border-[#DCD9D0] rounded-lg cursor-pointer hover:bg-[#F5F2EB] transition-colors">
                           <input
@@ -1301,9 +1336,13 @@ export const VideoVerificationTestbench: React.FC = () => {
                       <div className="space-y-2">
                         <button
                           onClick={handleExecutorAllowHandover}
-                          disabled={executorAllowing || handoverEligibility?.isRescueHeld || (handoverEligibility?.isExecutorAuthorized && verifierSavedPass)}
+                          disabled={
+                            executorAllowing ||
+                            handoverEligibility?.isRescueHeld ||
+                            (handoverEligibility?.isExecutorAuthorized && verifierSavedPass)
+                          }
                           className={`w-full py-3 px-4 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer ${
-                            (handoverEligibility?.isExecutorAuthorized || verifierSavedPass)
+                            handoverEligibility?.isExecutorAuthorized || verifierSavedPass
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-300 cursor-default"
                               : "bg-emerald-700 hover:bg-emerald-800 text-white"
                           } disabled:opacity-50`}
@@ -1312,9 +1351,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                           <span>
                             {executorAllowing
                               ? "Đang xác nhận trên hệ thống..."
-                              : (handoverEligibility?.isExecutorAuthorized || verifierSavedPass)
-                              ? "Đã Xác Nhận Người Nhận & Cho Phép Nhận Di Sản"
-                              : "Xác nhận người nhận & cho phép nhận di sản"}
+                              : handoverEligibility?.isExecutorAuthorized || verifierSavedPass
+                                ? "Đã Xác Nhận Người Nhận & Cho Phép Nhận Di Sản"
+                                : "Xác nhận người nhận & cho phép nhận di sản"}
                           </span>
                         </button>
 
@@ -1336,7 +1375,8 @@ export const VideoVerificationTestbench: React.FC = () => {
                       <div className="flex items-center justify-between text-[11px] font-bold text-[#0B291E]">
                         <span>Tiến độ tải & giải mã của Người nhận:</span>
                         <span className="font-mono text-[#B88E4C]">
-                          {downloadedAssetIds.length}/{(acceptResponse?.assets || handoverEligibility?.assets || []).length} tệp
+                          {downloadedAssetIds.length}/
+                          {(acceptResponse?.assets || handoverEligibility?.assets || []).length} tệp
                         </span>
                       </div>
                       <div className="w-full bg-[#EFECE6] h-2 rounded-full overflow-hidden">
@@ -1359,7 +1399,7 @@ export const VideoVerificationTestbench: React.FC = () => {
                           <span className="font-bold text-emerald-700 flex items-center gap-1">
                             <Check className="w-3 h-3" /> Đã hoàn tất & cấp biên nhận
                           </span>
-                        ) : (handoverEligibility?.isExecutorAuthorized || verifierSavedPass) ? (
+                        ) : handoverEligibility?.isExecutorAuthorized || verifierSavedPass ? (
                           <span className="text-amber-700">Đang chờ người nhận tải & xác nhận...</span>
                         ) : (
                           <span className="text-[#66786E]">Chờ Executor cấp phép</span>
@@ -1383,7 +1423,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                       {/* Chốt 1: Quyền từ Người thực thi */}
                       <div className="flex items-center justify-between p-2.5 rounded-lg border border-[#DCD9D0] bg-[#FAF9F5]">
                         <span className="flex items-center gap-2">
-                          {handoverEligibility?.isExecutorAuthorized || handoverEligibility?.isVerifierApproved || verifierSavedPass ? (
+                          {handoverEligibility?.isExecutorAuthorized ||
+                          handoverEligibility?.isVerifierApproved ||
+                          verifierSavedPass ? (
                             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                           ) : (
                             <Clock className="w-4 h-4 text-amber-500 animate-pulse shrink-0" />
@@ -1392,12 +1434,16 @@ export const VideoVerificationTestbench: React.FC = () => {
                         </span>
                         <strong
                           className={
-                            handoverEligibility?.isExecutorAuthorized || handoverEligibility?.isVerifierApproved || verifierSavedPass
+                            handoverEligibility?.isExecutorAuthorized ||
+                            handoverEligibility?.isVerifierApproved ||
+                            verifierSavedPass
                               ? "text-emerald-700"
                               : "text-amber-600"
                           }
                         >
-                          {handoverEligibility?.isExecutorAuthorized || handoverEligibility?.isVerifierApproved || verifierSavedPass
+                          {handoverEligibility?.isExecutorAuthorized ||
+                          handoverEligibility?.isVerifierApproved ||
+                          verifierSavedPass
                             ? "ĐÃ CHO PHÉP (PASS)"
                             : "Chờ Executor..."}
                         </strong>
@@ -1413,8 +1459,14 @@ export const VideoVerificationTestbench: React.FC = () => {
                           )}
                           <span>2. Khóa thời gian trễ (Time-Lock):</span>
                         </span>
-                        <strong className={!handoverEligibility?.isTimeLocked ? "text-emerald-700" : "text-amber-600 font-mono"}>
-                          {!handoverEligibility?.isTimeLocked ? "ĐÃ GIẢI TỎA" : `Còn ${handoverEligibility?.timeLockRemainingSeconds}s`}
+                        <strong
+                          className={
+                            !handoverEligibility?.isTimeLocked ? "text-emerald-700" : "text-amber-600 font-mono"
+                          }
+                        >
+                          {!handoverEligibility?.isTimeLocked
+                            ? "ĐÃ GIẢI TỎA"
+                            : `Còn ${handoverEligibility?.timeLockRemainingSeconds}s`}
                         </strong>
                       </div>
 
@@ -1466,9 +1518,12 @@ export const VideoVerificationTestbench: React.FC = () => {
 
                         {!(handoverEligibility?.isExecutorAuthorized || verifierSavedPass) ? (
                           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 text-center space-y-1">
-                            <p className="font-semibold">Vui lòng tương tác trực tiếp với Người thực thi qua video bên trái.</p>
+                            <p className="font-semibold">
+                              Vui lòng tương tác trực tiếp với Người thực thi qua video bên trái.
+                            </p>
                             <p className="text-[11px] text-amber-800">
-                              Nút <strong>“Chấp nhận & tải di sản”</strong> sẽ xuất hiện ngay sau khi Người thực thi kiểm tra CCCD và bấm cho phép.
+                              Nút <strong>“Chấp nhận & tải di sản”</strong> sẽ xuất hiện ngay sau khi Người thực thi
+                              kiểm tra CCCD và bấm cho phép.
                             </p>
                           </div>
                         ) : (
@@ -1478,11 +1533,11 @@ export const VideoVerificationTestbench: React.FC = () => {
                               disabled={
                                 isAcceptingHandover ||
                                 (!handoverEligibility?.canAccept &&
-                                !(
-                                  handoverEligibility?.isExecutorAuthorized &&
-                                  !handoverEligibility?.isRescueHeld &&
-                                  !handoverEligibility?.isTimeLocked
-                                ))
+                                  !(
+                                    handoverEligibility?.isExecutorAuthorized &&
+                                    !handoverEligibility?.isRescueHeld &&
+                                    !handoverEligibility?.isTimeLocked
+                                  ))
                               }
                               className="w-full py-3 bg-[#0B291E] hover:bg-[#14241C] text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                             >
@@ -1491,10 +1546,10 @@ export const VideoVerificationTestbench: React.FC = () => {
                                 {isAcceptingHandover
                                   ? "Đang ghi nhận quyết định..."
                                   : handoverEligibility?.coOwnershipStatus?.vaultStatus === "FROZEN_RECONSIDERATION"
-                                  ? "Đồng ý nhận kho (Suy nghĩ lại / Gỡ đóng băng)"
-                                  : acceptResponse?.isConsensusComplete === false
-                                  ? "Đã đồng ý (Cập nhật lại)"
-                                  : "Chấp nhận & nhận kho di sản"}
+                                    ? "Đồng ý nhận kho (Suy nghĩ lại / Gỡ đóng băng)"
+                                    : acceptResponse?.isConsensusComplete === false
+                                      ? "Đã đồng ý (Cập nhật lại)"
+                                      : "Chấp nhận & nhận kho di sản"}
                               </span>
                             </button>
 
@@ -1520,7 +1575,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                               <span>ĐÃ GHI NHẬN ĐỒNG Ý - ĐANG CHỜ CÁC THÀNH VIÊN KHÁC</span>
                             </div>
                             <p className="text-[10px] text-amber-800 leading-relaxed">
-                              Theo quy định <strong>Đồng sở hữu (SRS v3.11.0)</strong>, mọi người nhận trong nhóm phải cùng xác minh và đồng ý trước khi hệ thống cam kết bàn giao nguyên tử và cấp Grant tải tệp.
+                              Theo quy định <strong>Đồng sở hữu (SRS v3.11.0)</strong>, mọi người nhận trong nhóm phải
+                              cùng xác minh và đồng ý trước khi hệ thống cam kết bàn giao nguyên tử và cấp Grant tải
+                              tệp.
                             </p>
                           </div>
                         )}
@@ -1541,63 +1598,76 @@ export const VideoVerificationTestbench: React.FC = () => {
                         </div>
 
                         <p className="text-[11px] text-emerald-900 leading-relaxed">
-                          Dữ liệu được giải mã an toàn trong bộ nhớ máy. Vui lòng kiểm tra trạng thái từng tệp trước khi xác nhận hoàn tất.
+                          Dữ liệu được giải mã an toàn trong bộ nhớ máy. Vui lòng kiểm tra trạng thái từng tệp trước khi
+                          xác nhận hoàn tất.
                         </p>
 
                         <div className="space-y-2 pt-1">
-                          {(acceptResponse.assets || handoverEligibility?.assets || []).map((asset: any) => {
-                            const isDownloaded = downloadedAssetIds.includes(asset.assetId) || decryptedFiles[asset.assetId];
-                            const isDownloading = downloadingAssetId === asset.assetId;
+                          {(acceptResponse.assets || handoverEligibility?.assets || []).map(
+                            (asset: HandoverAssetDto) => {
+                              const isDownloaded =
+                                downloadedAssetIds.includes(asset.assetId) || decryptedFiles[asset.assetId];
+                              const isDownloading = downloadingAssetId === asset.assetId;
 
-                            return (
-                              <div
-                                key={asset.assetId}
-                                className="bg-white p-3 rounded-lg border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs shadow-2xs"
-                              >
-                                <div>
-                                  <div className="flex items-center gap-2">
-                                    <strong className="text-[#0B291E] font-mono text-[11px]">{asset.title}</strong>
-                                    {asset.isMandatory !== false && (
-                                      <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-semibold">
-                                        Bắt buộc
-                                      </span>
-                                    )}
-                                  </div>
-                                  <span className="text-[10px] text-[#66786E] block mt-0.5">
-                                    {asset.category} • {Math.round(asset.fileSizeBytes / 1024)} KB
-                                  </span>
-
-                                  {/* Trạng thái từng file */}
-                                  <div className="mt-1 flex items-center gap-1.5 text-[10px]">
-                                    {isDownloaded ? (
-                                      <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Đã lưu thành công vào thiết bị
-                                      </span>
-                                    ) : isDownloading ? (
-                                      <span className="text-blue-700 font-semibold flex items-center gap-1">
-                                        <RefreshCw className="w-3 h-3 animate-spin text-blue-600" /> Đang mô phỏng giải mã AES-GCM (Prototype)...
-                                      </span>
-                                    ) : (
-                                      <span className="text-[#66786E] flex items-center gap-1">
-                                        <Clock className="w-3 h-3 text-amber-500" /> Chưa tải
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <button
-                                  onClick={() => handleDecryptAndDownload(asset)}
-                                  disabled={isDownloading}
-                                  className="px-3 py-1.5 bg-[#0B291E] hover:bg-[#14241C] text-white font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 text-[11px] cursor-pointer disabled:opacity-50 shrink-0"
+                              return (
+                                <div
+                                  key={asset.assetId}
+                                  className="bg-white p-3 rounded-lg border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs shadow-2xs"
                                 >
-                                  <Download className="w-3.5 h-3.5 text-[#B88E4C]" />
-                                  <span>
-                                    {isDownloading ? "Đang xử lý..." : isDownloaded ? "Tải lại file" : "Giải mã & Tải về [Mô phỏng]"}
-                                  </span>
-                                </button>
-                              </div>
-                            );
-                          })}
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <strong className="text-[#0B291E] font-mono text-[11px]">
+                                        {asset.title || asset.fileName || "Tệp di sản"}
+                                      </strong>
+                                      {asset.isMandatory !== false && (
+                                        <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded font-semibold">
+                                          Bắt buộc
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="text-[10px] text-[#66786E] block mt-0.5">
+                                      {asset.category || "Tài sản số"} •{" "}
+                                      {asset.fileSizeBytes ? Math.round(asset.fileSizeBytes / 1024) : 0} KB
+                                    </span>
+
+                                    {/* Trạng thái từng file */}
+                                    <div className="mt-1 flex items-center gap-1.5 text-[10px]">
+                                      {isDownloaded ? (
+                                        <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Đã lưu thành công vào
+                                          thiết bị
+                                        </span>
+                                      ) : isDownloading ? (
+                                        <span className="text-blue-700 font-semibold flex items-center gap-1">
+                                          <RefreshCw className="w-3 h-3 animate-spin text-blue-600" /> Đang mô phỏng
+                                          giải mã AES-GCM (Prototype)...
+                                        </span>
+                                      ) : (
+                                        <span className="text-[#66786E] flex items-center gap-1">
+                                          <Clock className="w-3 h-3 text-amber-500" /> Chưa tải
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <button
+                                    onClick={() => handleDecryptAndDownload(asset)}
+                                    disabled={isDownloading}
+                                    className="px-3 py-1.5 bg-[#0B291E] hover:bg-[#14241C] text-white font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 text-[11px] cursor-pointer disabled:opacity-50 shrink-0"
+                                  >
+                                    <Download className="w-3.5 h-3.5 text-[#B88E4C]" />
+                                    <span>
+                                      {isDownloading
+                                        ? "Đang xử lý..."
+                                        : isDownloaded
+                                          ? "Tải lại file"
+                                          : "Giải mã & Tải về [Mô phỏng]"}
+                                    </span>
+                                  </button>
+                                </div>
+                              );
+                            },
+                          )}
                         </div>
 
                         {/* BƯỚC 6: XÁC NHẬN HOÀN TẤT */}
@@ -1606,17 +1676,24 @@ export const VideoVerificationTestbench: React.FC = () => {
                             <span>Bước 6: Xác nhận hoàn tất & đóng phiên</span>
                             <span className="font-mono text-[10px] text-emerald-800">
                               {downloadedAssetIds.length}/
-                              {(acceptResponse.assets || handoverEligibility?.assets || []).filter((a: any) => a.isMandatory !== false).length} tệp bắt buộc
+                              {
+                                (acceptResponse.assets || handoverEligibility?.assets || []).filter(
+                                  (a: HandoverAssetDto) => a.isMandatory !== false,
+                                ).length
+                              }{" "}
+                              tệp bắt buộc
                             </span>
                           </div>
 
                           {(() => {
-                            const mandatoryAssets = (acceptResponse?.assets || handoverEligibility?.assets || []).filter(
-                              (a: any) => a.isMandatory !== false,
-                            );
+                            const mandatoryAssets = (
+                              acceptResponse?.assets ||
+                              handoverEligibility?.assets ||
+                              []
+                            ).filter((a: HandoverAssetDto) => a.isMandatory !== false);
                             const allMandatoryDone =
                               mandatoryAssets.length > 0 &&
-                              mandatoryAssets.every((a: any) => downloadedAssetIds.includes(a.assetId));
+                              mandatoryAssets.every((a: HandoverAssetDto) => downloadedAssetIds.includes(a.assetId));
 
                             return (
                               <div className="space-y-3">
@@ -1655,7 +1732,8 @@ export const VideoVerificationTestbench: React.FC = () => {
                                     )}
                                   </div>
                                   <p className="text-[10px] text-[#66786E]">
-                                    Chữ ký điện tử được băm mã hóa SHA-256 gắn liền với nội dung biên nhận và lưu vết trong phiên làm việc của hệ thống prototype.
+                                    Chữ ký điện tử được băm mã hóa SHA-256 gắn liền với nội dung biên nhận và lưu vết
+                                    trong phiên làm việc của hệ thống prototype.
                                   </p>
                                 </div>
 
@@ -1669,14 +1747,15 @@ export const VideoVerificationTestbench: React.FC = () => {
                                     {isFinalizing
                                       ? "Đang lưu biên nhận & đóng phiên..."
                                       : !hasDrawnSignature
-                                      ? "Vui lòng ký tên vào ô trên để hoàn tất"
-                                      : "Tôi xác nhận đã nhận đầy đủ & Ký biên nhận điện tử"}
+                                        ? "Vui lòng ký tên vào ô trên để hoàn tất"
+                                        : "Tôi xác nhận đã nhận đầy đủ & Ký biên nhận điện tử"}
                                   </span>
                                 </button>
 
                                 {!allMandatoryDone && (
                                   <p className="text-[10px] text-amber-800 text-center italic">
-                                    (Vui lòng tải & giải mã toàn bộ {mandatoryAssets.length} tệp bắt buộc ở trên để kích hoạt ký nhận.)
+                                    (Vui lòng tải & giải mã toàn bộ {mandatoryAssets.length} tệp bắt buộc ở trên để kích
+                                    hoạt ký nhận.)
                                   </p>
                                 )}
                               </div>
@@ -1778,7 +1857,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                 <label className="text-xs font-bold text-[#0B291E]">Phán quyết của Verifier:</label>
                 <select
                   value={verdictOutcome}
-                  onChange={(e) => setVerdictOutcome(e.target.value as any)}
+                  onChange={(e) =>
+                    setVerdictOutcome(e.target.value as "PASS" | "FAIL" | "REQUIRE_MORE_DOCS" | "INCONCLUSIVE")
+                  }
                   className="w-full bg-[#FAF9F5] border border-[#DCD9D0] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#0B291E] focus:ring-1 focus:ring-[#B88E4C]"
                 >
                   <option value="PASS">✅ VERIFIED_MANUAL (Đạt - Xác minh thành công)</option>
@@ -1859,9 +1940,7 @@ export const VideoVerificationTestbench: React.FC = () => {
               <h3 className="text-base font-extrabold text-[#0B291E] uppercase tracking-wider">
                 Biên Nhận Bàn Giao Di Sản Số
               </h3>
-              <p className="text-xs text-[#66786E]">
-                Xác nhận hoàn tất lễ bàn giao 7 bước trong phòng gọi video
-              </p>
+              <p className="text-xs text-[#66786E]">Xác nhận hoàn tất lễ bàn giao 7 bước trong phòng gọi video</p>
             </div>
 
             <div className="bg-[#FAF9F5] border border-[#DCD9D0] rounded-xl p-4 text-xs space-y-2.5">
@@ -1873,9 +1952,7 @@ export const VideoVerificationTestbench: React.FC = () => {
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-[#EFECE6]">
                 <span className="text-[#66786E]">Thời gian nhận:</span>
-                <strong className="text-[#0B291E]">
-                  {new Date(finalReceipt.receivedAt).toLocaleString("vi-VN")}
-                </strong>
+                <strong className="text-[#0B291E]">{new Date(finalReceipt.receivedAt).toLocaleString("vi-VN")}</strong>
               </div>
               <div className="flex justify-between items-center pb-2 border-b border-[#EFECE6]">
                 <span className="text-[#66786E]">Người thụ hưởng:</span>
@@ -1912,7 +1989,9 @@ export const VideoVerificationTestbench: React.FC = () => {
                   </div>
                   {finalReceipt.signatureHash && (
                     <div className="text-left pt-1">
-                      <span className="text-[9px] text-[#66786E] block font-semibold">Mã băm chữ ký (SignatureHash):</span>
+                      <span className="text-[9px] text-[#66786E] block font-semibold">
+                        Mã băm chữ ký (SignatureHash):
+                      </span>
                       <code className="text-[9px] bg-amber-50 border border-amber-200 p-1 rounded block break-all text-amber-950 font-mono">
                         SHA256:{finalReceipt.signatureHash}
                       </code>
@@ -1931,7 +2010,9 @@ export const VideoVerificationTestbench: React.FC = () => {
             </div>
 
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 leading-relaxed">
-              <strong>Lưu ý:</strong> Biên nhận này ghi nhận việc nhận đầy đủ các tệp di sản số trong phiên làm việc. Dữ liệu biên nhận hiện được lưu trữ trong phiên runtime của hệ thống prototype. Phiên khách đã được thu hồi và phòng gọi sẽ đóng lại.
+              <strong>Lưu ý:</strong> Biên nhận này ghi nhận việc nhận đầy đủ các tệp di sản số trong phiên làm việc. Dữ
+              liệu biên nhận hiện được lưu trữ trong phiên runtime của hệ thống prototype. Phiên khách đã được thu hồi
+              và phòng gọi sẽ đóng lại.
             </div>
 
             <div className="pt-2 flex gap-2">

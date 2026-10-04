@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { axiosClient } from '@/shared/api/axiosClient';
 import { HeritageCard } from '@/shared/ui/HeritageCard';
 import { HeritageButton } from '@/shared/ui/HeritageButton';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
 import { Shield, Key, FileCheck, Lock, Unlock, AlertCircle, Cloud, Database } from 'lucide-react';
 import { LivePipelineProgress, type PipelineStage } from '@/shared/ui/LivePipelineProgress';
+import { getErrorMessage } from '@/shared/lib/errorUtils';
 
 interface EncryptMetadata {
   assetId: string;
@@ -69,9 +71,8 @@ export const CryptoEnvelopeTestbench: React.FC = () => {
       setFullCiphertextBase64(response.data.fullCiphertextBase64 || '');
       setCiphertextBytes(response.data.ciphertextLengthBytes);
       setRawDekSample(response.data.rawDekSampleBase64);
-    } catch (err: any) {
-      const detail = err.response?.data?.detail || err.message || 'Lỗi mã hóa tệp tin.';
-      setErrorMessage(detail);
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsEncrypting(false);
     }
@@ -102,18 +103,24 @@ export const CryptoEnvelopeTestbench: React.FC = () => {
       const blobUrl = URL.createObjectURL(response.data);
       setDecryptedBlobUrl(blobUrl);
       setDecryptedSuccess(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       let detail = 'Giải mã thất bại do Tag GCM không khớp.';
-      if (err.response?.data instanceof Blob) {
-        try {
-          const text = await err.response.data.text();
-          const json = JSON.parse(text);
-          if (json.detail) detail = json.detail;
-        } catch {
-          // ignore
+      if (axios.isAxiosError(err)) {
+        if (err.response?.data instanceof Blob) {
+          try {
+            const text = await err.response.data.text();
+            const json = JSON.parse(text);
+            if (json.detail) detail = json.detail;
+          } catch {
+            // ignore
+          }
+        } else if (err.response?.data?.detail) {
+          detail = err.response.data.detail;
+        } else if (err.message) {
+          detail = err.message;
         }
-      } else if (err.response?.data?.detail) {
-        detail = err.response.data.detail;
+      } else {
+        detail = getErrorMessage(err);
       }
       setErrorMessage(detail);
     } finally {

@@ -4,6 +4,7 @@ import { HeritageCard } from '@/shared/ui/HeritageCard';
 import { HeritageButton } from '@/shared/ui/HeritageButton';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
 import { Mail, Send, AlertTriangle, Key, CheckCircle, RefreshCw } from 'lucide-react';
+import { getErrorMessage } from '@/shared/lib/errorUtils';
 
 interface DispatchedEmail {
   toEmail: string;
@@ -106,8 +107,8 @@ export const MailKitTestbench: React.FC = () => {
         setErrorMessage(res.data.message || res.data.errorDetails || 'Gửi email thất bại.');
       }
       fetchRecentEmails();
-    } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || err.message || 'Lỗi kết nối tới SMTP server.');
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsSendingAlert(false);
     }
@@ -141,8 +142,8 @@ export const MailKitTestbench: React.FC = () => {
         setErrorMessage(res.data.message || res.data.errorDetails || 'Gửi email OTP thất bại.');
       }
       fetchRecentEmails();
-    } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || err.message || 'Lỗi kết nối tới SMTP server.');
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsSendingOtp(false);
     }

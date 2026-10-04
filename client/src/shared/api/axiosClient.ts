@@ -16,9 +16,12 @@ axiosClient.interceptors.request.use(
       config.headers['X-Correlation-ID'] = crypto.randomUUID();
     }
 
-    // 2. Ngữ cảnh vai trò UI (Backend Zero-Trust không dùng header này để phân quyền)
+    // 2. Ngữ cảnh vai trò UI và User ID (Backend Zero-Trust mô phỏng RBAC/ABAC)
     if (!config.headers['X-Active-Role']) {
       config.headers['X-Active-Role'] = 'OWNER';
+    }
+    if (!config.headers['X-User-Id']) {
+      config.headers['X-User-Id'] = 'usr-demo-owner-001';
     }
 
     // 3. Demo mode header
@@ -29,12 +32,15 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: chuẩn hóa lỗi RFC 7807 ProblemDetails
+// Response Interceptor: chuẩn hóa lỗi RFC 7807 ProblemDetails và liên kết Correlation ID
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    const correlationId = error.config?.headers?.['X-Correlation-ID'] || error.response?.headers?.['x-correlation-id'];
     if (error.response?.data) {
-      console.warn('[API RFC 7807 ProblemDetails]:', error.response.data);
+      console.warn(`[API RFC 7807 ProblemDetails][CorrelationId: ${correlationId}]:`, error.response.data);
+    } else {
+      console.error(`[API Network/Server Error][CorrelationId: ${correlationId}]:`, error.message);
     }
     return Promise.reject(error);
   }

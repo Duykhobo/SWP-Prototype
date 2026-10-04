@@ -4,6 +4,7 @@ import { HeritageCard } from '@/shared/ui/HeritageCard';
 import { HeritageButton } from '@/shared/ui/HeritageButton';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
 import { Clock, ShieldAlert, CheckCircle, XCircle, RefreshCw, AlertTriangle } from 'lucide-react';
+import { getErrorMessage } from '@/shared/lib/errorUtils';
 
 interface TimeLockStatus {
   caseId: string;
@@ -52,8 +53,8 @@ export const RescueTimeLockTestbench: React.FC = () => {
       setStatus(res.data.status);
       setIsDemoMode(nextMode);
       setActionFeedback(res.data.message);
-    } catch (err: any) {
-      console.error(err);
+    } catch (err: unknown) {
+      setActionFeedback(getErrorMessage(err));
     }
   };
 
@@ -65,8 +66,8 @@ export const RescueTimeLockTestbench: React.FC = () => {
       });
       setStatus(res.data);
       setActionFeedback('Đã đặt lại đồng hồ đếm ngược Time-Lock.');
-    } catch (err) {
-      console.error(err);
+    } catch (err: unknown) {
+      setActionFeedback(getErrorMessage(err));
     }
   };
 
@@ -80,8 +81,8 @@ export const RescueTimeLockTestbench: React.FC = () => {
       });
       setStatus(res.data.status);
       setActionFeedback(res.data.message);
-    } catch (err: any) {
-      console.error(err);
+    } catch (err: unknown) {
+      setActionFeedback(getErrorMessage(err));
     } finally {
       setIsSubmittingClaim(false);
     }
@@ -100,8 +101,8 @@ export const RescueTimeLockTestbench: React.FC = () => {
       });
       setStatus(res.data.status);
       setActionFeedback(res.data.message);
-    } catch (err: any) {
-      console.error(err);
+    } catch (err: unknown) {
+      setActionFeedback(getErrorMessage(err));
     } finally {
       setIsAdjudicating(false);
     }

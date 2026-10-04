@@ -14,6 +14,7 @@ import {
 import { HeritageCard } from '@/shared/ui/HeritageCard';
 import { HeritageButton } from '@/shared/ui/HeritageButton';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
+import { getErrorMessage } from '@/shared/lib/errorUtils';
 import {
   KeyRound,
   ShieldAlert,
@@ -189,12 +190,12 @@ export const ShamirTestbench: React.FC = () => {
         recoveredSecret: recovered,
         message: 'Khôi phục Master KEK thành công 100%! Đủ 2/3 mảnh theo chính sách phân quyền.',
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLagrangeTrace(null);
       setSimulationResult({
         scenario: 'Giải mã hợp pháp',
         success: false,
-        message: err.message,
+        message: getErrorMessage(err),
       });
     }
   };
@@ -211,12 +212,12 @@ export const ShamirTestbench: React.FC = () => {
         recoveredSecret: recovered,
         message: 'Khôi phục Master KEK thành công 100% khi Người thụ hưởng xuất trình Mảnh cứu hộ hợp lệ!',
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLagrangeTrace(null);
       setSimulationResult({
         scenario: 'Bàn giao di sản',
         success: false,
-        message: err.message,
+        message: getErrorMessage(err),
       });
     }
   };
@@ -236,12 +237,12 @@ export const ShamirTestbench: React.FC = () => {
         message:
           'PHÁT HIỆN GIẢ MẠO: Toán học Lagrange tính ra kết quả rác, chuyển tiếp sang tầng AES-256-GCM Auth Tag 128-bit sẽ lập tức kích hoạt lỗi CryptographicException từ chối mở két!',
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setLagrangeTrace(null);
       setSimulationResult({
         scenario: 'Thử nghiệm giả mạo',
         success: false,
-        message: err.message,
+        message: getErrorMessage(err),
       });
     }
   };

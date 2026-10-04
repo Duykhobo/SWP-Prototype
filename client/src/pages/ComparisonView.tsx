@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ProMaxDashboardPage } from '@/pages/promax/ProMaxDashboardPage';
-import type { AssetItem } from '@/components/modals/NewAssetModal';
+import type { AssetItem } from '@/entities/asset';
 
 interface ComparisonViewProps {
   daysRemaining: number;

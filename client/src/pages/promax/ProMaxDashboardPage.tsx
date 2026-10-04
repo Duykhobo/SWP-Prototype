@@ -26,7 +26,7 @@ import {
   Layers,
   Key
 } from 'lucide-react';
-import type { AssetItem } from '@/components/modals/NewAssetModal';
+import type { AssetItem } from '@/entities/asset';
 
 interface ProMaxDashboardPageProps {
   daysRemaining: number;

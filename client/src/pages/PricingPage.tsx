@@ -15,7 +15,7 @@ import {
   QrCode,
   ArrowRight
 } from 'lucide-react';
-import { SePayPaymentModal } from '@/components/modals/SePayPaymentModal';
+import { SePayPaymentModal } from '@/features/payment-sepay';
 
 interface PricingPageProps {
   currentPlan: string;
@@ -424,7 +424,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
                     alert('Gói Recipient Free được áp dụng mặc định cho mọi người nhận.');
                   } else {
                     setSelectedPlanForPayment({
-                      id: plan.id as any,
+                      id: plan.id,
                       name: plan.name,
                       priceFormatted: plan.price,
                       amount: plan.amount,

@@ -23,7 +23,7 @@ import {
   ShieldAlert,
   HardDrive
 } from 'lucide-react';
-import type { AssetItem } from '@/components/modals/NewAssetModal';
+import type { AssetItem } from '@/entities/asset';
 
 interface VaultsPageProps {
   assets: AssetItem[];

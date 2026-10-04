@@ -5,6 +5,7 @@ import { HeritageCard } from '@/shared/ui/HeritageCard';
 import { HeritageButton } from '@/shared/ui/HeritageButton';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
 import { QrCode, CreditCard, CheckCircle2, Clock, PlayCircle, AlertCircle } from 'lucide-react';
+import { getErrorMessage } from '@/shared/lib/errorUtils';
 
 interface PaymentOrder {
   id: string;
@@ -55,8 +56,8 @@ export const SePayTestbench: React.FC = () => {
         planTier: selectedTier,
       });
       setActiveOrder(res.data.order);
-    } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || err.message);
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsCreatingOrder(false);
     }
@@ -92,8 +93,8 @@ export const SePayTestbench: React.FC = () => {
       // Lấy lại trạng thái đơn hàng
       const updated = await axiosClient.get(`/api/v1/payment/orders/${activeOrder.id}`);
       setActiveOrder(updated.data);
-    } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || err.message);
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsSimulatingWebhook(false);
     }
@@ -110,8 +111,8 @@ export const SePayTestbench: React.FC = () => {
         `/api/v1/demo/payment-orders/${activeOrder.id}/simulate-success`
       );
       setActiveOrder(res.data.order);
-    } catch (err: any) {
-      setErrorMessage(err.response?.data?.detail || err.message);
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsSimulatingDemo(false);
     }
@@ -136,7 +137,7 @@ export const SePayTestbench: React.FC = () => {
               return (
                 <div
                   key={key}
-                  onClick={() => setSelectedTier(key as any)}
+                  onClick={() => setSelectedTier(key as keyof typeof SUBSCRIPTION_TIERS)}
                   className={`p-4 rounded-xl border cursor-pointer transition-all ${
                     isSelected
                       ? 'bg-[#FBF7EE] border-[#B88E4C] shadow-xs ring-1 ring-[#B88E4C]'

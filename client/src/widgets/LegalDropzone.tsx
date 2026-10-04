@@ -8,6 +8,8 @@ import { HeritageButton } from '@/shared/ui/HeritageButton';
 import { HeritageBadge } from '@/shared/ui/HeritageBadge';
 import { UploadCloud, FileCheck, AlertTriangle } from 'lucide-react';
 
+import { getErrorMessage } from '@/shared/lib/errorUtils';
+
 interface LegalDropzoneProps {
   onFileHashed?: (file: File, sha256: string) => void;
   maxSizeBytes?: number;
@@ -53,8 +55,8 @@ export const LegalDropzone: React.FC<LegalDropzoneProps> = ({
       if (onFileHashed) {
         onFileHashed(selected, hash);
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Lỗi băm SHA-256 tệp tin.');
+    } catch (err: unknown) {
+      setErrorMessage(getErrorMessage(err));
     } finally {
       setIsHashing(false);
     }

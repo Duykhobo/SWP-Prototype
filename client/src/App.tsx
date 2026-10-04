@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { MainNavbar, type MainNavTab } from '@/components/navigation/MainNavbar';
+import { MainNavbar, type MainNavTab } from '@/widgets/MainNavbar';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ProMaxDashboardPage } from '@/pages/promax/ProMaxDashboardPage';
 import { VaultsPage } from '@/pages/VaultsPage';
@@ -12,7 +12,8 @@ import { RecipientPage } from '@/pages/RecipientPage';
 import { PricingPage } from '@/pages/PricingPage';
 import { ComparisonView } from '@/pages/ComparisonView';
 import { TestbenchPage } from '@/pages/TestbenchPage';
-import { NewAssetModal, type AssetItem } from '@/components/modals/NewAssetModal';
+import { NewAssetModal } from '@/widgets/NewAssetModal';
+import type { AssetItem } from '@/entities/asset';
 import { ErrorBoundary } from '@/shared/ui/ErrorBoundary';
 import { ShieldCheck, Zap } from 'lucide-react';
 
